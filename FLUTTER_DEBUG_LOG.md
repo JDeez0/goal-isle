@@ -119,7 +119,9 @@ python3 -m http.server 8094
 After removing `supabase_flutter`, the WASM dry run **succeeded** (previously it reported `ua_client_hints` as incompatible). This confirms `supabase_flutter` (or its transitive dependency `url_launcher_web`) was the source of the WASM warning.
 
 ### Result
-**Pending browser test.** Latest build served on http://localhost:8094
+**✅ SUCCESS.** The Flutter web app now renders correctly in Firefox at http://localhost:8094. The blank white screen is gone.
+
+The root cause of the persistent null check error was the **transitive web plugin `ua_client_hints`** pulled in by `supabase_flutter`. Even though Supabase was never initialized in `main.dart`, the web plugin registration code still ran during bootstrap and threw a null check failure. Removing `supabase_flutter` eliminated `ua_client_hints` and the app finally rendered.
 
 ---
 
@@ -179,4 +181,4 @@ Of these, only `cached_network_image` and `shared_preferences` register web plug
 
 ---
 
-*Last updated: June 22, 2026 — after Attempt 4, awaiting browser verification on port 8094.*
+*Last updated: June 22, 2026 — Flutter web app confirmed rendering successfully in browser.*
