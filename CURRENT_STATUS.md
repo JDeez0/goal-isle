@@ -10,8 +10,10 @@
 ### 1. Flutter Web App — RENDERS IN BROWSER
 - **Run it:**
   ```bash
-  cd /home/jasper/projects/goal_isle/build/web
-  python3 -m http.server 8094
+  cd /home/jasper/projects/goal_isle
+  flutter run -d chrome
+  # Or serve the existing build:
+  cd build/web && python3 -m http.server 8094
   ```
 - **Open:** http://localhost:8094
 - **Status:** ✅ Verified rendering in Firefox
@@ -27,12 +29,11 @@
   python3 -m http.server 9999
   ```
 - **Open:** http://localhost:9999/goal_isle_working_mockup.html
-- **Features:** 3 isles, task filling, create isles, modals, chat placeholder
 
 ### 3. Local Git Repo
 - Remote: `git@github.com:JDeez0/goal-isle.git`
 - Branch: `main`
-- Latest commit: `0c3d16d` (pushed)
+- Latest commit: `010eeb0` (pushed)
 
 ---
 
@@ -52,6 +53,8 @@ The Flutter app now renders in the browser. The root cause was a **null check fa
 
 The combination of these removed plugins' web registration code (particularly the transitive `ua_client_hints` from `supabase_flutter`) was throwing a null check error during the Flutter engine bootstrap.
 
+See `FLUTTER_DEBUG_LOG.md` for the full attempt-by-attempt record.
+
 ---
 
 ## ⚠️ Remaining Issues
@@ -64,14 +67,27 @@ The combination of these removed plugins' web registration code (particularly th
 
 ## 📚 Documentation Notes
 
-Some markdown files contradict each other because they were written at different phases of debugging:
+The doc set was consolidated on June 22. Many older files were moved to `docs/archive/`.
 
-- `DEBUGGING_SUMMARY.md`, `STRUCTURAL_ANALYSIS.md`, `ROOT_CAUSE_RESOLUTION.md`, `ADDITIONAL_FIXES.md` — describe the debugging journey and earlier fixes. They were **optimistic**; the app still failed at runtime due to the Riverpod build-time state mutation.
-- `HONEST_ASSESSMENT.md`, `MASTER_INDEX.md`, `RESUME_WORK_GUIDE.md` — describe the pivot to the HTML mockup. This was the right call at the time, but the Flutter app is now working and is the source of truth for the design.
-- `FLUTTER_DEBUG_LOG.md` — records every step taken to make Flutter render, including the successful final fix.
-- `UI_DEVELOPMENT_PLAN.md` — the plan for designing the app from scratch in Flutter using hot reload.
+### Current docs (use these)
 
-**This file (`CURRENT_STATUS.md`) is the single source of truth as of the last update.**
+| Doc | Purpose |
+|---|---|
+| `README.md` | Project root, comprehensive entry point |
+| `CURRENT_STATUS.md` | This file — project state, source of truth |
+| `UI_DEVELOPMENT_PLAN.md` | 7-phase plan for UI work |
+| `FLUTTER_DEBUG_LOG.md` | Debugging history that got Flutter rendering |
+| `docs/ARCHITECTURE.md` | Code architecture |
+| `docs/DEVELOPMENT.md` | How to develop |
+| `docs/HISTORY.md` | Project timeline |
+| `docs/design/VISION.md` | The vibe and core metaphor |
+| `docs/design/SCREENS.md` | Screen inventory |
+| `docs/design/TOKENS.md` | Design tokens |
+| `docs/design/README.md` | Design docs index |
+
+### Archived docs (do not use)
+
+See `docs/archive/README.md` for the full list. These were written before the actual root cause was discovered and contain contradictory information.
 
 ---
 
@@ -80,12 +96,12 @@ Some markdown files contradict each other because they were written at different
 ### Immediate
 1. ✅ ~~Open the Flutter build in a browser to visually verify it works.~~ DONE — confirmed rendering.
 2. ✅ ~~Decide whether to use HTML mockups or Flutter for UI iteration.~~ DONE — Flutter with hot reload (see `UI_DEVELOPMENT_PLAN.md`).
-3. Start Phase 1 of the UI plan: design from scratch in Flutter, no reference to the HTML mockup.
+3. ✅ ~~Define the design intent.~~ DONE — `docs/design/VISION.md`, `SCREENS.md`, `TOKENS.md` (minimal, literal, clean/cool).
+4. **Start Phase 2 of the UI plan:** create `lib/theme/tokens.dart` and `lib/theme/app_theme.dart` so visual changes are one-line edits.
 
 ### Short Term
-4. Define the design intent in `docs/design/VISION.md`, `SCREENS.md`, `TOKENS.md`.
-5. Build design tokens in `lib/theme/tokens.dart` so visual changes are one-line edits.
-6. Extract the widget library and use Widget Previews for isolated iteration.
+5. Extract the widget library and use Widget Previews for isolated iteration.
+6. Build screens using tokens and widgets.
 
 ### Long Term
 7. After the design is locked (Phase 7), make architecture decisions: backend, platform target, data models.
@@ -93,4 +109,4 @@ Some markdown files contradict each other because they were written at different
 
 ---
 
-*Last updated: June 22, 2026 — Flutter web app now renders successfully.*
+*Last updated: June 22, 2026 — Flutter web app renders; design phase ready to begin.*

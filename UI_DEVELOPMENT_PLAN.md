@@ -156,21 +156,20 @@ You started this project before **Flutter web hot reload became default in Flutt
 
 ---
 
-### Phase 4 — Screen-by-screen port from mockup to Flutter
+### Phase 4 — Screen-by-screen build
 
-**Goal:** Reproduce every screen in the HTML mockup, using the new tokens and widgets.
+**Goal:** Build every screen in the Flutter app, using the new tokens and widgets. The HTML mockup is not a reference — the design comes from `docs/design/SCREENS.md` and your own taste.
 
 **Steps:**
-1. List every screen and modal in `docs/design-reference/README.md`.
+1. List every screen and modal in `docs/design/SCREENS.md` (already done).
 2. For each screen, in order of user flow:
-   - Read the corresponding mockup screenshot.
    - Open the Flutter screen file.
-   - Reproduce the layout using widgets from Phase 3 and tokens from Phase 2.
-   - Use hot reload to tweak until it matches the mockup.
-   - Mark as "DONE" in the design reference doc.
-3. Start with the home screen (isles grid), then create flow, then isle detail, then chat, then auth.
+   - Build the layout using widgets from Phase 3 and tokens from Phase 2.
+   - Use hot reload to tweak until the screen matches your intent.
+   - Mark as "DONE" in `docs/design/SCREENS.md` when satisfied.
+3. Start with the home screen (isles grid), then create flow, then isle detail, then chat, then friends.
 
-**Outcome:** Every screen in the mockup has a Flutter counterpart.
+**Outcome:** Every screen in `docs/design/SCREENS.md` has a working Flutter counterpart.
 
 ---
 
@@ -200,7 +199,7 @@ You started this project before **Flutter web hot reload became default in Flutt
 **Steps:**
 1. Run the app on `flutter run -d chrome`.
 2. Walk through every user flow end-to-end.
-3. Note friction points in `docs/design-reference/feedback.md`.
+3. Note friction points in `docs/design/feedback.md`.
 4. Tweak and retest until the feel is right.
 5. Capture before/after screenshots for the record.
 
