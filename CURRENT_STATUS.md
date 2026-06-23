@@ -18,9 +18,10 @@
 - **Build:** `flutter build web --no-tree-shake-icons` ✅
 - **Test:** `flutter test` ✅ passes
 
-### 2. HTML/CSS/JS Mockup — Still Functional
+### 2. HTML/CSS/JS Mockup — Archived
 - **File:** `goal_isle_working_mockup.html`
-- **Run it:**
+- **Status:** Kept in repo as an archive of an earlier design exploration. **No longer the visual reference for the Flutter app.** The Flutter codebase defines its own look and feel independently.
+- **Run it (only if you want to see the archive):**
   ```bash
   cd /home/jasper/projects/goal_isle
   python3 -m http.server 9999
@@ -66,8 +67,9 @@ The combination of these removed plugins' web registration code (particularly th
 Some markdown files contradict each other because they were written at different phases of debugging:
 
 - `DEBUGGING_SUMMARY.md`, `STRUCTURAL_ANALYSIS.md`, `ROOT_CAUSE_RESOLUTION.md`, `ADDITIONAL_FIXES.md` — describe the debugging journey and earlier fixes. They were **optimistic**; the app still failed at runtime due to the Riverpod build-time state mutation.
-- `HONEST_ASSESSMENT.md`, `MASTER_INDEX.md`, `RESUME_WORK_GUIDE.md` — describe the pivot to the HTML mockup. This was the right call at the time, but the Flutter app is now working.
+- `HONEST_ASSESSMENT.md`, `MASTER_INDEX.md`, `RESUME_WORK_GUIDE.md` — describe the pivot to the HTML mockup. This was the right call at the time, but the Flutter app is now working and is the source of truth for the design.
 - `FLUTTER_DEBUG_LOG.md` — records every step taken to make Flutter render, including the successful final fix.
+- `UI_DEVELOPMENT_PLAN.md` — the plan for designing the app from scratch in Flutter using hot reload.
 
 **This file (`CURRENT_STATUS.md`) is the single source of truth as of the last update.**
 
@@ -77,16 +79,17 @@ Some markdown files contradict each other because they were written at different
 
 ### Immediate
 1. ✅ ~~Open the Flutter build in a browser to visually verify it works.~~ DONE — confirmed rendering.
-2. Capture screenshots for documentation.
+2. ✅ ~~Decide whether to use HTML mockups or Flutter for UI iteration.~~ DONE — Flutter with hot reload (see `UI_DEVELOPMENT_PLAN.md`).
+3. Start Phase 1 of the UI plan: design from scratch in Flutter, no reference to the HTML mockup.
 
 ### Short Term
-3. Decide the target platform(s): web-only, mobile-first, or both.
-4. If keeping Flutter as primary, remove or replace mobile-only dependencies (now done — `permission_handler`, `image_picker`, `video_player`, `connectivity_plus`, `supabase_flutter` all removed).
-5. Re-enable Supabase or choose another backend (or stay local/mock for now).
-6. Align Flutter UI with HTML mockup design.
+4. Define the design intent in `docs/design/VISION.md`, `SCREENS.md`, `TOKENS.md`.
+5. Build design tokens in `lib/theme/tokens.dart` so visual changes are one-line edits.
+6. Extract the widget library and use Widget Previews for isolated iteration.
 
 ### Long Term
-7. Implement the real feature set (chat, friends, auth, goal/sub-point CRUD).
+7. After the design is locked (Phase 7), make architecture decisions: backend, platform target, data models.
+8. Implement the real feature set (chat, friends, auth, goal/sub-point CRUD).
 
 ---
 

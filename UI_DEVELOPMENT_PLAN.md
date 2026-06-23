@@ -11,6 +11,17 @@
 
 This is the right question. UI/UX is downstream of architecture but upstream of code stability — get the look and feel locked before you commit to a backend, data model, or platform target.
 
+### Update: Starting from scratch
+
+After the Flutter app finally rendered, the decision shifted to: **design from scratch in Flutter**, not iterate toward the HTML mockup. The HTML mockup is no longer the visual reference. It served its purpose as a working prototype that proved the concept could work; now the Flutter codebase will define the look and feel independently.
+
+This is a cleaner path because:
+
+- No visual baggage from the mockup constrains the design.
+- Every pixel ships — no "we'll match this later" reconciliation phase.
+- The design is owned entirely by the Flutter widget code.
+- The HTML mockup becomes an archive (kept in repo for reference, not modified).
+
 ---
 
 ## The Options
@@ -85,17 +96,28 @@ You started this project before **Flutter web hot reload became default in Flutt
 
 ## Detailed Plan
 
-### Phase 1 — Freeze the HTML mockup as a visual spec
+### Phase 1 — Design from scratch
 
-**Goal:** Stop modifying `goal_isle_working_mockup.html`. Treat it as a reference document.
+**Goal:** Define the look and feel of the app directly in Flutter, starting from a blank slate. No reference to the HTML mockup.
 
 **Steps:**
-1. Take a screenshot of every screen and modal state in the mockup.
-2. Save screenshots to `docs/design-reference/` with descriptive names.
-3. Write `docs/design-reference/README.md` linking each screen to its Flutter implementation status.
-4. Mark the mockup as deprecated-for-iteration in `CURRENT_STATUS.md`.
+1. Decide the **vibe** of the app (one paragraph in `docs/design/VISION.md`):
+   - What emotion should the user feel when they open it?
+   - What's the personality (playful, serious, minimal, dense)?
+   - What's the core metaphor and how does it show up visually?
+2. Decide the **core screens** (list in `docs/design/SCREENS.md`):
+   - What screens exist? (Home, create, detail, chat, profile, settings…)
+   - What's the primary user flow?
+3. Decide the **visual language** (in `docs/design/TOKENS.md`):
+   - Color palette direction (warm, cool, monochrome, etc.)
+   - Typography pairing
+   - Spacing rhythm
+   - Iconography style (line, filled, custom)
+4. Move directly into Phase 2 (tokens) to make these decisions concrete in code.
 
-**Outcome:** No more "is the mockup the source of truth?" ambiguity.
+**Outcome:** A clear design intent written down before any pixels are committed to code.
+
+**Note:** The HTML mockup stays in the repo at `goal_isle_working_mockup.html` as an archive of an earlier design exploration. It is **not** the reference for the Flutter app.
 
 ---
 
@@ -205,7 +227,7 @@ You started this project before **Flutter web hot reload became default in Flutt
 
 ## What NOT to do
 
-- **Don't keep modifying the HTML mockup as a source of truth.** It's done; it's a reference.
+- **Don't reference the HTML mockup as a design target.** It's an archive. The Flutter app defines its own look.
 - **Don't add backend code, real auth, or real persistence during UI iteration.** Mock everything; this is the principle that kept the codebase shippable so far.
 - **Don't introduce new dependencies for UI work.** If a package is needed, evaluate it after the design is locked. Adding `supabase_flutter` back was the cause of the white-screen bug.
 - **Don't try to ship the Flutter app from this state.** It's not ready. The plan is to make it look right first.
@@ -214,7 +236,7 @@ You started this project before **Flutter web hot reload became default in Flutt
 
 ## When to deviate from this plan
 
-- **If a Flutter widget constraint makes a mockup design impossible** (e.g., the mockup shows something Material Design doesn't support natively): document the deviation in `docs/design-reference/deviations.md` and propose an alternative. Don't silently redesign.
+- **If a Flutter widget constraint makes a design impossible** (e.g., Material Design doesn't support a particular gesture natively): document the deviation in `docs/design/deviations.md` and propose an alternative. Don't silently redesign.
 - **If hot reload stops preserving state** during heavy changes: use hot restart (`R` in terminal) or full restart, but don't go back to HTML mockups.
 - **If you discover you need real data to evaluate a screen** (e.g., the chat feels wrong without real messages): extend the mock data in `IsleNotifier._loadMockData()` rather than wiring a backend.
 
@@ -256,8 +278,8 @@ Quit: press `q`.
 
 The plan is successful when:
 
-1. The HTML mockup is read-only and serves only as a visual reference.
-2. The Flutter app's UI matches the mockup visually.
+1. The Flutter app has a defined visual identity owned entirely by its own code.
+2. The Flutter app's UI is exactly what you want it to be (vibe, screens, interactions).
 3. The Flutter app feels correct on interaction (gestures, transitions, states).
 4. You can change any visual aspect (color, spacing, font) by editing one token file.
 5. No architecture decisions have been locked in yet — those happen in Phase 7.
