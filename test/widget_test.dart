@@ -6,25 +6,28 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:goal_isle/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('App loads and shows mock isles', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpWidget(
+      const ProviderScope(child: GoalIsleApp()),
+    );
     await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // If an error fallback is shown, print the error message to help debugging.
+    final errorFinder = find.text('Something went wrong');
+    if (errorFinder.evaluate().isNotEmpty) {
+      final errorTextWidget = tester.widget<Text>(find.textContaining('Error:'));
+      debugPrint('RUNTIME ERROR: ${errorTextWidget.data}');
+    }
+
+    // Verify that mock isles are rendered.
+    expect(find.text('Fitness Journey'), findsOneWidget);
   });
 }

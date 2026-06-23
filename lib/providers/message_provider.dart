@@ -59,6 +59,10 @@ class MessageNotifier extends StateNotifier<List<Message>> {
     
     state = [...state, newMessage];
   }
+
+  void setMessages(List<Message> messages) {
+    state = messages;
+  }
 }
 
 final messageProvider = StateNotifierProvider<MessageNotifier, List<Message>>((ref) {

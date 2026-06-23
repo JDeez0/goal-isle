@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:goal_isle/providers/message_provider.dart';
 import 'package:goal_isle/providers/sub_point_provider.dart';
 import 'package:goal_isle/providers/goal_provider.dart';
@@ -28,7 +27,6 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final ImagePicker _imagePicker = ImagePicker();
   Goal? _goal;
   List<SubPoint> _subPoints = [];
   bool _isLoading = true;
@@ -431,10 +429,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Future<void> _fillSubPointForUpload(String imageUrl, WidgetRef ref) async {
-    // DISABLED FOR MOCKUP - No auto-fill
-  }
-
   Future<void> _addReaction(String messageId, String emoji, WidgetRef ref) async {
     // MOCKUP MODE - Add reaction locally for demo
     final messages = ref.read(messageProvider);
@@ -476,7 +470,7 @@ class _ChatScreenState extends State<ChatScreen> {
     // Update the state
     final updatedMessages = List<Message>.from(messages);
     updatedMessages[messageIndex] = updatedMessage;
-    ref.read(messageProvider.notifier).state = updatedMessages;
+    ref.read(messageProvider.notifier).setMessages(updatedMessages);
     
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

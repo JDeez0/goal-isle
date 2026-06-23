@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:goal_isle/models/isle.dart';
 import 'package:goal_isle/screens/chat/chat_screen.dart';
-import 'package:goal_isle/providers/goal_provider.dart';
-import 'package:goal_isle/providers/sub_point_provider.dart';
 import 'package:goal_isle/models/goal.dart';
 import 'package:goal_isle/models/sub_point.dart';
 

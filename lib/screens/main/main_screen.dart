@@ -17,9 +17,7 @@ class MainScreen extends ConsumerWidget {
     try {
       // DISABLED FOR MOCKUP - No authentication needed
       // final currentUser = ref.watch(auth.authProvider);
-      
-      // Initialize isle provider if needed
-      ref.read(isleProvider.notifier).initialize();
+
       final isles = ref.watch(isleProvider);
 
       // DISABLED FOR MOCKUP - Always show UI, no login screen

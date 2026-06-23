@@ -65,34 +65,7 @@ class SubPointNotifier extends StateNotifier<List<SubPoint>> {
     // }
   }
 
-  Future<void> _increaseIsleMass(String goalId) async {
-    // DISABLED FOR MOCKUP
-    // Future<void> _increaseIsleMass(String goalId) async {
-    //   // Get goal to find isle_id
-    //   final goalResponse = await Supabase.instance.client
-    //       .from('goals')
-    //       .select('isle_id')
-    //       .eq('id', goalId)
-    //       .single();
 
-    //   final isleId = goalResponse['isle_id'] as String;
-
-    //   // Get current mass
-    //   final isleResponse = await Supabase.instance.client
-    //       .from('isles')
-    //       .select('mass')
-    //       .eq('id', isleId)
-    //       .single();
-
-    //   final currentMass = isleResponse['mass'] as int;
-
-    //   // Increment mass
-    //   await Supabase.instance.client
-    //       .from('isles')
-    //       .update({'mass': currentMass + 1})
-    //       .eq('id', isleId);
-    // }
-  }
 }
 
 final subPointProvider = StateNotifierProvider<SubPointNotifier, List<SubPoint>>((ref) {

@@ -76,7 +76,7 @@
 ## 🛠️ Technical Details
 
 ### **File:**
-`/home/jasper/goal_isle_working_mockup.html`
+`/home/jasper/projects/goal_isle/goal_isle_working_mockup.html`
 
 ### **Technologies:**
 - **HTML5** - Structure

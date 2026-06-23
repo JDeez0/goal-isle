@@ -1,7 +1,7 @@
 # 📚 Goal Isle - Master Index
 
 **Project Location:** `/home/jasper/projects/goal_isle/`
-**Status:** ✅ WORKING MOCKUP COMPLETE
+**Status:** ✅ WORKING MOCKUP COMPLETE — Flutter app now also builds & passes widget tests after fixing a Riverpod initialization bug
 
 ---
 

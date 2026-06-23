@@ -3,12 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:goal_isle/models/isle.dart';
 
 class IsleNotifier extends StateNotifier<List<Isle>> {
-  IsleNotifier() : super([]);
-  
-  void initialize() {
-    if (state.isEmpty) {
-      _loadMockData();
-    }
+  IsleNotifier() : super([]) {
+    _loadMockData();
   }
 
   void _loadMockData() {

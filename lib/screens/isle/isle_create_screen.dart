@@ -15,7 +15,6 @@ class IsleCreateScreen extends ConsumerStatefulWidget {
 
 class _IsleCreateScreenState extends ConsumerState<IsleCreateScreen> {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emojiTextController = TextEditingController();
   String _selectedEmoji = '🎯';
 
   static const List<String> _commonEmojis = [

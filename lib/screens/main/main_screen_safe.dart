@@ -7,9 +7,6 @@ class SafeMainScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Initialize the provider
-    ref.read(isleProvider.notifier).initialize();
-    
     // Try accessing isle provider
     final isles = ref.watch(isleProvider);
     
