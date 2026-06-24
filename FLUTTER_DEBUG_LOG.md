@@ -182,3 +182,40 @@ Of these, only `cached_network_image` and `shared_preferences` register web plug
 ---
 
 *Last updated: June 22, 2026 — Flutter web app confirmed rendering successfully in browser.*
+
+---
+
+## Attempt 5 — Theme Not Applying (June 23, 2026)
+
+**Problem:** After creating `lib/theme/tokens.dart` and `lib/theme/app_theme.dart` with light mode, the web build still showed a dark blue background.
+
+**Root Cause:** Hardcoded `backgroundColor` in `main_screen.dart`:
+
+```dart
+return Scaffold(
+  backgroundColor: const Color(0xFF0A0E17),  // ❌ Overrides theme
+  body: ...
+);
+```
+
+When a widget sets its own `backgroundColor`, it **overrides** the theme's `scaffoldBackgroundColor`. The new theme (`createAppTheme()`) set `scaffoldBackgroundColor: TokenColors.background` (light slate `#EEF2F5`), but the Scaffold's explicit `backgroundColor` took precedence.
+
+**Fix:** Removed all hardcoded `backgroundColor` assignments from Scaffold widgets in `main_screen.dart`:
+
+```dart
+return Scaffold(
+  // No backgroundColor — let theme control it
+  body: ...
+);
+```
+
+**Commands used to find the issue:**
+```bash
+grep -rn "Color(0xFF0A0E17)" lib/
+```
+
+**Resolution:** The light theme now applies correctly. Background is `#EEF2F5` (slate water), surfaces are white, text is dark.
+
+**Lesson:** When applying a new theme, search for hardcoded colors in widgets. They silently override the theme. Use `grep -rn "Color(0xFF" lib/` to find them.
+
+*Last updated: June 23, 2026 — Theme fix documented and committed.*

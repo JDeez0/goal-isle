@@ -27,7 +27,6 @@ class MainScreen extends ConsumerWidget {
       // }
 
       return Scaffold(
-        backgroundColor: const Color(0xFF0A0E17),
         body: isles.isEmpty
             ? _buildBlankScreen(context, ref)
             : _buildIslesScreen(context, ref, isles),
@@ -35,7 +34,6 @@ class MainScreen extends ConsumerWidget {
     } catch (e) {
       // Error fallback
       return Scaffold(
-        backgroundColor: const Color(0xFF0A0E17),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

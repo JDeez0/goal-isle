@@ -241,6 +241,37 @@ The last dependency-related incident caused the white-screen bug. Removing `supa
 
 ---
 
+## Common Mistakes to Avoid
+
+### Don't Hardcode Colors
+
+If you set `backgroundColor` on widgets directly, it **overrides the theme**:
+
+```dart
+// ❌ BAD — this overrides the theme
+Scaffold(
+  backgroundColor: const Color(0xFF0A0E17),
+  body: ...
+)
+
+// ✅ GOOD — let the theme control it
+Scaffold(
+  body: ...
+)
+```
+
+When applying a new theme, search your codebase for hardcoded colors:
+
+```bash
+grep -rn "Color(0xFF" lib/ --include="*.dart"
+```
+
+**Fix:** Remove explicit `backgroundColor` assignments and let the `createAppTheme()` from `lib/theme/app_theme.dart` control the visual appearance.
+
+This issue occurred during Phase 2: the theme was updated to light mode, but `main_screen.dart` still had `backgroundColor: const Color(0xFF0A0E17)` hardcoded in its Scaffold widgets, which overrode the new light theme and kept showing dark mode.
+
+---
+
 ## Version Control
 
 ### Repo

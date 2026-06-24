@@ -15,8 +15,9 @@
   # Or serve the existing build:
   cd build/web && python3 -m http.server 8094
   ```
-- **Open:** http://localhost:8094
+- **Open:** http://localhost:8094/index.html
 - **Status:** ✅ Verified rendering in Firefox
+- **Theme:** Light mode with slate water background (`#EEF2F5`)
 - **Build:** `flutter build web --no-tree-shake-icons` ✅
 - **Test:** `flutter test` ✅ passes
 
@@ -97,7 +98,8 @@ See `docs/archive/README.md` for the full list. These were written before the ac
 1. ✅ ~~Open the Flutter build in a browser to visually verify it works.~~ DONE — confirmed rendering.
 2. ✅ ~~Decide whether to use HTML mockups or Flutter for UI iteration.~~ DONE — Flutter with hot reload (see `UI_DEVELOPMENT_PLAN.md`).
 3. ✅ ~~Define the design intent.~~ DONE — `docs/design/VISION.md`, `SCREENS.md`, `TOKENS.md` (minimal, literal, clean/cool).
-4. **Start Phase 2 of the UI plan:** create `lib/theme/tokens.dart` and `lib/theme/app_theme.dart` so visual changes are one-line edits.
+4. ✅ ~~Start Phase 2 of the UI plan:~~ create `lib/theme/tokens.dart` and `lib/theme/app_theme.dart`. DONE.
+5. **Start Phase 3 of the UI plan:** Build widget library (extract IsleCard, SparkButton, etc.) with Widget Previews.
 
 ### Short Term
 5. Extract the widget library and use Widget Previews for isolated iteration.
