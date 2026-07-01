@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goal Isle — Isle Spark Shape Lab</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Roboto, sans-serif;
+    background: #EEF2F5;
+    padding: 40px 24px;
+    color: #1F2937;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 24px; font-weight: 600; margin-bottom: 6px; }
+  .subtitle { font-size: 14px; color: #64748B; margin-bottom: 32px; }
+
+  .section {
+    background: #FFFFFF;
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 2px rgba(31,41,55,0.04);
+  }
+  .section h2 { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+  .section .desc { font-size: 13px; color: #64748B; margin-bottom: 24px; line-height: 1.5; }
+
+  /* ===== Layout ===== */
+  .lab {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+  @media (max-width: 640px) { .lab { grid-template-columns: 1fr; } }
+
+  /* big live preview on the water */
+  .stage {
+    background: linear-gradient(180deg, #EEF2F5 0%, #E6ECF1 100%);
+    border-radius: 14px;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(31,41,55,0.06);
+    position: relative;
+  }
+  .stage .spark { width: 150px; height: 150px; }
+  .stage .spark .emoji { font-size: 78px; }
+  .stage .sparkle { font-size: 20px; }
+  .stage-label {
+    position: absolute; bottom: 10px; left: 0; right: 0;
+    text-align: center; font-size: 11px; color: #94A3B8;
+  }
+
+  /* ===== Controls ===== */
+  .controls h3 { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: #1F2937; }
+
+  .preset-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .preset-btn {
+    font: inherit; font-size: 12px; font-weight: 600;
+    padding: 7px 12px; border-radius: 8px;
+    border: 1.5px solid rgba(31,41,55,0.12); background: #fff; color: #475569;
+    cursor: pointer; transition: all 150ms ease-out;
+  }
+  .preset-btn:hover { border-color: #3B82F6; color: #3B82F6; transform: translateY(-1px); }
+  .preset-btn.active { background: #3B82F6; border-color: #3B82F6; color: #fff; }
+
+  /* corner slider grid laid out like the shape corners */
+  .corners {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 28px;
+    background: #F8FAFC;
+    border: 1px solid #ECEFF2;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .corner { display: flex; flex-direction: column; gap: 6px; }
+  .corner .head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .corner .head b { color: #1F2937; font-size: 12px; }
+  .corner input[type=range] { width: 100%; accent-color: #3B82F6; }
+  .corner .hint { font-size: 10px; color: #94A3B8; }
+
+  .readout {
+    background: #0F172A; color: #E2E8F0; border-radius: 10px;
+    padding: 12px 14px; font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px; line-height: 1.6; word-break: break-all;
+  }
+  .readout .k { color: #7DD3FC; }
+  .readout .c { color: #94A3B8; }
+
+  /* ===== The spark (reused states from sparks.html) ===== */
+  .spark {
+    position: relative;
+    background: #FFFFFF;
+    border: 1.5px solid rgba(31,41,55,0.10);
+    box-shadow: 0 1px 2px rgba(31,41,55,0.06), 0 1px 3px rgba(31,41,55,0.04);
+    display: flex; align-items: center; justify-content: center;
+    /* border-radius set inline by JS */
+  }
+  .spark .emoji { line-height: 1; user-select: none; -webkit-user-select: none; }
+  .spark.dull .emoji { filter: saturate(0.35) opacity(0.65); }
+  .spark.dull { background: #F4F6F8; }
+  .spark.lit { background: #FFFFFF; border-color: rgba(59,130,246,0.18);
+    box-shadow: 0 2px 6px rgba(59,130,246,0.10), 0 1px 3px rgba(31,41,55,0.05); }
+  .spark.lit .emoji { filter: saturate(1.05); }
+  .spark.greyed .emoji { filter: grayscale(1) opacity(0.45); }
+  .spark.greyed { background: #E9ECEF; border-color: rgba(31,41,55,0.06); box-shadow: none; }
+  .sparkle { position: absolute; color: #FBBF24; opacity: 0.55; pointer-events: none; line-height: 1; }
+  .streak-badge {
+    position: absolute; top: -6px; right: -6px;
+    background: #3B82F6; color: #fff; font-size: 11px; font-weight: 700;
+    min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 3px rgba(59,130,246,0.35); z-index: 3;
+  }
+  .beach-svg { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; z-index: 0; }
+
+  /* size variants for the "in context" grid */
+  .sz-actual { width: 48px; height: 48px; }
+  .sz-actual .emoji { font-size: 26px; }
+  .sz-actual .sparkle { font-size: 9px; }
+  .sz-lg { width: 96px; height: 96px; }
+  .sz-lg .emoji { font-size: 50px; }
+  .sz-lg .sparkle { font-size: 16px; }
+
+  .grid4 { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .cell .lbl { font-size: 12px; color: #64748B; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+  .cell .note { font-size: 11px; color: #94A3B8; max-width: 130px; text-align: center; line-height: 1.4; }
+
+  /* compare strip */
+  .compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 24px; }
+  .compare .cell { gap: 10px; }
+  .compare .name { font-size: 12px; font-weight: 600; color: #1F2937; }
+  .compare .vals { font-size: 10px; color: #94A3B8; font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Goal Isle — Isle Spark Shape Lab</h1>
+  <p class="subtitle">Drag the corners to dial in the silhouette. Default = the rhomboid squircle you described.</p>
+
+  <!-- ===== SHAPE LAB ===== -->
+  <div class="section">
+    <h2>Shape Lab</h2>
+    <p class="desc">Top-right &amp; bottom-left are the <b>pointed</b> corners; top-left &amp; bottom-right are the <b>rounded</b> ones. Slider value = corner radius (0 = sharp, 50 = full quarter-circle).</p>
+
+    <div class="lab">
+      <!-- STAGE -->
+      <div>
+        <div class="stage">
+          <div class="spark lit" id="stageSpark" data-shape-preview>
+            <span class="sparkle" style="top:12%; right:18%;">✦</span>
+            <span class="sparkle" style="top:32%; right:6%; font-size:13px;">✦</span>
+            <span class="sparkle" style="bottom:16%; left:12%; font-size:12px;">✦</span>
+            <span class="emoji">💪</span>
+          </div>
+          <span class="stage-label">live preview · 150px</span>
+        </div>
+      </div>
+
+      <!-- CONTROLS -->
+      <div class="controls">
+        <h3>Presets</h3>
+        <div class="preset-row" id="presets">
+          <button class="preset-btn" data-p="rhomboid">Rhomboid squircle</button>
+          <button class="preset-btn" data-p="original">Original (sharp TL)</button>
+          <button class="preset-btn" data-p="squircle">Pure squircle</button>
+          <button class="preset-btn" data-p="circle">Circle</button>
+          <button class="preset-btn" data-p="soft">Soft rhomboid</button>
+        </div>
+
+        <h3>Corners</h3>
+        <div class="corners">
+          <div class="corner">
+            <div class="head"><span>Top-Left</span><b><span id="v-tl">40</span>%</b></div>
+            <input type="range" min="0" max="50" value="40" id="s-tl">
+            <span class="hint">rounded</span>
+          </div>
+          <div class="corner">
+            <div class="head"><span>Top-Right</span><b><span id="v-tr">12</span>%</b></div>
+            <input type="range" min="0" max="50" value="12" id="s-tr">
+            <span class="hint">pointed ◆</span>
+          </div>
+          <div class="corner">
+            <div class="head"><span>Bottom-Left</span><b><span id="v-bl">12</span>%</b></div>
+            <input type="range" min="0" max="50" value="12" id="s-bl">
+            <span class="hint">pointed ◆</span>
+          </div>
+          <div class="corner">
+            <div class="head"><span>Bottom-Right</span><b><span id="v-br">40</span>%</b></div>
+            <input type="range" min="0" max="50" value="40" id="s-br">
+            <span class="hint">rounded</span>
+          </div>
+        </div>
+
+        <h3>Generated values</h3>
+        <div class="readout" id="readout"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== IN CONTEXT (all states with current shape) ===== -->
+  <div class="section">
+    <h2>In context — all states use the current shape</h2>
+    <p class="desc">Same silhouette across dull / lit / streaked / greyed, at actual 48px (0.5″) and 2× detail size.</p>
+    <div class="grid4">
+      <div class="cell">
+        <div class="spark dull sz-lg" data-shape-preview><span class="emoji">📚</span></div>
+        <span class="lbl">Dull</span>
+        <span class="note">actual ↓</span>
+        <div class="spark dull sz-actual" data-shape-preview><span class="emoji">📚</span></div>
+      </div>
+      <div class="cell">
+        <div class="spark lit sz-lg" data-shape-preview>
+          <span class="sparkle" style="top:10%; right:18%;">✦</span>
+          <span class="sparkle" style="top:30%; right:6%; font-size:11px;">✦</span>
+          <span class="sparkle" style="bottom:16%; left:10%; font-size:10px;">✦</span>
+          <span class="emoji">💪</span>
+        </div>
+        <span class="lbl">Lit</span>
+        <span class="note">actual ↓</span>
+        <div class="spark lit sz-actual" data-shape-preview>
+          <span class="sparkle" style="top:4px; right:10px; font-size:8px;">✦</span>
+          <span class="emoji">💪</span>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="spark lit sz-lg" data-shape-preview style="position:relative;">
+          <svg class="beach-svg" width="118" height="118" viewBox="0 0 118 118"></svg>
+          <span class="streak-badge">12</span>
+          <span class="sparkle" style="top:10%; right:20%;">✦</span>
+          <span class="emoji">🏃</span>
+        </div>
+        <span class="lbl">Streaked</span>
+        <span class="note">actual ↓</span>
+        <div class="spark lit sz-actual" data-shape-preview style="position:relative;">
+          <span class="streak-badge" style="font-size:10px; min-width:16px; height:16px;">12</span>
+          <span class="emoji">🏃</span>
+        </div>
+      </div>
+      <div class="cell">
+        <div class="spark greyed sz-lg" data-shape-preview><span class="emoji">🏖️</span></div>
+        <span class="lbl">Greyed</span>
+        <span class="note">actual ↓</span>
+        <div class="spark greyed sz-actual" data-shape-preview><span class="emoji">🏖️</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== COMPARE ALL PRESETS ===== -->
+  <div class="section">
+    <h2>Compare presets</h2>
+    <p class="desc">All five silhouettes side by side so you can pick a direction. Click a preset above to load it into the lab.</p>
+    <div class="compare" id="compare"></div>
+  </div>
+
+</div>
+
+<script>
+  const PRESETS = {
+    rhomboid:  { tl: 40, tr: 12, br: 40, bl: 12, name: 'Rhomboid squircle' },
+    original:  { tl: 0,  tr: 50, br: 50, bl: 50, name: 'Original (sharp TL)' },
+    squircle:  { tl: 32, tr: 32, br: 32, bl: 32, name: 'Pure squircle' },
+    circle:    { tl: 50, tr: 50, br: 50, bl: 50, name: 'Circle' },
+    soft:      { tl: 44, tr: 22, br: 44, bl: 22, name: 'Soft rhomboid' },
+  };
+
+  let shape = { ...PRESETS.rhomboid };
+
+  const ids = ['tl','tr','br','bl']; // matches CSS shorthand order
+
+  function radiusStr(s) {
+    return `${s.tl}% ${s.tr}% ${s.br}% ${s.bl}%`;
+  }
+
+  function render() {
+    // update every preview
+    document.querySelectorAll('[data-shape-preview]').forEach(el => {
+      el.style.borderRadius = radiusStr(shape);
+    });
+    // update slider readouts
+    ids.forEach(k => {
+      document.getElementById('s-' + k).value = shape[k];
+      document.getElementById('v-' + k).textContent = shape[k];
+    });
+    // generated values box
+    const r = document.getElementById('readout');
+    r.innerHTML =
+      `<span class="c">// CSS</span><br>` +
+      `border-radius: <span class="k">${radiusStr(shape)}</span>;<br><br>` +
+      `<span class="c">// Flutter (BorderRadius.only, for a 48px spark)</span><br>` +
+      `BorderRadius.only(<br>` +
+      `&nbsp;&nbsp;${fmt('topLeft',     shape.tl)},<br>` +
+      `&nbsp;&nbsp;${fmt('topRight',    shape.tr)},<br>` +
+      `&nbsp;&nbsp;${fmt('bottomLeft',  shape.bl)},<br>` +
+      `&nbsp;&nbsp;${fmt('bottomRight', shape.br)},<br>` +
+      `)`;
+    // preset active state
+    document.querySelectorAll('.preset-btn').forEach(b => {
+      const p = PRESETS[b.dataset.p];
+      const match = p && ids.every(k => p[k] === shape[k]);
+      b.classList.toggle('active', match);
+    });
+  }
+  function fmt(name, pct) {
+    const px = +(pct/100*48).toFixed(1);
+    return `${name}: Radius.circular(${px}) <span class="c">// ${pct}%</span>`;
+  }
+
+  // slider events
+  ids.forEach(k => {
+    document.getElementById('s-' + k).addEventListener('input', e => {
+      shape[k] = +e.target.value; render();
+    });
+  });
+  // preset buttons
+  document.querySelectorAll('.preset-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const p = PRESETS[b.dataset.p];
+      shape = { ...p }; render();
+    });
+  });
+
+  // build the compare strip
+  const compare = document.getElementById('compare');
+  Object.entries(PRESETS).forEach(([key, p]) => {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.innerHTML = `
+      <div class="spark lit sz-lg" style="border-radius:${radiusStr(p)};">
+        <span class="sparkle" style="top:10%; right:20%;">✦</span>
+        <span class="emoji">💧</span>
+      </div>
+      <span class="name">${p.name}</span>
+      <span class="vals">${p.tl}/${p.tr}/${p.br}/${p.bl}</span>
+    `;
+    cell.style.cursor = 'pointer';
+    cell.addEventListener('click', () => { shape = { ...p }; render();
+      window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    compare.appendChild(cell);
+  });
+
+  // squiggly beach line on the streaked example
+  function wavyCirclePath(cx, cy, r, amp, waves) {
+    const steps = waves * 10; let d = '';
+    for (let i = 0; i <= steps; i++) {
+      const t = (i/steps)*Math.PI*2;
+      const rr = r + amp*Math.sin(t*waves);
+      d += (i===0?'M':'L') + (cx+rr*Math.cos(t)).toFixed(2) + ' ' + (cy+rr*Math.sin(t)).toFixed(2) + ' ';
+    }
+    return d + 'Z';
+  }
+  document.querySelectorAll('.beach-svg').forEach(svg => {
+    const vb = svg.viewBox.baseVal, cx = vb.width/2, cy = vb.height/2, r = Math.min(cx,cy)-4;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', wavyCirclePath(cx, cy, r, 3.2, 14));
+    path.setAttribute('fill','none'); path.setAttribute('stroke','#F59E0B');
+    path.setAttribute('stroke-width','1.5'); path.setAttribute('stroke-opacity','0.55');
+    path.setAttribute('stroke-linejoin','round');
+    svg.appendChild(path);
+  });
+
+  render();
+</script>
+</body>
+</html>

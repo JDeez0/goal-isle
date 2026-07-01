@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goal Isle — Create Spark · Shape Picker</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Roboto, sans-serif;
+    background: #EEF2F5;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== Phone frame ===== */
+  .phone {
+    width: 390px; height: 780px;
+    background: #EEF2F5;
+    border-radius: 44px;
+    border: 10px solid #0F172A;
+    box-shadow: 0 30px 60px rgba(15,23,42,0.25);
+    position: relative;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .notch {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 26px; background: #0F172A;
+    border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; z-index: 50;
+  }
+
+  /* ===== Top bar ===== */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px 10px; padding-top: 40px;
+  }
+  .tb-btn { font-size: 16px; color: #3B82F6; background: none; border: none; cursor: pointer; font-weight: 500; }
+  .tb-btn:disabled { color: #CBD5E1; cursor: not-allowed; }
+  .tb-title { font-size: 16px; font-weight: 600; color: #1F2937; }
+
+  /* ===== Form body ===== */
+  .body { flex: 1; overflow-y: auto; padding: 8px 20px 24px; }
+
+  .field { margin-bottom: 26px; }
+  .field-label { font-size: 12px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; }
+
+  /* main emoji slot */
+  .main-emoji {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 18px; background: #fff; border-radius: 16px;
+    border: 1.5px dashed rgba(31,41,55,0.15);
+  }
+  .main-emoji .big { font-size: 52px; line-height: 1; }
+  .main-emoji .hint { font-size: 12px; color: #94A3B8; }
+
+  /* equation / ingredients */
+  .equation { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .ing-row { display: flex; gap: 10px; align-items: center; }
+  .ing-slot {
+    width: 56px; height: 56px; border-radius: 14px; background: #fff;
+    border: 1.5px dashed rgba(31,41,55,0.15); display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .ing-label { flex: 1; height: 44px; border-radius: 12px; border: 1.5px solid #E2E8F0; background: #fff; padding: 0 12px; font-size: 15px; color: #94A3B8; display: flex; align-items: center; }
+  .equals { font-size: 22px; font-weight: 600; color: #94A3B8; margin: 2px 0; }
+  .add-more { font-size: 13px; color: #3B82F6; background: none; border: none; cursor: pointer; font-weight: 600; }
+
+  /* generic setting row (shape / repeats / streak / share) */
+  .row-card {
+    display: flex; align-items: center; gap: 14px;
+    background: #fff; border-radius: 14px; padding: 12px 14px;
+    border: 1.5px solid #ECEFF2; cursor: pointer;
+    transition: border-color 150ms ease-out;
+  }
+  .row-card:hover { border-color: rgba(59,130,246,0.4); }
+  .row-card .chev { margin-left: auto; color: #CBD5E1; font-size: 18px; }
+  .row-card .rname { font-size: 15px; color: #1F2937; font-weight: 500; }
+  .row-card .rval { font-size: 13px; color: #94A3B8; margin-left: auto; margin-right: 6px; }
+
+  /* mini spark preview inside the shape row */
+  .mini-spark {
+    width: 40px; height: 40px; background: #fff;
+    border: 1.5px solid rgba(31,41,55,0.10);
+    box-shadow: 0 1px 2px rgba(31,41,55,0.06);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .mini-spark .e { font-size: 22px; }
+
+  /* toggle */
+  .toggle { width: 46px; height: 28px; border-radius: 16px; background: #3B82F6; position: relative; flex-shrink: 0; }
+  .toggle::after { content:''; position:absolute; top:3px; right:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.2); }
+  .toggle.off { background: #CBD5E1; }
+  .toggle.off::after { right: auto; left: 3px; }
+
+  /* ===== Bottom sheet (shape picker) ===== */
+  .scrim {
+    position: absolute; inset: 0; background: rgba(15,23,42,0.4);
+    opacity: 0; pointer-events: none; transition: opacity 220ms ease-out; z-index: 60;
+  }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: #fff; border-radius: 22px 22px 0 0;
+    padding: 12px 20px 28px;
+    transform: translateY(100%); transition: transform 280ms cubic-bezier(0.22,1,0.36,1);
+    z-index: 70; max-height: 88%; overflow-y: auto;
+    box-shadow: 0 -10px 30px rgba(15,23,42,0.15);
+  }
+  .sheet.open { transform: translateY(0); }
+  .grabber { width: 40px; height: 5px; border-radius: 3px; background: #E2E8F0; margin: 4px auto 14px; }
+  .sheet h3 { font-size: 16px; font-weight: 600; text-align: center; margin-bottom: 16px; }
+
+  .picker-stage {
+    background: linear-gradient(180deg,#EEF2F5,#E6ECF1); border-radius: 16px;
+    height: 170px; display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px; border: 1px solid rgba(31,41,55,0.06);
+  }
+  .picker-stage .spark { width: 120px; height: 120px; }
+  .picker-stage .spark .emoji { font-size: 62px; }
+  .picker-stage .sparkle { font-size: 16px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .chip {
+    font: inherit; font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 20px;
+    border: 1.5px solid rgba(31,41,55,0.12); background: #fff; color: #475569; cursor: pointer;
+    transition: all 150ms ease-out;
+  }
+  .chip:hover { border-color: #3B82F6; color: #3B82F6; }
+  .chip.active { background: #3B82F6; border-color: #3B82F6; color: #fff; }
+
+  .sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 18px; }
+  .sl { display: flex; flex-direction: column; gap: 4px; }
+  .sl .sh { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; }
+  .sl .sh b { color: #1F2937; }
+  .sl input[type=range] { width: 100%; accent-color: #3B82F6; }
+
+  .done {
+    width: 100%; height: 50px; border-radius: 14px; border: none;
+    background: #3B82F6; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: background 150ms ease-out;
+  }
+  .done:hover { background: #2563EB; }
+  .done:active { transform: scale(0.99); }
+
+  /* ===== spark base (shared) ===== */
+  .spark { position: relative; display: flex; align-items: center; justify-content: center;
+    background: #fff; border: 1.5px solid rgba(31,41,55,0.10);
+    box-shadow: 0 1px 2px rgba(31,41,55,0.06); }
+  .spark .emoji { line-height: 1; filter: saturate(1.05); }
+  .sparkle { position: absolute; color: #FBBF24; opacity: 0.55; line-height: 1; }
+
+  .hint-bar { position: absolute; bottom: 14px; left: 0; right: 0; text-align: center; font-size: 11px; color: #94A3B8; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <!-- ===== CREATE SPARK SCREEN ===== -->
+  <div class="topbar">
+    <button class="tb-btn">Cancel</button>
+    <span class="tb-title">New Spark</span>
+    <button class="tb-btn" id="createBtn" disabled>Create</button>
+  </div>
+
+  <div class="body">
+    <!-- main emoji -->
+    <div class="field">
+      <div class="field-label">Spark</div>
+      <div class="main-emoji">
+        <span class="big">💪</span>
+        <span class="hint">tap to change main emoji</span>
+      </div>
+    </div>
+
+    <!-- ingredients equation -->
+    <div class="field">
+      <div class="field-label">Ingredients (optional)</div>
+      <div class="equation">
+        <div class="ing-row">
+          <div class="ing-slot">🏃</div>
+          <div class="ing-label">morning run…</div>
+        </div>
+        <div class="ing-row">
+          <div class="ing-slot">💧</div>
+          <div class="ing-label">hydrate</div>
+        </div>
+        <button class="add-more">+ add ingredient</button>
+        <div class="equals">=</div>
+        <div class="ing-slot" style="background:#F8FAFC;">💪</div>
+      </div>
+    </div>
+
+    <!-- SHAPE ROW (the feature) -->
+    <div class="field">
+      <div class="field-label">Shape</div>
+      <div class="row-card" id="shapeRow">
+        <div class="mini-spark" id="miniSpark"><span class="e">💪</span></div>
+        <span class="rname" id="shapeName">Rhomboid squircle</span>
+        <span class="chev">›</span>
+      </div>
+    </div>
+
+    <!-- repeats -->
+    <div class="field">
+      <div class="field-label">Repeats</div>
+      <div class="row-card"><span class="rname">Daily</span><span class="rval">resets 12:00 AM</span><span class="chev">›</span></div>
+    </div>
+
+    <!-- streak -->
+    <div class="field">
+      <div class="field-label">Streak</div>
+      <div class="row-card"><span class="rname">Breaks if you miss a day</span><div class="toggle"></div></div>
+    </div>
+
+    <!-- share -->
+    <div class="field">
+      <div class="field-label">Share with</div>
+      <div class="row-card"><span class="rname" style="color:#94A3B8;">@friend or invite link…</span><span class="chev">›</span></div>
+    </div>
+  </div>
+
+  <!-- ===== SHAPE PICKER BOTTOM SHEET ===== -->
+  <div class="scrim" id="scrim"></div>
+  <div class="sheet" id="sheet">
+    <div class="grabber"></div>
+    <h3>Spark shape</h3>
+
+    <div class="picker-stage">
+      <div class="spark" id="pickerSpark">
+        <span class="sparkle" style="top:10%; right:18%;">✦</span>
+        <span class="sparkle" style="top:32%; right:6%; font-size:12px;">✦</span>
+        <span class="sparkle" style="bottom:16%; left:12%; font-size:11px;">✦</span>
+        <span class="emoji">💪</span>
+      </div>
+    </div>
+
+    <div class="chips" id="chips">
+      <button class="chip" data-p="rhomboid">Rhomboid</button>
+      <button class="chip" data-p="soft">Soft rhomboid</button>
+      <button class="chip" data-p="squircle">Squircle</button>
+      <button class="chip" data-p="original">Sharp corner</button>
+      <button class="chip" data-p="circle">Circle</button>
+    </div>
+
+    <div class="sliders" id="sliders">
+      <div class="sl"><div class="sh"><span>Top-Left</span><b><span id="v-tl">40</span>%</b></div><input type="range" min="0" max="50" value="40" id="s-tl"></div>
+      <div class="sl"><div class="sh"><span>Top-Right</span><b><span id="v-tr">12</span>%</b></div><input type="range" min="0" max="50" value="12" id="s-tr"></div>
+      <div class="sl"><div class="sh"><span>Bottom-Left</span><b><span id="v-bl">12</span>%</b></div><input type="range" min="0" max="50" value="12" id="s-bl"></div>
+      <div class="sl"><div class="sh"><span>Bottom-Right</span><b><span id="v-br">40</span>%</b></div><input type="range" min="0" max="50" value="40" id="s-br"></div>
+    </div>
+
+    <button class="done" id="doneBtn">Done</button>
+  </div>
+
+  <div class="hint-bar">tap the Shape row to open the picker · drag corners live</div>
+</div>
+
+<script>
+  const PRESETS = {
+    rhomboid: { tl: 40, tr: 12, br: 40, bl: 12, name: 'Rhomboid squircle' },
+    soft:     { tl: 44, tr: 22, br: 44, bl: 22, name: 'Soft rhomboid' },
+    squircle: { tl: 32, tr: 32, br: 32, bl: 32, name: 'Squircle' },
+    original: { tl: 0,  tr: 50, br: 50, bl: 50, name: 'Sharp corner' },
+    circle:   { tl: 50, tr: 50, br: 50, bl: 50, name: 'Circle' },
+  };
+  const IDS = ['tl','tr','br','bl'];
+  let shape = { ...PRESETS.rhomboid };
+
+  const radiusStr = s => `${s.tl}% ${s.tr}% ${s.br}% ${s.bl}%`;
+
+  function render() {
+    document.getElementById('pickerSpark').style.borderRadius = radiusStr(shape);
+    document.getElementById('miniSpark').style.borderRadius = radiusStr(shape);
+    IDS.forEach(k => {
+      document.getElementById('s-'+k).value = shape[k];
+      document.getElementById('v-'+k).textContent = shape[k];
+    });
+    // active chip
+    document.querySelectorAll('.chip').forEach(c => {
+      const p = PRESETS[c.dataset.p];
+      c.classList.toggle('active', p && IDS.every(k => p[k] === shape[k]));
+    });
+    // name
+    const matched = Object.values(PRESETS).find(p => IDS.every(k => p[k] === shape[k]));
+    document.getElementById('shapeName').textContent = matched ? matched.name : 'Custom shape';
+  }
+
+  // open / close sheet
+  const scrim = document.getElementById('scrim');
+  const sheet = document.getElementById('sheet');
+  function openSheet() { scrim.classList.add('open'); sheet.classList.add('open'); }
+  function closeSheet() { scrim.classList.remove('open'); sheet.classList.remove('open'); }
+  document.getElementById('shapeRow').addEventListener('click', openSheet);
+  document.getElementById('doneBtn').addEventListener('click', closeSheet);
+  scrim.addEventListener('click', closeSheet);
+
+  // sliders
+  IDS.forEach(k => document.getElementById('s-'+k).addEventListener('input', e => { shape[k] = +e.target.value; render(); }));
+  // chips
+  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { shape = { ...PRESETS[c.dataset.p] }; render(); }));
+
+  render();
+</script>
+</body>
+</html>

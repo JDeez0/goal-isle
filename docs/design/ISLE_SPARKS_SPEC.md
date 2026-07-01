@@ -27,9 +27,13 @@ The original `VISION.md` said *"No streaks, no gamification noise."* The redesig
 A small (0.5″ / 48px) **quasi-circular** button floating on the water.
 
 ### Shape
-A circle with a **sharp square top-left corner** (the other three corners fully rounded).
-- Flutter: asymmetric `BorderRadius.only(topLeft: Radius.zero, …)` with the other three at `Radius.circular(size/2)`.
-- CSS (mockup): `border-radius: 0 50% 50% 50%`.
+The silhouette is **user-chosen per spark** via a shape picker on the Create Spark screen (presets + per-corner sliders). The **default** for a new spark is the **rhomboid squircle**:
+- Top-left & bottom-right corners **rounded** (40%), top-right & bottom-left corners **pointed** (12%) → a slight rhomboid.
+- Stored as **four radius fractions** `{ tl, tr, br, bl }`, each `0–0.5` (0 = sharp, 0.5 = full quarter-circle), so it scales with spark size.
+- Presets offered in the picker: **Rhomboid squircle** (default), Soft rhomboid, Squircle, Sharp-corner (the old quasi-circle: sharp TL, round rest), Circle.
+- Flutter: `BorderRadius.only(topLeft/topRight/bottomLeft/bottomRight: Radius.circular(fraction * size))`.
+- CSS (mockup): `border-radius: 40% 12% 40% 12%`.
+- Shape is **cosmetic** (it does not affect behavior), so unlike the structural settings it **remains editable in Spark Settings** after creation. (Say the word if you'd rather lock it at creation only.)
 
 ### Identity
 - **1 main emoji** — the spark's identity / "result." Future: custom emojis (so this field must stay a flexible identifier, not a hardcoded system-emoji char).
@@ -41,12 +45,12 @@ A circle with a **sharp square top-left corner** (the other three corners fully 
 - Each dependency has an **optional required count** (default **1**) — "unless specified otherwise on the Create Spark screen."
 - Dependencies **cannot be edited after creation.**
 
-### The four creation-time settings
-Set **only at creation**, not editable later:
-1. **Timer mode** — instant (10s) / daily / weekly / monthly.
-2. **Streak-breaks-on-miss** — boolean. Default **true** (a missed cycle resets streak to 0). User may choose "lenient" (streak freezes on a miss).
-3. **Dependencies** (see above).
-4. **Share** — invitees who become members at creation.
+### The five creation-time settings
+1. **Timer mode** — instant (10s) / daily / weekly / monthly. *(creation-only)*
+2. **Streak-breaks-on-miss** — boolean. Default **true** (a missed cycle resets streak to 0). User may choose "lenient" (streak freezes on a miss). *(creation-only)*
+3. **Dependencies** (see above). *(creation-only, never editable)*
+4. **Share** — invitees who become members at creation. *(members are editable later)*
+5. **Shape** — silhouette, defaulting to **rhomboid squircle**. *(cosmetic — editable later in Settings; see Shape above)*
 
 ---
 
@@ -145,12 +149,13 @@ Home (only floating sparks + Create Spark button, bottom-right)
   │                  • Recipe/equation (emojis greyed → fill in as satisfied)
   │                  • Members button  → full member list (avatar, name, status)
   │                  • Chat button
-  │                  • Settings button (creator only) → members, delete
+  │                  • Settings button (creator only) → members, shape, delete
   │                  └─ chat ──► Chat Screen (per-spark room)
   │
   └─ Create Spark (bottom-right) ──► New Spark screen
                                        • Equation builder
                                        • Timer picker · streak-breaks-on-miss toggle
+                                       • Shape picker (default rhomboid squircle)
                                        • Share field
                                        • Cancel + Create (enabled once main emoji chosen)
 ```
@@ -178,6 +183,7 @@ Home (only floating sparks + Create Spark button, bottom-right)
   - Bottom: **main emoji** selection.
 - **Timer picker** (instant / daily / weekly / monthly).
 - **Streak-breaks-on-miss** toggle.
+- **Shape picker** — a row showing a mini live preview of the current silhouette; tapping opens an iOS-style bottom sheet with preset chips + per-corner sliders + a large live preview. **Defaults to rhomboid squircle.**
 - **Share field** (friends / invite link).
 - **Cancel** + **Create Spark**. Create is **disabled until the main emoji is chosen**.
 
@@ -187,6 +193,7 @@ Home (only floating sparks + Create Spark button, bottom-right)
 
 ### Spark Settings (creator only)
 - Member management (add/remove).
+- **Shape** (cosmetic — reopens the same shape picker).
 - Delete spark.
 
 ---
@@ -209,6 +216,7 @@ The current model reflects the **old** system. Below is the change map.
 | *new* `cycleDueAt` | ➕ DateTime (drives fade + cycle reset) |
 | *new* `members` | ➕ list (see new Membership model) |
 | *new* `dependencies` | ➕ relation (see Dependency) |
+| *new* `shape` | ➕ `{ tl, tr, br, bl }` four radius fractions `0–0.5`; default rhomboid squircle `{0.4, 0.12, 0.4, 0.12}` |
 
 ### `sub_point.dart` → `Dependency`
 | Field | Action |
@@ -250,16 +258,17 @@ A spark ↔ user membership relation. **Currently does not exist anywhere in the
 
 | Component | Notes |
 |---|---|
-| `IsleSpark` widget | Quasi-circle shape; renders main emoji; switches among dull/lit/streaked/greyed states |
+| `IsleSpark` widget | Renders main emoji with the spark's stored `shape`; switches among dull/lit/streaked/greyed states. Default shape = rhomboid squircle |
 | Sparkles overlay | Tiny, low-opacity gold `✦` glyphs ("barely visible") |
 | Streak badge | Blue pill, top-right, unbounded number |
 | Beach line | Squiggly circumscribing stroke (SVG/CustomPainter), thin, warm-sand tone |
+| `ShapePicker` | Bottom-sheet UI: preset chips + 4 per-corner sliders + live preview; used on New Spark screen **and** Spark Settings |
 | `CreateSparkButton` | Dashed quasi-circle silhouette + grey `?`, bottom-right |
 | New Spark equation builder | Dependency slots above `=`, main emoji below, add-more, timer picker, share field |
 | Recipe viewer (Spark Details) | Equation with per-emoji grey→filled state |
 
 ### Visual tokens to add (not yet in `TOKENS.md`)
-- Asymmetric quasi-circle radius (no current token produces "circle + sharp corner").
+- Default spark shape: rhomboid squircle `{tl:0.4, tr:0.12, br:0.4, bl:0.12}` (shape itself is per-spark / user-chosen, so this is a *default*, not a fixed token).
 - Dull/desaturation treatment; sparkle styling; beach-line stroke; streak-badge styling.
 
 ### Progress/mass tokens (`progressEmpty`/`progressFilled`) → now orphaned
@@ -283,6 +292,8 @@ HTML/CSS mockups for design iteration (served locally, not shipped to users):
 | File | Shows |
 |---|---|
 | `docs/design/mockups/sparks.html` | Isle Spark shape, all four states, streak/beach detail, Create button, Home composition |
+| `docs/design/mockups/shape-lab.html` | Interactive shape lab: drag the 4 corners live, compare presets, get the exact Flutter/CSS values |
+| `docs/design/mockups/create-spark-shape-picker.html` | The **Shape picker** as it appears on the Create Spark screen — iOS bottom sheet with presets + sliders (default = rhomboid squircle) |
 | `docs/design/mockups/buttons.html` | Button system (filled/outlined/text/icon/destructive) — iOS-first, 2026 spec |
 
 See `docs/design/MOCKUPS.md` for how to run them.

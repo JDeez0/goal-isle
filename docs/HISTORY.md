@@ -199,6 +199,7 @@ The product was reimagined from the ground up. The old model (Isles â†’ Goals â†
 | June 22 | Defer all architecture decisions until design is locked |
 | **July 1** | **Redesign to Isle Sparks; reverse the "no streaks" principle** |
 | **July 1** | **Lock the Isle Sparks spec (see `ISLE_SPARKS_SPEC.md`)** |
+| **July 1** | **Spark silhouette is user-chosen (Shape picker on Create Spark); default = rhomboid squircle** |
 
 ---
 
