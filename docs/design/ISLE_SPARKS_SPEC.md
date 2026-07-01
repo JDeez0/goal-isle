@@ -177,15 +177,16 @@ Home (only floating sparks + Create Spark button, bottom-right)
 - Shared across all members.
 
 ### New Spark (Create Spark screen)
-- **Vertical equation builder:**
-  - Top: dependency emoji slots (`[emoji] [optional label]`), each with an optional required-count; an **"add more"** button.
-  - Middle: `=`
-  - Bottom: **main emoji** selection.
-- **Timer picker** (instant / daily / weekly / monthly).
-- **Streak-breaks-on-miss** toggle.
-- **Shape picker** — a row showing a mini live preview of the current silhouette; tapping opens an iOS-style bottom sheet with preset chips + per-corner sliders + a large live preview. **Defaults to rhomboid squircle.**
-- **Share field** (friends / invite link).
-- **Cancel** + **Create Spark**. Create is **disabled until the main emoji is chosen**.
+> **Design language (locked):** icon-led, **no noun section headers**. Each setting is identified by an icon (or the shape itself) inside one grouped card — not by a word like "Shape" / "Repeats" / "Streak" / "Share". Only **verb** chrome remains (Cancel / Create).
+
+- **The equation is the hero.** Dependencies sit **above** the `=`; the **main emoji** is the large focal spark **below** it (top→down reads: ingredients = result). Tiny **content** labels may sit under each dependency (those are values the user types, not headers).
+- **Grouped settings card**, one icon-led row each (see mockup `create-spark.html`):
+  - **Shape** — the row's icon is a **live mini spark** of the current silhouette; value = the preset name. Tapping opens the **Shape picker** (iOS bottom sheet: preset chips + per-corner sliders + large live preview). **Default = rhomboid squircle.** Changing the shape **reshapes the whole screen live** (hero, ingredient chips, mini preview, buttons all share one silhouette).
+  - **Repeats** — clock icon; value = timer mode (instant / daily / weekly / monthly).
+  - **Streak** — flame icon + toggle; short verb-phrase ("Breaks on miss") is allowed since a bare flame+toggle is ambiguous.
+  - **Share** — user-plus icon; value/placeholder = members or invite.
+- **Dependencies** — spark-shaped chips (`[emoji]` + optional per-dep required-count) with an `+ add` chip.
+- **Top bar:** `Cancel` (left) + `Create` (right). **No center title.** Create is **disabled until the main emoji is chosen**.
 
 ### Friends (low-impact)
 - A friends list + the ability to **add friends by username or phone-number request**.
@@ -264,7 +265,7 @@ A spark ↔ user membership relation. **Currently does not exist anywhere in the
 | Beach line | Squiggly circumscribing stroke (SVG/CustomPainter), thin, warm-sand tone |
 | `ShapePicker` | Bottom-sheet UI: preset chips + 4 per-corner sliders + live preview; used on New Spark screen **and** Spark Settings |
 | `CreateSparkButton` | Dashed quasi-circle silhouette + grey `?`, bottom-right |
-| New Spark equation builder | Dependency slots above `=`, main emoji below, add-more, timer picker, share field |
+| New Spark screen | Equation (deps above `=`, main emoji as focal hero below) + grouped icon-led settings card (shape/repeats/streak/share) + shape picker sheet — see `create-spark.html` |
 | Recipe viewer (Spark Details) | Equation with per-emoji grey→filled state |
 
 ### Visual tokens to add (not yet in `TOKENS.md`)
@@ -293,7 +294,7 @@ HTML/CSS mockups for design iteration (served locally, not shipped to users):
 |---|---|
 | `docs/design/mockups/sparks.html` | Isle Spark shape, all four states, streak/beach detail, Create button, Home composition |
 | `docs/design/mockups/shape-lab.html` | Interactive shape lab: drag the 4 corners live, compare presets, get the exact Flutter/CSS values |
-| `docs/design/mockups/create-spark-shape-picker.html` | The **Shape picker** as it appears on the Create Spark screen — iOS bottom sheet with presets + sliders (default = rhomboid squircle) |
+| `docs/design/mockups/create-spark.html` | The **Create Spark screen** (phone frame) — icon-led, noun-header-free design language; equation hero; grouped settings card; **Shape picker** bottom sheet that reshapes the whole screen live (default = rhomboid squircle) |
 | `docs/design/mockups/buttons.html` | Button system (filled/outlined/text/icon/destructive) — iOS-first, 2026 spec |
 
 See `docs/design/MOCKUPS.md` for how to run them.

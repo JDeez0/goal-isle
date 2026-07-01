@@ -200,6 +200,7 @@ The product was reimagined from the ground up. The old model (Isles â†’ Goals â†
 | **July 1** | **Redesign to Isle Sparks; reverse the "no streaks" principle** |
 | **July 1** | **Lock the Isle Sparks spec (see `ISLE_SPARKS_SPEC.md`)** |
 | **July 1** | **Spark silhouette is user-chosen (Shape picker on Create Spark); default = rhomboid squircle** |
+| **July 1** | **Create Spark design language locked: icon-led, no noun headers; equation as hero (`create-spark.html`)** |
 
 ---
 
