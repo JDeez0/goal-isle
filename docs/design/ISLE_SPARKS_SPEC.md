@@ -18,7 +18,7 @@ The whole point: **small recurring social rituals, visualized as glowing objects
 
 ### What this reverses from the earlier vision
 
-The original `VISION.md` said *"No streaks, no gamification noise."* The redesign **deliberately reverses** the streaks principle — streaks (and the streak badge + beach line) are now a core motivator. Everything else about "calm, minimal, clean/cool" still holds.
+The original `VISION.md` said *"No streaks, no gamification noise."* The redesign **deliberately reverses** the streaks principle — streaks (and the streak badge) are now a core motivator. Everything else about "calm, minimal, clean/cool" still holds.
 
 ---
 
@@ -62,13 +62,12 @@ A spark is always in exactly one primary state. Completion is driven entirely by
 |---|---|---|
 | **Dull** | Desaturated, muted surface | Not yet completed this cycle |
 | **Lit** | Full-color + **barely-visible** sparkles | Completed this cycle |
-| **Streaked** | Lit + streak number badge + squiggly "beach" line | Streak ≥ 2 |
+| **Streaked** | Lit + streak number badge | Streak ≥ 2 |
 | **Greyed** | Full grayscale, no shadow | Missed & parked; **sinks to bottom of Home** |
 
-### Streak badge & beach line
+### Streak badge
 - Appears only after **streak ≥ 2**.
 - **Number badge** — top-right (the rounded side, away from the sharp corner). Grows **unboundedly**.
-- **Beach line** — a thin squiggly stroke circumscribing the spark (the isle's beach). The line **barely changes** as the streak grows; only the number grows.
 
 ### Decay
 - An uncompleted spark **fades grey evenly across the entire window** until it is due.
@@ -262,7 +261,6 @@ A spark ↔ user membership relation. **Currently does not exist anywhere in the
 | `IsleSpark` widget | Renders main emoji with the spark's stored `shape`; switches among dull/lit/streaked/greyed states. Default shape = rhomboid squircle |
 | Sparkles overlay | Tiny, low-opacity gold `✦` glyphs ("barely visible") |
 | Streak badge | Blue pill, top-right, unbounded number |
-| Beach line | Squiggly circumscribing stroke (SVG/CustomPainter), thin, warm-sand tone |
 | `ShapePicker` | Bottom-sheet UI: preset chips + 4 per-corner sliders + live preview; used on New Spark screen **and** Spark Settings |
 | `CreateSparkButton` | Dashed quasi-circle silhouette + grey `?`, bottom-right |
 | New Spark screen | Equation (deps above `=`, main emoji as focal hero below) + grouped icon-led settings card (shape/repeats/streak/share) + shape picker sheet — see `create-spark.html` |
@@ -270,7 +268,7 @@ A spark ↔ user membership relation. **Currently does not exist anywhere in the
 
 ### Visual tokens to add (not yet in `TOKENS.md`)
 - Default spark shape: rhomboid squircle `{tl:0.4, tr:0.12, br:0.4, bl:0.12}` (shape itself is per-spark / user-chosen, so this is a *default*, not a fixed token).
-- Dull/desaturation treatment; sparkle styling; beach-line stroke; streak-badge styling.
+- Dull/desaturation treatment; sparkle styling; streak-badge styling.
 
 ### Progress/mass tokens (`progressEmpty`/`progressFilled`) → now orphaned
 Tied to the deleted mass/progress-bar concept. Re-purpose only if the grey-fade needs them (likely not — fade is desaturation, not bar fill).
@@ -292,7 +290,7 @@ HTML/CSS mockups for design iteration (served locally, not shipped to users):
 
 | File | Shows |
 |---|---|
-| `docs/design/mockups/sparks.html` | Isle Spark shape, all four states, streak/beach detail, Create button, Home composition |
+| `docs/design/mockups/sparks.html` | Isle Spark shape, all four states, streak detail, Create button, Home composition |
 | `docs/design/mockups/shape-lab.html` | Interactive shape lab: drag the 4 corners live, compare presets, get the exact Flutter/CSS values |
 | `docs/design/mockups/create-spark.html` | The **Create Spark screen** (phone frame) — icon-led, noun-header-free design language; equation hero; grouped settings card; **Shape picker** bottom sheet that reshapes the whole screen live (default = rhomboid squircle) |
 | `docs/design/mockups/buttons.html` | Button system (filled/outlined/text/icon/destructive) — iOS-first, 2026 spec |

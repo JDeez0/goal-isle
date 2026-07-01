@@ -122,7 +122,6 @@
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 1px 3px rgba(59,130,246,0.35); z-index: 3;
   }
-  .beach-svg { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; z-index: 0; }
 
   /* size variants for the "in context" grid */
   .sz-actual { width: 48px; height: 48px; }
@@ -236,7 +235,6 @@
       </div>
       <div class="cell">
         <div class="spark lit sz-lg" data-shape-preview style="position:relative;">
-          <svg class="beach-svg" width="118" height="118" viewBox="0 0 118 118"></svg>
           <span class="streak-badge">12</span>
           <span class="sparkle" style="top:10%; right:20%;">✦</span>
           <span class="emoji">🏃</span>
@@ -350,25 +348,6 @@
     compare.appendChild(cell);
   });
 
-  // squiggly beach line on the streaked example
-  function wavyCirclePath(cx, cy, r, amp, waves) {
-    const steps = waves * 10; let d = '';
-    for (let i = 0; i <= steps; i++) {
-      const t = (i/steps)*Math.PI*2;
-      const rr = r + amp*Math.sin(t*waves);
-      d += (i===0?'M':'L') + (cx+rr*Math.cos(t)).toFixed(2) + ' ' + (cy+rr*Math.sin(t)).toFixed(2) + ' ';
-    }
-    return d + 'Z';
-  }
-  document.querySelectorAll('.beach-svg').forEach(svg => {
-    const vb = svg.viewBox.baseVal, cx = vb.width/2, cy = vb.height/2, r = Math.min(cx,cy)-4;
-    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d', wavyCirclePath(cx, cy, r, 3.2, 14));
-    path.setAttribute('fill','none'); path.setAttribute('stroke','#F59E0B');
-    path.setAttribute('stroke-width','1.5'); path.setAttribute('stroke-opacity','0.55');
-    path.setAttribute('stroke-linejoin','round');
-    svg.appendChild(path);
-  });
 
   render();
 </script>

@@ -161,7 +161,7 @@ The product was reimagined from the ground up. The old model (Isles → Goals �
 - **Isle Spark** is now the only object on Home — a 0.5″ quasi-circular button (circle with a sharp top-left corner) holding a main emoji.
 - **Goals, Sub-points, and Mass are gone.** Replaced by: a main emoji + 0–N **dependency emojis** ("ingredients").
 - **Completion is now social and chat-driven:** a spark lights when its emoji-ingredients are placed (typed or reacted) in the spark's shared chat room. Solo users just type the main emoji to themselves.
-- **Streaks** — explicitly **reversing** the earlier "no streaks" principle. Completing a cycle increments a streak; a number badge + a squiggly "beach" line appear at streak ≥ 2.
+- **Streaks** — explicitly **reversing** the earlier "no streaks" principle. Completing a cycle increments a streak; a number badge appears at streak ≥ 2. (A squiggly "beach line" circumscribing the spark was also part of the original design but was deferred to `docs/archive/BEACH_LINE.md` later the same day — see Key Decisions.)
 - **Repetition + decay:** sparks repeat on a timer (instant 10s / daily / weekly / monthly). Missed sparks **fade grey evenly and sink to the bottom of Home** — they are **never auto-deleted**; only the creator can delete via Settings.
 - **An Isle = one spark + its members + its chat.** Sharing a spark creates members with shared progress. Sparks are creator-owned: if the creator leaves/expires/deletes, it vanishes for everyone.
 
@@ -201,6 +201,7 @@ The product was reimagined from the ground up. The old model (Isles → Goals �
 | **July 1** | **Lock the Isle Sparks spec (see `ISLE_SPARKS_SPEC.md`)** |
 | **July 1** | **Spark silhouette is user-chosen (Shape picker on Create Spark); default = rhomboid squircle** |
 | **July 1** | **Create Spark design language locked: icon-led, no noun headers; equation as hero (`create-spark.html`)** |
+| **July 1** | **Beach line (streaked-spark circumscription stroke) deferred to archive (`docs/archive/BEACH_LINE.md`) — to revisit later** |
 
 ---
 

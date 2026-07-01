@@ -101,7 +101,7 @@ See `docs/archive/README.md` for the full list. These were written before the ac
 The redesign spec is locked. The Flutter code has **not** been migrated yet.
 
 ### Immediate — port the redesign into Flutter
-1. **Build the `IsleSpark` widget** from the sparks mockup (`docs/design/mockups/sparks.html`): quasi-circle shape, the four states (dull/lit/streaked/greyed), sparkles, streak badge, beach line.
+1. **Build the `IsleSpark` widget** from the sparks mockup (`docs/design/mockups/sparks.html`): quasi-circle shape, the four states (dull/lit/streaked/greyed), sparkles, streak badge. (A circumscribing "beach line" was designed and then deferred to `docs/archive/BEACH_LINE.md` — do **not** build it yet.)
 2. **Build `CreateSparkButton`** (dashed silhouette + grey `?`, bottom-right).
 3. **Rebuild Home** to show only floating sparks + Create button (lit float, greyed sink).
 

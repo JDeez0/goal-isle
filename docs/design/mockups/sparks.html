@@ -101,16 +101,6 @@
     z-index: 3;
   }
 
-  /* ---- BEACH LINE (squiggly circumscription via SVG) ---- */
-  .beach-svg {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
   /* sizes */
   .size-actual { width: 48px; height: 48px; }       /* 0.5 inch at 96dpi */
   .size-actual .emoji { font-size: 26px; }
@@ -263,14 +253,13 @@
 
       <div class="col">
         <div class="spark size-lg lit" style="position:relative;">
-          <svg class="beach-svg" width="118" height="118" viewBox="0 0 118 118"></svg>
           <span class="streak-badge">12</span>
           <span class="sparkle" style="top:10%; right:20%;">✦</span>
           <span class="sparkle" style="bottom:18%; left:12%; font-size:10px;">✦</span>
           <span class="emoji">🏃</span>
         </div>
         <span class="state-label">Streaked</span>
-        <span class="state-note">Streak ≥ 2. Number badge + squiggly "beach" line.</span>
+        <span class="state-note">Streak ≥ 2. Number badge.</span>
       </div>
 
       <div class="col">
@@ -284,12 +273,11 @@
 
   <!-- ===== STREAK DETAIL ===== -->
   <div class="section">
-    <h2>Streak Detail — the "Beach" Line</h2>
-    <p class="desc">After streak ≥ 2, a squiggly line circumscribes the spark (the isle's beach). Grows unboundedly as a number; the line itself barely changes.</p>
+    <h2>Streak Detail</h2>
+    <p class="desc">After streak ≥ 2, a streak number badge appears on the spark. The number grows unboundedly.</p>
     <div class="row" style="gap:60px;">
       <div class="col">
         <div class="spark size-lg lit" style="position:relative;">
-          <svg class="beach-svg" width="118" height="118" viewBox="0 0 118 118"></svg>
           <span class="streak-badge">3</span>
           <span class="emoji">💧</span>
         </div>
@@ -297,11 +285,10 @@
       </div>
       <div class="col">
         <div class="spark size-lg lit" style="position:relative;">
-          <svg class="beach-svg" width="128" height="128" viewBox="0 0 128 128"></svg>
           <span class="streak-badge">47</span>
           <span class="emoji">💧</span>
         </div>
-        <span class="state-note">streak 47 — line slightly larger, same character</span>
+        <span class="state-note">streak 47</span>
       </div>
     </div>
   </div>
@@ -329,7 +316,7 @@
     <h2>Home — composition</h2>
     <p class="desc">The only objects are floating Isle Sparks on the water, plus the Create Spark button bottom-right. Lit sparks float; greyed-missed sparks sink to the bottom.</p>
     <div class="home-canvas" id="homeCanvas">
-      <!-- floating sparks injected below for beach-line svg -->
+      <!-- floating sparks -->
       <div class="floating-spark" style="top: 40px; left: 60px; animation-delay: 0s;">
         <div class="spark size-actual lit" style="position:relative;">
           <span class="sparkle" style="top:4px; right:10px; font-size:8px;">✦</span>
@@ -338,7 +325,6 @@
       </div>
       <div class="floating-spark" style="top: 70px; left: 180px; animation-delay: 1.2s;">
         <div class="spark size-actual lit" style="position:relative;">
-          <svg class="beach-svg" width="60" height="60" viewBox="0 0 60 60"></svg>
           <span class="streak-badge">8</span>
           <span class="sparkle" style="top:4px; right:8px; font-size:7px;">✦</span>
           <span class="emoji">🏃</span>
@@ -380,34 +366,6 @@
 </div>
 
 <script>
-  // Generate the squiggly "beach" line as a wavy circle inside each beach-svg.
-  // amplitude small, so it reads as a gentle squiggle circumscribing the spark.
-  function wavyCirclePath(cx, cy, r, amp, waves) {
-    const steps = waves * 10;
-    let d = '';
-    for (let i = 0; i <= steps; i++) {
-      const t = (i / steps) * Math.PI * 2;
-      const rr = r + amp * Math.sin(t * waves);
-      const x = cx + rr * Math.cos(t);
-      const y = cy + rr * Math.sin(t);
-      d += (i === 0 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2) + ' ';
-    }
-    return d + 'Z';
-  }
-
-  document.querySelectorAll('.beach-svg').forEach(svg => {
-    const vb = svg.viewBox.baseVal;
-    const cx = vb.width / 2, cy = vb.height / 2;
-    const r = Math.min(cx, cy) - 4;        // radius near the edge of the viewBox
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', wavyCirclePath(cx, cy, r, 3.2, 14));
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', '#F59E0B');   // warm sand tone
-    path.setAttribute('stroke-width', '1.5');
-    path.setAttribute('stroke-opacity', '0.55');
-    path.setAttribute('stroke-linejoin', 'round');
-    svg.appendChild(path);
-  });
 </script>
 </body>
 </html>
