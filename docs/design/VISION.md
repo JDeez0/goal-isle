@@ -1,5 +1,7 @@
 # Design Vision — Goal Isle
 
+> ⚠️ **PARTIALLY SUPERSEDED (July 1, 2026).** The core product has been redesigned around **Isle Sparks**. Two things in this vision are now **reversed**: (1) the **"no streaks"** principle — streaks are now a core motivator; (2) the **Isle/Goal/Sub-point** model is replaced by sparks + dependencies. The current source of truth is **[`ISLE_SPARKS_SPEC.md`](ISLE_SPARKS_SPEC.md)**. The calm/minimal/clean-and-cool spirit below still holds.
+
 **Date:** June 22, 2026
 **Project:** `/home/jasper/projects/goal_isle/`
 

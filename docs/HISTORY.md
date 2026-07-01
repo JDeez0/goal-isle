@@ -152,6 +152,42 @@ The HTML mockup is **archived**. The Flutter codebase defines its own design.
 
 ---
 
+## Phase 7 — The Redesign: Isle Sparks (July 1, 2026)
+
+The product was reimagined from the ground up. The old model (Isles → Goals → Sub-points, with Mass as a progress indicator) was discarded in favor of a single core object: the **Isle Spark**.
+
+### What changed
+
+- **Isle Spark** is now the only object on Home — a 0.5″ quasi-circular button (circle with a sharp top-left corner) holding a main emoji.
+- **Goals, Sub-points, and Mass are gone.** Replaced by: a main emoji + 0–N **dependency emojis** ("ingredients").
+- **Completion is now social and chat-driven:** a spark lights when its emoji-ingredients are placed (typed or reacted) in the spark's shared chat room. Solo users just type the main emoji to themselves.
+- **Streaks** — explicitly **reversing** the earlier "no streaks" principle. Completing a cycle increments a streak; a number badge + a squiggly "beach" line appear at streak ≥ 2.
+- **Repetition + decay:** sparks repeat on a timer (instant 10s / daily / weekly / monthly). Missed sparks **fade grey evenly and sink to the bottom of Home** — they are **never auto-deleted**; only the creator can delete via Settings.
+- **An Isle = one spark + its members + its chat.** Sharing a spark creates members with shared progress. Sparks are creator-owned: if the creator leaves/expires/deletes, it vanishes for everyone.
+
+### Decisions resolved during the spec session
+
+- Timer boundaries: daily=midnight, weekly=Mon 00:00, monthly=1st 00:00, instant=+10s from completion.
+- One emoji occurrence satisfies a dependency unless a per-dependency `requiredCount` is set (default 1).
+- Satisfaction resets each cycle.
+- Match rule: **exact/definite match only**.
+- `streak-breaks-on-miss` is a **per-spark creation choice** (default: breaks).
+- No auto-delete on miss — sparks grey out and sink instead.
+
+### Artifacts produced
+
+- **`docs/design/ISLE_SPARKS_SPEC.md`** — the locked, definitive system spec (new source of truth).
+- **`docs/design/MOCKUPS.md`** + **`docs/design/mockups/sparks.html`** and **`buttons.html`** — HTML/CSS mockups for design iteration.
+- `SCREENS.md` and `VISION.md` marked superseded.
+
+### What's NOT done yet
+
+- The Flutter codebase still reflects the **old** model. The spec's **Migration** section lists every model/widget change.
+- **No membership model exists** yet — the biggest structural gap.
+- Auth is still mocked, so the social mechanics can't be truly tested yet.
+
+---
+
 ## Key Decisions
 
 | Date | Decision |
@@ -161,6 +197,8 @@ The HTML mockup is **archived**. The Flutter codebase defines its own design.
 | June 22 | Archive HTML mockup; design in Flutter instead |
 | June 22 | Minimal, literal, clean/cool vibe locked in |
 | June 22 | Defer all architecture decisions until design is locked |
+| **July 1** | **Redesign to Isle Sparks; reverse the "no streaks" principle** |
+| **July 1** | **Lock the Isle Sparks spec (see `ISLE_SPARKS_SPEC.md`)** |
 
 ---
 
@@ -188,4 +226,4 @@ Per `UI_DEVELOPMENT_PLAN.md`:
 
 ---
 
-*Last updated: June 22, 2026.*
+*Last updated: July 1, 2026.*

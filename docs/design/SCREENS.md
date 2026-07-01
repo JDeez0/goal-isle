@@ -1,5 +1,7 @@
 # Screens — Goal Isle
 
+> ⚠️ **SUPERSEDED (July 1, 2026).** This document describes the **old** model (Isles / Goals / Sub-points / Mass). The current screen inventory and system spec live in **[`ISLE_SPARKS_SPEC.md`](ISLE_SPARKS_SPEC.md)**. This file is kept for history only.
+
 **Date:** June 22, 2026
 
 The screen list is deliberately small. Every screen has one job.

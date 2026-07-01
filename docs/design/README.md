@@ -8,9 +8,11 @@ This directory contains the design intent for the Goal Isle Flutter app.
 
 | File | Purpose |
 |---|---|
-| [`VISION.md`](./VISION.md) | The vibe, personality, and core metaphor. Read first. |
-| [`SCREENS.md`](./SCREENS.md) | The screen inventory and what each screen does. |
-| [`TOKENS.md`](./TOKENS.md) | Design tokens: colors, typography, spacing, motion. Source of truth for visual values. |
+| **[`ISLE_SPARKS_SPEC.md`](./ISLE_SPARKS_SPEC.md)** | **🔒 THE current system spec — Isle Sparks redesign. Read this first.** |
+| **[`MOCKUPS.md`](./MOCKUPS.md)** | How to run the design mockups (`mockups/sparks.html`, `mockups/buttons.html`). |
+| [`VISION.md`](./VISION.md) | The vibe, personality, and core metaphor. ⚠️ Partially superseded (streaks reversed; model changed). |
+| [`SCREENS.md`](./SCREENS.md) | ⚠️ Superseded by `ISLE_SPARKS_SPEC.md`. Kept for history. |
+| [`TOKENS.md`](./TOKENS.md) | Design tokens: colors, typography, spacing, motion. ⚠️ mass/progress tokens now orphaned. |
 
 ## The Vibe
 
@@ -48,4 +50,4 @@ See [`../../UI_DEVELOPMENT_PLAN.md`](../../UI_DEVELOPMENT_PLAN.md) for the full 
 
 ---
 
-*Last updated: June 22, 2026.*
+*Last updated: July 1, 2026.*

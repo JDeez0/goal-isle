@@ -1,7 +1,9 @@
 # Goal Isle — Current Status
 
-**Date:** June 22, 2026
+**Date:** July 1, 2026
 **Project:** `/home/jasper/projects/goal_isle/`
+
+> 🚨 **BIG CHANGE (July 1):** The product has been redesigned around **Isle Sparks**. The full spec is in **[`docs/design/ISLE_SPARKS_SPEC.md`](docs/design/ISLE_SPARKS_SPEC.md)**. The Flutter code below still reflects the **old** model and has **not** been migrated yet. UI design mockups are in **[`docs/design/mockups/`](docs/design/mockups/)**.
 
 ---
 
@@ -76,14 +78,16 @@ The doc set was consolidated on June 22. Many older files were moved to `docs/ar
 |---|---|
 | `README.md` | Project root, comprehensive entry point |
 | `CURRENT_STATUS.md` | This file — project state, source of truth |
-| `UI_DEVELOPMENT_PLAN.md` | 7-phase plan for UI work |
+| **`docs/design/ISLE_SPARKS_SPEC.md`** | **🔒 THE current system spec — Isle Sparks redesign (read this first)** |
+| **`docs/design/MOCKUPS.md`** | **How to run the design mockups** |
+| `UI_DEVELOPMENT_PLAN.md` | 7-phase plan for UI work (pre-redesign; still broadly useful) |
 | `FLUTTER_DEBUG_LOG.md` | Debugging history that got Flutter rendering |
 | `docs/ARCHITECTURE.md` | Code architecture |
 | `docs/DEVELOPMENT.md` | How to develop |
 | `docs/HISTORY.md` | Project timeline |
-| `docs/design/VISION.md` | The vibe and core metaphor |
-| `docs/design/SCREENS.md` | Screen inventory |
-| `docs/design/TOKENS.md` | Design tokens |
+| `docs/design/VISION.md` | The vibe (⚠️ partially superseded — streaks reversed, model changed) |
+| `docs/design/SCREENS.md` | ⚠️ Superseded by `ISLE_SPARKS_SPEC.md` |
+| `docs/design/TOKENS.md` | Design tokens (⚠️ mass/progress tokens orphaned) |
 | `docs/design/README.md` | Design docs index |
 
 ### Archived docs (do not use)
@@ -94,21 +98,24 @@ See `docs/archive/README.md` for the full list. These were written before the ac
 
 ## 🚀 What to Do Next
 
-### Immediate
-1. ✅ ~~Open the Flutter build in a browser to visually verify it works.~~ DONE — confirmed rendering.
-2. ✅ ~~Decide whether to use HTML mockups or Flutter for UI iteration.~~ DONE — Flutter with hot reload (see `UI_DEVELOPMENT_PLAN.md`).
-3. ✅ ~~Define the design intent.~~ DONE — `docs/design/VISION.md`, `SCREENS.md`, `TOKENS.md` (minimal, literal, clean/cool).
-4. ✅ ~~Start Phase 2 of the UI plan:~~ create `lib/theme/tokens.dart` and `lib/theme/app_theme.dart`. DONE.
-5. **Start Phase 3 of the UI plan:** Build widget library (extract IsleCard, SparkButton, etc.) with Widget Previews.
+The redesign spec is locked. The Flutter code has **not** been migrated yet.
 
-### Short Term
-5. Extract the widget library and use Widget Previews for isolated iteration.
-6. Build screens using tokens and widgets.
+### Immediate — port the redesign into Flutter
+1. **Build the `IsleSpark` widget** from the sparks mockup (`docs/design/mockups/sparks.html`): quasi-circle shape, the four states (dull/lit/streaked/greyed), sparkles, streak badge, beach line.
+2. **Build `CreateSparkButton`** (dashed silhouette + grey `?`, bottom-right).
+3. **Rebuild Home** to show only floating sparks + Create button (lit float, greyed sink).
 
-### Long Term
-7. After the design is locked (Phase 7), make architecture decisions: backend, platform target, data models.
-8. Implement the real feature set (chat, friends, auth, goal/sub-point CRUD).
+### Short term — migrate the data model (per `ISLE_SPARKS_SPEC.md` §8)
+4. `Isle` → `Spark`: drop `mass`; add `title`, `timerMode`, `streakBreaksOnMiss`, `streak`, `lastCompletedAt`, `cycleDueAt`, `members`, `dependencies`.
+5. `SubPoint` → `Dependency`: drop `goalId`, add `requiredCount`.
+6. **Delete** `goal.dart`, `media.dart`, `content_report.dart`, `user_block.dart`, `mountain_visual.dart`, `sparse_lines_background.dart`.
+7. **Create the `Membership` model** (the biggest structural gap).
+8. Build the **New Spark equation-builder** screen and **Spark Details**.
+
+### Long term
+9. Real auth + identity (required for sharing/members). Currently mocked.
+10. Completion-detection logic in the chat (exact emoji match, typed or reacted).
 
 ---
 
-*Last updated: June 22, 2026 — Flutter web app renders; design phase ready to begin.*
+*Last updated: July 1, 2026 — Isle Sparks redesign spec locked; mockups added; Flutter migration pending.*
