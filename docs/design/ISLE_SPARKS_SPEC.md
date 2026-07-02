@@ -4,6 +4,8 @@
 **Status:** 🔒 LOCKED — single source of truth for the redesign
 **Supersedes:** `docs/design/SCREENS.md`, the goal/sub-point/mass model in `docs/design/VISION.md` and `docs/design/TOKENS.md`, and the "no streaks" principle in `VISION.md`.
 
+> 📝 **Change (July 2, 2026):** Removed the per-dependency `requiredCount` concept. Every dependency is now satisfied by a **single occurrence** of its emoji (one typed message or one reaction) — dependencies are binary (not-yet / satisfied), there is no "post N times" option. Affects §2 (Dependencies), §4 (Rules), and §8 (Dependency migration). Decision made while designing the Spark Details mockup: the recipe's grey→fill visualization is cleanest when every ingredient is a simple on/off.
+
 > This document defines the **new** Goal Isle. The Flutter codebase still reflects the **old** model (Isles/Goals/Sub-points/Mass) until the redesign is implemented. See the **Migration** section for the full map of what changes.
 
 ---
@@ -42,7 +44,7 @@ The silhouette is **user-chosen per spark** via a shape picker on the Create Spa
 ### Dependencies ("ingredients")
 - **0, 1, 2, or more dependency emojis**, set at creation.
 - Each dependency has an **optional text label**.
-- Each dependency has an **optional required count** (default **1**) — "unless specified otherwise on the Create Spark screen."
+- A dependency is satisfied by a **single occurrence** of its emoji in chat (one typed message **or** one reaction). There is **no per-dependency count** — every dependency is a simple binary: not-yet / satisfied.
 - Dependencies **cannot be edited after creation.**
 
 ### The five creation-time settings
@@ -81,7 +83,7 @@ A spark is always in exactly one primary state. Completion is driven entirely by
 ### Rules
 - **No dependencies** → typing the **main emoji** in chat lights the spark.
 - **Has dependencies** → the **main emoji is not needed in chat**; lighting requires **all dependency emojis** to be satisfied.
-- A dependency is satisfied by **one occurrence** (typed in a message **or** reacted to a message), unless its `requiredCount` is higher.
+- A dependency is satisfied by **one occurrence** of its emoji (typed in a message **or** reacted to a message). **No per-dependency count** — each dependency is binary (not-yet / satisfied).
 - **Exact/definite match only** — no fuzzy, no substring. (Normalization for emoji ZWJ/skin-tone sequences is a future implementation detail; the rule is exact.)
 - **Satisfaction resets each cycle** — dependencies must be re-earned every cycle.
 - Lighting is **automatic** — no "claim" step.
@@ -225,7 +227,7 @@ The current model reflects the **old** system. Below is the change map.
 | `description` | ✅ Keep → repurpose as **label** |
 | `fillCount`, `fillHistory`, `lastFilledAt` | ✅ Keep — repurpose as **"used in chat" tracking** (powers the grey→filled detail view) |
 | `goalId` | ❌ **Delete** (no goals) → reparent to `sparkId` |
-| *new* `requiredCount` | ➕ int, default 1 |
+| *new* `requiredCount` | ❌ **Not added.** Every dependency is a single-occurrence binary match (see §2 Dependencies, §4 Rules). |
 
 ### `goal.dart` → ❌ Delete entirely
 The middle layer is gone.
@@ -299,4 +301,4 @@ See `docs/design/MOCKUPS.md` for how to run them.
 
 ---
 
-*Last updated: July 1, 2026.*
+*Last updated: July 2, 2026 — removed `requiredCount` (dependencies are single-occurrence / binary).*

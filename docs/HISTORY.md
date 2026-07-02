@@ -168,7 +168,7 @@ The product was reimagined from the ground up. The old model (Isles → Goals �
 ### Decisions resolved during the spec session
 
 - Timer boundaries: daily=midnight, weekly=Mon 00:00, monthly=1st 00:00, instant=+10s from completion.
-- One emoji occurrence satisfies a dependency unless a per-dependency `requiredCount` is set (default 1).
+- One emoji occurrence satisfies a dependency — dependencies are **single-occurrence / binary** (no `requiredCount`; that concept was removed July 2, 2026).
 - Satisfaction resets each cycle.
 - Match rule: **exact/definite match only**.
 - `streak-breaks-on-miss` is a **per-spark creation choice** (default: breaks).

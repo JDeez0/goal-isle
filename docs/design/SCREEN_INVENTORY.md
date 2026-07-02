@@ -31,7 +31,7 @@ Eight named screens. The full inventory below adds the supporting + edge-case sc
 |---|---|---|---|
 | 1 | **Home** | Floating sparks on water + Create button (bottom-right). Lit float, greyed sink. Empty state = just the Create button. | ✅ `mockups/sparks.html` |
 | 2 | **New Spark (Create Spark)** | Equation hero + grouped icon-led settings card (shape / repeats / streak / share) + shape picker sheet. | ✅ `mockups/create-spark.html` |
-| 3 | **Spark Details** | Recipe / equation (emojis grey → filled as satisfied), Members button, Chat button, Settings button (creator only). | ❌ **Gap** |
+| 3 | **Spark Details** | Recipe / equation (emojis grey → filled as satisfied), Members button, Chat button, Settings button (creator only). | ✅ `mockups/spark-details.html` |
 | 4 | **Chat (per-spark)** | Room where members type / react emojis to light the spark. Shared across members. | ❌ **Gap** |
 | 5 | **Spark Settings (creator only)** | Member management (add / remove), shape (reopens picker), delete spark. | ❌ **Gap** |
 | 6 | **Member list** | Avatars, names, status (online / offline / last-seen) for a spark's Isle. | ❌ **Gap** (could be a sheet off Spark Details) |
@@ -63,7 +63,7 @@ Eight named screens. The full inventory below adds the supporting + edge-case sc
 | 11 | **Invite-link landing** | Spec § 6: "Invite link (friendship-free path)." A non-member taps a link → needs a screen: "You're invited to [spark]. Join?" (auth gate if not signed in). | ❌ **Gap** |
 | 12 | **Friend request (incoming)** | Accept / decline a friend request. Could be inline in Friends list, or its own sheet. | ❌ (part of Friends) |
 | 13 | **Onboarding / first spark** | First-time user → empty Home → guided first spark creation? Spec § 7 says empty state = just Create button (no onboarding carousel). **Likely not needed** — confirm. | ❌ (likely **none**) |
-| 14 | **Parked-spark recovery view** | A greyed / sunk spark tapped from Home → Spark Details showing its greyed state + "complete to relight." Probably **same as Spark Details** in greyed state, not a separate screen. | ❌ (state of #3) |
+| 14 | **Parked-spark recovery view** | A greyed / sunk spark tapped from Home → Spark Details showing its greyed state + "complete to relight." **Confirmed: same as Spark Details** in greyed state, not a separate screen — see the "Parked (missed)" variant in `mockups/spark-details.html`. | ✅ (state of #3) |
 
 ---
 
@@ -99,10 +99,11 @@ When mocking, each screen needs its states mocked too:
 
 ## § 7 — Summary: Mocked vs. Gap
 
-**Already mocked (4 + 1 dev tool):**
+**Already mocked (5 + 1 dev tool):**
 - Home — `sparks.html`
 - New Spark — `create-spark.html`
 - Shape Picker — inside `create-spark.html`
+- **Spark Details — `spark-details.html`** (interactive: toggle dep satisfaction, streak, parked, creator/member access; plus a gallery of static variants — no-dep, parked, streaked-win, partial-fill)
 - Buttons — `buttons.html`
 - Shape Lab — `shape-lab.html` (dev tool, not a shipped screen)
 
@@ -110,8 +111,8 @@ When mocking, each screen needs its states mocked too:
 
 | Priority | Screen | Why this priority |
 |---|---|---|
-| 1 | **Spark Details** | The single most important gap — every spark taps into it; it *is* the completion-status visualization (spec § 3, § 7). |
-| 2 | **Chat (per-spark)** | Core to the lighting mechanic (spec § 4 — typing / reacting lights the spark). |
+| 1 | ~~**Spark Details**~~ | ✅ **Done** (`spark-details.html`, July 2, 2026). |
+| 2 | **Chat (per-spark)** | Core to the lighting mechanic (spec § 4 — typing / reacting lights the spark). Now the top gap. |
 | 3 | **Spark Settings + Member list** | Creator flows (spec § 6, § 7). Member list may be a sheet off Spark Details. |
 | 4 | **Emoji Picker** (shared) | Needed by both New Spark and Chat — block both screens' final form. |
 | 5 | **Friends** | Low-impact per spec, but needed for the Share field to be real. |
@@ -128,8 +129,8 @@ When mocking, each screen needs its states mocked too:
 3. **Does Profile have an avatar / emoji identity?** Custom emojis are future (spec § 10); what represents "you" until then?
 4. **Auth entry point** — modal? first-launch gate? triggered only when a social action is attempted?
 5. **Member list** — full screen or bottom sheet off Spark Details?
-6. **How does a parked (greyed) spark indicate its parked-ness** when tapped — same Spark Details with greyed visuals, or a distinct recovery view? (current lean: same screen, greyed state)
+6. ~~**How does a parked (greyed) spark indicate its parked-ness** when tapped — same Spark Details with greyed visuals, or a distinct recovery view?~~ **✅ Resolved (July 2, 2026):** same screen, greyed state — no separate recovery view. See the "Parked (missed)" variant in `mockups/spark-details.html`. A "Complete this cycle to relight" hint appears; the recipe deps render greyed; the hero renders greyed.
 
 ---
 
-*Last updated: July 1, 2026.*
+*Last updated: July 2, 2026 — Spark Details mocked (`spark-details.html`); parked-spark recovery question resolved.*

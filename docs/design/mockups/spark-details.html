@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goal Isle — Spark Details (mockup)</title>
+<style>
+  :root {
+    --shape: 40% 12% 40% 12%;        /* rhomboid squircle default */
+    --water-top: #EEF2F5;
+    --water-bot: #E2E8EF;
+    --ink: #1F2937;
+    --muted: #64748B;
+    --faint: #94A3B8;
+    --line: #ECEFF2;
+    --accent: #3B82F6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Roboto, sans-serif;
+    background: #F1F5F9;
+    color: var(--ink);
+    padding: 40px 20px 64px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .lede { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.5; max-width: 640px; }
+
+  /* ============================================================
+     STAGE — interactive phone + controls side by side
+     ============================================================ */
+  .stage {
+    display: flex; gap: 36px; align-items: flex-start; flex-wrap: wrap;
+    background: #fff; border-radius: 16px; padding: 30px;
+    border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(31,41,55,0.04);
+    margin-bottom: 40px;
+  }
+
+  /* ---- Phone (mirrors create-spark.html) ---- */
+  .phone {
+    width: 332px; height: 700px; border-radius: 46px; border: 10px solid #0F172A;
+    background: linear-gradient(180deg, var(--water-top) 0%, var(--water-bot) 100%);
+    box-shadow: 0 30px 60px rgba(15,23,42,0.22), 0 6px 14px rgba(15,23,42,0.08);
+    position: relative; overflow: hidden; display: flex; flex-direction: column;
+    flex-shrink: 0;
+  }
+  .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 104px; height: 24px; background: #0F172A; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; z-index: 50; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 44px 18px 6px; }
+  .tb { background: none; border: none; cursor: pointer; color: var(--accent); display: flex; align-items: center; }
+  .tb svg { width: 24px; height: 24px; }
+
+  .body { flex: 1; overflow-y: auto; padding: 8px 22px 28px; display: flex; flex-direction: column; }
+
+  /* ---- the equation / recipe (READ-ONLY here) ---- */
+  .equation { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 14px 0 4px; }
+  .deps { display: flex; gap: 16px; align-items: flex-end; }
+  .dep { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .dep-label { font-size: 11px; color: var(--faint); min-height: 14px; }
+  .equals { font-size: 22px; font-weight: 600; color: var(--faint); line-height: 1; }
+
+  /* spark shapes share the live --shape */
+  .spark-shape { border-radius: var(--shape); }
+
+  /* dep chip — two states: unsatisfied (dull) / satisfied (filled) */
+  .dep-chip { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+    transition: all 250ms ease-out; }
+  .dep-chip .emoji { font-size: 24px; line-height: 1; transition: filter 250ms ease-out; }
+  .dep-chip.unsat { background: #F4F6F8; border: 1.5px solid rgba(31,41,55,0.08); }
+  .dep-chip.unsat .emoji { filter: saturate(0.3) opacity(0.5); }
+  .dep-chip.sat { background: #fff; border: 1.5px solid rgba(59,130,246,0.24);
+    box-shadow: 0 1px 5px rgba(59,130,246,0.14); }
+  .dep-chip.sat .emoji { filter: saturate(1.05); }
+
+  /* hero = the main emoji (the spark's identity / result) */
+  .hero { width: 116px; height: 116px; display: flex; align-items: center; justify-content: center;
+    position: relative; transition: all 300ms ease-out; }
+  .hero .emoji { font-size: 60px; line-height: 1; transition: filter 300ms ease-out; }
+  .hero.dull { background: #F4F6F8; border: 1.5px solid rgba(31,41,55,0.08); }
+  .hero.dull .emoji { filter: saturate(0.35) opacity(0.65); }
+  .hero.lit { background: #fff; border: 1.5px solid rgba(59,130,246,0.2);
+    box-shadow: 0 6px 18px rgba(59,130,246,0.14), 0 1px 3px rgba(31,41,55,0.06); }
+  .hero.lit .emoji { filter: saturate(1.05); }
+  .hero.greyed { background: #E9ECEF; border: 1.5px solid rgba(31,41,55,0.06); box-shadow: none; }
+  .hero.greyed .emoji { filter: grayscale(1) opacity(0.45); }
+
+  /* barely-visible sparkles on a lit hero */
+  .sparkle { position: absolute; color: #FBBF24; opacity: 0.55; line-height: 1; pointer-events: none; }
+
+  /* streak badge — blue pill, top-right (the rounded side), grows unboundedly */
+  .streak-badge { position: absolute; top: -7px; right: -7px; background: var(--accent); color: #fff;
+    font-size: 12px; font-weight: 700; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 3px rgba(59,130,246,0.35); z-index: 3; }
+
+  /* subtle meta line under the hero (timer mode + status hint) */
+  .meta { text-align: center; margin-top: 10px; font-size: 12px; color: var(--faint); min-height: 16px; }
+  .meta .accent { color: var(--accent); font-weight: 600; }
+
+  /* relight hint for parked sparks */
+  .relight { text-align: center; margin-top: 8px; font-size: 12px; color: var(--muted); }
+
+  /* ---- action card (icon-led, no noun headers; mirrors create-spark.html) ---- */
+  .card { margin-top: 24px; background: #fff; border-radius: 18px; border: 1.5px solid var(--line);
+    box-shadow: 0 1px 2px rgba(31,41,55,0.04); overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer;
+    transition: background 150ms ease-out; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row:hover { background: #F8FAFC; }
+  .row .ico { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+    color: var(--muted); flex-shrink: 0; }
+  .row .ico svg { width: 21px; height: 21px; }
+  .row .val { font-size: 15px; color: var(--ink); font-weight: 500; }
+  .row .val.faint { color: var(--faint); font-weight: 400; }
+  .row .val.accent { color: var(--accent); font-weight: 600; }
+  .row .right { margin-left: auto; display: flex; align-items: center; color: var(--faint); }
+  .row .right svg { width: 18px; height: 18px; }
+  /* when the spark is dull, the Chat row becomes the primary CTA */
+  .row.cta { background: rgba(59,130,246,0.06); }
+  .row.cta .ico { color: var(--accent); }
+
+  /* ============================================================
+     CONTROLS (dev preview panel — not part of the shipped screen)
+     ============================================================ */
+  .controls { flex: 1; min-width: 260px; }
+  .controls h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint);
+    margin-bottom: 14px; font-weight: 600; }
+  .ctl { margin-bottom: 18px; }
+  .ctl-label { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 7px; }
+  .seg { display: inline-flex; background: #F1F5F9; border-radius: 9px; padding: 3px; }
+  .seg button { font: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px; border: none;
+    background: none; cursor: pointer; color: var(--muted); border-radius: 7px; transition: all 150ms ease-out; }
+  .seg button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(31,41,55,0.08); }
+  .checks { display: flex; flex-direction: column; gap: 8px; }
+  .check { display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; }
+  .check input { accent-color: var(--accent); width: 16px; height: 16px; }
+  .stepper { display: inline-flex; align-items: center; gap: 10px; }
+  .stepper button { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--line);
+    background: #fff; cursor: pointer; font-size: 16px; color: var(--ink); }
+  .stepper b { font-size: 14px; min-width: 18px; text-align: center; }
+  .toggle { width: 44px; height: 26px; border-radius: 14px; background: var(--accent); position: relative;
+    flex-shrink: 0; transition: background 200ms ease; cursor: pointer; border: none; }
+  .toggle::after { content: ''; position: absolute; top: 3px; right: 3px; width: 20px; height: 20px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: all 200ms ease; }
+  .toggle.off { background: #CBD5E1; }
+  .toggle.off::after { right: auto; left: 3px; }
+  .ctl-row { display: flex; align-items: center; justify-content: space-between; }
+
+  /* ============================================================
+     GALLERY — static frozen variants
+     ============================================================ */
+  .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 22px; }
+  .gitem { background: #fff; border-radius: 14px; padding: 18px; border: 1px solid var(--line);
+    box-shadow: 0 1px 2px rgba(31,41,55,0.04); }
+  .gitem h4 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .gitem .gnote { font-size: 11px; color: var(--muted); margin-bottom: 14px; line-height: 1.45; }
+  .mini { width: 200px; height: 410px; border-radius: 30px; border: 7px solid #0F172A;
+    background: linear-gradient(180deg, var(--water-top) 0%, var(--water-bot) 100%);
+    box-shadow: 0 12px 28px rgba(15,23,42,0.16); margin: 0 auto; position: relative; overflow: hidden;
+    display: flex; flex-direction: column; }
+  .mini .mtop { padding: 22px 14px 0; display: flex; }
+  .mini .mtop svg { width: 20px; height: 20px; color: var(--accent); }
+  .mini .mbody { flex: 1; display: flex; flex-direction: column; align-items: center; padding-top: 22px; gap: 8px; }
+  .mini .mdeps { display: flex; gap: 10px; align-items: flex-end; }
+  .mini .mdep-chip { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; }
+  .mini .mdep-chip .emoji { font-size: 18px; }
+  .mini .mdep-chip.unsat { background: #F4F6F8; }
+  .mini .mdep-chip.unsat .emoji { filter: saturate(0.3) opacity(0.5); }
+  .mini .mdep-chip.sat { background: #fff; border: 1.5px solid rgba(59,130,246,0.24); }
+  .mini .mequals { font-size: 16px; color: var(--faint); font-weight: 600; }
+  .mini .mhero { width: 84px; height: 84px; display: flex; align-items: center; justify-content: center; position: relative; }
+  .mini .mhero .emoji { font-size: 42px; }
+  .mini .mhero.dull { background: #F4F6F8; }
+  .mini .mhero.dull .emoji { filter: saturate(0.35) opacity(0.65); }
+  .mini .mhero.lit { background: #fff; border: 1.5px solid rgba(59,130,246,0.2); box-shadow: 0 4px 12px rgba(59,130,246,0.14); }
+  .mini .mhero.greyed { background: #E9ECEF; }
+  .mini .mhero.greyed .emoji { filter: grayscale(1) opacity(0.45); }
+  .mini .mbadge { position: absolute; top: -5px; right: -5px; background: var(--accent); color: #fff;
+    font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; }
+  .mini .msparkle { position: absolute; color: #FBBF24; opacity: 0.55; font-size: 11px; }
+  .mini .mmeta { font-size: 10px; color: var(--faint); text-align: center; margin-top: 4px; }
+  .mini .mcard { margin: 12px 12px 0; background: #fff; border-radius: 12px; border: 1px solid var(--line); overflow: hidden; }
+  .mini .mrow { display: flex; align-items: center; gap: 9px; padding: 9px 11px; font-size: 11px; }
+  .mini .mrow + .mrow { border-top: 1px solid var(--line); }
+  .mini .mrow svg { width: 15px; height: 15px; color: var(--muted); }
+  .mini .mrow .mr-chev { margin-left: auto; color: var(--faint); }
+
+  .sectitle { font-size: 14px; font-weight: 600; margin: 8px 0 16px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Spark Details</h1>
+  <p class="lede">
+    What you see when you tap a spark on Home. The <b>recipe / equation</b> IS the completion-status
+    visualization: dependency emojis sit above the <code>=</code>, the main emoji is the hero below;
+    each grey→fills as its condition is met, and the hero lights when all deps are satisfied
+    (or, for a no-dep spark, when the main emoji itself appears in chat). Icons lead the actions —
+    no noun headers. <b>Settings</b> is creator-only.
+  </p>
+
+  <!-- ============================================================
+       INTERACTIVE PHONE + CONTROLS
+       ============================================================ -->
+  <div class="stage">
+    <div class="phone">
+      <div class="notch"></div>
+
+      <div class="topbar">
+        <button class="tb" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span></span>
+      </div>
+
+      <div class="body" id="phoneBody">
+        <!-- equation is injected by render() -->
+        <div class="meta" id="metaLine"></div>
+        <div class="relight" id="relightHint" style="display:none;"></div>
+
+        <div class="card">
+          <div class="row">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.1"/><path d="M17.5 14.3a5.5 5.5 0 0 1 3 4.9"/></svg></span>
+            <span class="val">3 members</span>
+            <span class="right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </div>
+          <div class="row" id="chatRow">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+            <span class="val" id="chatVal">Open chat</span>
+            <span class="right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </div>
+          <div class="row" id="settingsRow">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+            <span class="val faint">Members, shape, delete</span>
+            <span class="right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- preview controls (dev only) ---- -->
+    <div class="controls">
+      <h3>Preview controls · dev only</h3>
+
+      <div class="ctl">
+        <div class="ctl-label">Recipe shape</div>
+        <div class="seg" id="modeSeg">
+          <button data-mode="multi" class="on">Multi-dependency</button>
+          <button data-mode="nodep">No dependencies</button>
+        </div>
+      </div>
+
+      <div class="ctl" id="depsCtl">
+        <div class="ctl-label">Dependencies satisfied</div>
+        <div class="checks" id="depChecks">
+          <label class="check"><input type="checkbox" data-i="0" checked> 🏃 run</label>
+          <label class="check"><input type="checkbox" data-i="1" checked> 💧 water</label>
+          <label class="check"><input type="checkbox" data-i="2"> 🧘 calm</label>
+        </div>
+      </div>
+
+      <div class="ctl" id="postedCtl" style="display:none;">
+        <div class="ctl-label">Main emoji posted in chat</div>
+        <div class="seg" id="postedSeg">
+          <button data-posted="0" class="on">Not yet</button>
+          <button data-posted="1">Posted</button>
+        </div>
+      </div>
+
+      <div class="ctl ctl-row">
+        <span class="ctl-label" style="margin:0;">Streak</span>
+        <div class="stepper">
+          <button id="streakDown">−</button><b id="streakVal">5</b><button id="streakUp">+</button>
+        </div>
+      </div>
+
+      <div class="ctl ctl-row">
+        <span class="ctl-label" style="margin:0;">Parked (missed &amp; sunk)</span>
+        <button class="toggle off" id="parkedToggle"></button>
+      </div>
+
+      <div class="ctl ctl-row">
+        <span class="ctl-label" style="margin:0;">Access</span>
+        <div class="seg" id="accessSeg">
+          <button data-access="creator" class="on">Creator</button>
+          <button data-access="member">Member</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       GALLERY — static frozen variants
+       ============================================================ -->
+  <div class="sectitle">State &amp; structural variants</div>
+  <div class="gallery">
+
+    <!-- 1. No-dep spark: equation is just the hero (no =, no deps) -->
+    <div class="gitem">
+      <h4>No-dep spark</h4>
+      <div class="gnote">No ingredients — lighting needs only the main emoji in chat. So there's no equation, no <code>=</code>; just the hero.</div>
+      <div class="mini">
+        <div class="mtop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+        <div class="mbody">
+          <div class="mhero mspark-shape lit" style="position:relative;">
+            <span class="msparkle" style="top:8px; right:14px;">✦</span>
+            <span class="msparkle" style="bottom:12px; left:12px; font-size:8px;">✦</span>
+            <span class="emoji">📚</span>
+          </div>
+          <div class="mmeta">Daily · post 📚 to light</div>
+        </div>
+        <div class="mcard">
+          <div class="mrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.1"/><path d="M17.5 14.3a5.5 5.5 0 0 1 3 4.9"/></svg>Solo<span class="mr-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+          <div class="mrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat<span class="mr-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Parked / greyed -->
+    <div class="gitem">
+      <h4>Parked (missed)</h4>
+      <div class="gnote">Same screen, fully greyed. Window passed uncompleted → sunk to bottom of Home. Complete again to relight.</div>
+      <div class="mini">
+        <div class="mtop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+        <div class="mbody">
+          <div class="mdeps">
+            <div class="mdep-chip mspark-shape unsat"><span class="emoji">🏃</span></div>
+            <div class="mdep-chip mspark-shape unsat"><span class="emoji">💧</span></div>
+          </div>
+          <div class="mequals">=</div>
+          <div class="mhero mspark-shape greyed"><span class="emoji">💪</span></div>
+          <div class="mmeta" style="color:var(--muted);">Complete to relight</div>
+        </div>
+        <div class="mcard">
+          <div class="mrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/></svg>3 members<span class="mr-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+          <div class="mrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat<span class="mr-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Streaked win -->
+    <div class="gitem">
+      <h4>Streaked · all deps met</h4>
+      <div class="gnote">The "winning" state: every dependency filled, hero lit, streak badge (≥ 2) top-right.</div>
+      <div class="mini">
+        <div class="mtop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+        <div class="mbody">
+          <div class="mdeps">
+            <div class="mdep-chip mspark-shape sat"><span class="emoji">🏃</span></div>
+            <div class="mdep-chip mspark-shape sat"><span class="emoji">💧</span></div>
+            <div class="mdep-chip mspark-shape sat"><span class="emoji">🧘</span></div>
+          </div>
+          <div class="mequals">=</div>
+          <div class="mhero mspark-shape lit" style="position:relative;">
+            <span class="mbadge">12</span>
+            <span class="msparkle" style="top:8px; right:18px;">✦</span>
+            <span class="msparkle" style="bottom:12px; left:12px; font-size:8px;">✦</span>
+            <span class="emoji">💪</span>
+          </div>
+          <div class="mmeta">Daily · streak 12</div>
+        </div>
+        <div class="mcard">
+          <div class="mrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/></svg>3 members<span class="mr-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+          <div class="mrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat<span class="mr-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Partial fill (the canonical interesting state) -->
+    <div class="gitem">
+      <h4>Partial · mid-cycle</h4>
+      <div class="gnote">Some deps filled, some not — the hero stays dull until the last dep is met. Reads as a live checklist.</div>
+      <div class="mini">
+        <div class="mtop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+        <div class="mbody">
+          <div class="mdeps">
+            <div class="mdep-chip mspark-shape sat"><span class="emoji">🏃</span></div>
+            <div class="mdep-chip mspark-shape unsat"><span class="emoji">💧</span></div>
+          </div>
+          <div class="mequals">=</div>
+          <div class="mhero mspark-shape dull"><span class="emoji">💪</span></div>
+          <div class="mmeta">Daily · 1 of 2</div>
+        </div>
+        <div class="mcard">
+          <div class="mrow" style="background:rgba(59,130,246,0.06);"><svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span style="color:#3B82F6;font-weight:600;">Light this spark</span><span class="mr-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+          <div class="mrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/></svg>3 members<span class="mr-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ---- state ----
+  const DEPS = [
+    { emoji: '🏃', label: 'run' },
+    { emoji: '💧', label: 'water' },
+    { emoji: '🧘', label: 'calm' },
+  ];
+  const NODEP_EMOJI = '📚';
+  const HERO_EMOJI = '💪';
+
+  let state = {
+    mode: 'multi',           // 'multi' | 'nodep'
+    sat: [true, true, false], // per-dep satisfied (multi mode)
+    posted: false,            // main emoji posted (nodep mode)
+    streak: 5,
+    parked: false,
+    access: 'creator',        // 'creator' | 'member'
+  };
+
+  const $ = id => document.getElementById(id);
+  const radiusStr = s => `${s.tl}% ${s.tr}% ${s.br}% ${s.bl}%`;
+  const SHAPE = { tl: 40, tr: 12, br: 40, bl: 12 };
+  document.documentElement.style.setProperty('--shape', radiusStr(SHAPE));
+
+  const allDepsMet = () => state.mode === 'multi'
+    ? state.sat.every(Boolean)
+    : state.posted;
+  const heroState = () => {
+    if (state.parked) return 'greyed';
+    return allDepsMet() ? 'lit' : 'dull';
+  };
+
+  function render() {
+    const body = $('phoneBody');
+    const hs = heroState();
+    const showStreak = hs === 'lit' && state.streak >= 2;
+
+    // ---- build equation (insert before meta line) ----
+    const oldEq = body.querySelector('.equation');
+    if (oldEq) oldEq.remove();
+
+    let depsHTML;
+    if (state.mode === 'multi') {
+      const chips = DEPS.map((d, i) => {
+        const sat = state.sat[i] && !state.parked;
+        return `<div class="dep">
+          <div class="dep-chip spark-shape ${sat ? 'sat' : 'unsat'}"><span class="emoji">${d.emoji}</span></div>
+          <span class="dep-label">${d.label}</span>
+        </div>`;
+      }).join('');
+      depsHTML = `<div class="deps">${chips}</div><span class="equals">=</span>`;
+    } else {
+      depsHTML = ''; // no equation for a no-dep spark
+    }
+
+    const hero = `<div class="hero spark-shape ${hs}">
+      ${hs === 'lit' ? `
+        <span class="sparkle" style="top:12px; right:22px;">✦</span>
+        <span class="sparkle" style="top:32%; right:8%; font-size:11px;">✦</span>
+        <span class="sparkle" style="bottom:18%; left:12%; font-size:10px;">✦</span>` : ''}
+      ${showStreak ? `<span class="streak-badge">${state.streak}</span>` : ''}
+      <span class="emoji">${state.mode === 'nodep' ? NODEP_EMOJI : HERO_EMOJI}</span>
+    </div>`;
+
+    const eq = document.createElement('div');
+    eq.className = 'equation';
+    eq.innerHTML = `${depsHTML}${hero}`;
+    body.insertBefore(eq, body.firstChild);
+
+    // ---- meta line ----
+    const mode = 'Daily';
+    let metaText = '';
+    if (state.parked) {
+      metaText = `${mode} · parked`;
+    } else if (state.mode === 'multi') {
+      const met = state.sat.filter(Boolean).length;
+      metaText = allDepsMet()
+        ? `${mode} · streak ${state.streak}`
+        : `${mode} · ${met} of ${DEPS.length}`;
+    } else {
+      metaText = state.posted ? `${mode} · streak ${state.streak}` : `${mode} · post the emoji to light`;
+    }
+    $('metaLine').textContent = metaText;
+
+    // ---- relight hint ----
+    $('relightHint').style.display = state.parked ? 'block' : 'none';
+    $('relightHint').textContent = state.parked ? 'Complete this cycle to relight' : '';
+
+    // ---- settings row: creator only ----
+    $('settingsRow').style.display = state.access === 'creator' ? 'flex' : 'none';
+
+    // ---- chat row: primary CTA when dull & not parked ----
+    const chatRow = $('chatRow');
+    const chatVal = $('chatVal');
+    chatRow.classList.remove('cta');
+    chatVal.className = 'val';
+    if (hs === 'dull') {
+      chatRow.classList.add('cta');
+      chatVal.textContent = 'Light this spark';
+      chatVal.className = 'val accent';
+    } else if (hs === 'greyed') {
+      chatVal.textContent = 'Open chat';
+      chatVal.className = 'val';
+    } else {
+      chatVal.textContent = 'Open chat';
+      chatVal.className = 'val';
+    }
+  }
+
+  // ---- wire controls ----
+  $('modeSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    state.mode = b.dataset.mode;
+    [...e.currentTarget.children].forEach(c => c.classList.toggle('on', c === b));
+    $('depsCtl').style.display = state.mode === 'multi' ? 'block' : 'none';
+    $('postedCtl').style.display = state.mode === 'nodep' ? 'block' : 'none';
+    render();
+  });
+
+  $('depChecks').addEventListener('change', e => {
+    const i = +e.target.dataset.i;
+    state.sat[i] = e.target.checked;
+    render();
+  });
+
+  $('postedSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    state.posted = b.dataset.posted === '1';
+    [...e.currentTarget.children].forEach(c => c.classList.toggle('on', c === b));
+    render();
+  });
+
+  const setStreak = v => { state.streak = Math.max(0, v); $('streakVal').textContent = state.streak; render(); };
+  $('streakUp').addEventListener('click', () => setStreak(state.streak + 1));
+  $('streakDown').addEventListener('click', () => setStreak(state.streak - 1));
+
+  $('parkedToggle').addEventListener('click', e => {
+    state.parked = !state.parked;
+    e.currentTarget.classList.toggle('off', !state.parked);
+    render();
+  });
+
+  $('accessSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    state.access = b.dataset.access;
+    [...e.currentTarget.children].forEach(c => c.classList.toggle('on', c === b));
+    render();
+  });
+
+  render();
+</script>
+</body>
+</html>
