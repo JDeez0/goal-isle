@@ -202,6 +202,7 @@ The product was reimagined from the ground up. The old model (Isles → Goals �
 | **July 1** | **Spark silhouette is user-chosen (Shape picker on Create Spark); default = rhomboid squircle** |
 | **July 1** | **Create Spark design language locked: icon-led, no noun headers; equation as hero (`create-spark.html`)** |
 | **July 1** | **Beach line (streaked-spark circumscription stroke) deferred to archive (`docs/archive/BEACH_LINE.md`) — to revisit later** |
+| **July 1** | **Whole-repo vestigial-information audit completed — 19/27 `lib/` files, 6/11 top-level docs, 1 security issue flagged; full plan in `docs/AUDIT_2026_07_01.md`** |
 
 ---
 
