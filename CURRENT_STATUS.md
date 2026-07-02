@@ -36,7 +36,7 @@
 ### 3. Local Git Repo
 - Remote: `git@github.com:JDeez0/goal-isle.git`
 - Branch: `main`
-- Latest commit: `010eeb0` (pushed)
+- Latest commit: `194c34a` (pushed)
 
 ---
 
@@ -80,19 +80,14 @@ The doc set was consolidated on June 22. Many older files were moved to `docs/ar
 | `CURRENT_STATUS.md` | This file — project state, source of truth |
 | **`docs/design/ISLE_SPARKS_SPEC.md`** | **🔒 THE current system spec — Isle Sparks redesign (read this first)** |
 | **`docs/design/MOCKUPS.md`** | **How to run the design mockups** |
-| `UI_DEVELOPMENT_PLAN.md` | 7-phase plan for UI work (pre-redesign; still broadly useful) |
+| `docs/AUDIT_2026_07_01.md` | Whole-repo vestigial-information audit (what's outdated, what to fix) |
 | `FLUTTER_DEBUG_LOG.md` | Debugging history that got Flutter rendering |
-| `docs/ARCHITECTURE.md` | Code architecture |
-| `docs/DEVELOPMENT.md` | How to develop |
-| `docs/HISTORY.md` | Project timeline |
-| `docs/design/VISION.md` | The vibe (⚠️ partially superseded — streaks reversed, model changed) |
-| `docs/design/SCREENS.md` | ⚠️ Superseded by `ISLE_SPARKS_SPEC.md` |
-| `docs/design/TOKENS.md` | Design tokens (⚠️ mass/progress tokens orphaned) |
-| `docs/design/README.md` | Design docs index |
+| `docs/HISTORY.md` | Project timeline + Key Decisions |
+| `docs/design/TOKENS.md` | Design tokens (colors, typography, spacing, motion). ⚠️ Layout section removed (orphaned). |
 
 ### Archived docs (do not use)
 
-See `docs/archive/README.md` for the full list. These were written before the actual root cause was discovered and contain contradictory information.
+See `docs/archive/README.md` for the full list. The following were moved there on 2026-07-01 as part of a vestigial-information cleanup: `VISION.md`, `SCREENS.md`, `ARCHITECTURE.md`, `DEVELOPMENT.md`, `UI_DEVELOPMENT_PLAN.md`, and the old `goal_isle_working_mockup.html`.
 
 ---
 
@@ -118,4 +113,4 @@ The redesign spec is locked. The Flutter code has **not** been migrated yet.
 
 ---
 
-*Last updated: July 1, 2026 — Isle Sparks redesign spec locked; mockups added; Flutter migration pending.*
+*Last updated: July 1, 2026 — Vestigial-information cleanup completed.*

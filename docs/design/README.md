@@ -10,9 +10,8 @@ This directory contains the design intent for the Goal Isle Flutter app.
 |---|---|
 | **[`ISLE_SPARKS_SPEC.md`](./ISLE_SPARKS_SPEC.md)** | **🔒 THE current system spec — Isle Sparks redesign. Read this first.** |
 | **[`MOCKUPS.md`](./MOCKUPS.md)** | How to run the design mockups (`mockups/sparks.html`, `mockups/buttons.html`). |
-| [`VISION.md`](./VISION.md) | The vibe, personality, and core metaphor. ⚠️ Partially superseded (streaks reversed; model changed). |
-| [`SCREENS.md`](./SCREENS.md) | ⚠️ Superseded by `ISLE_SPARKS_SPEC.md`. Kept for history. |
-| [`TOKENS.md`](./TOKENS.md) | Design tokens: colors, typography, spacing, motion. ⚠️ mass/progress tokens now orphaned. |
+| [`VISION.md`](../archive/VISION.md) | ⚠️ Archived — the original vibe doc. Three Words still hold; most concrete examples are outdated. |
+| [`TOKENS.md`](./TOKENS.md) | Design tokens: colors, typography, spacing, motion. ⚠️ Layout section removed (orphaned). |
 
 ## The Vibe
 
@@ -38,13 +37,13 @@ Read [`VISION.md`](./VISION.md) for the full rationale.
 
 ## Status
 
-- [x] Phase 1 — Design intent documented
-- [ ] Phase 2 — Tokens implemented in `lib/theme/tokens.dart`
-- [ ] Phase 3 — Widget library extracted
-- [ ] Phase 4 — Screens built
-- [ ] Phase 5 — Interaction and motion
-- [ ] Phase 6 — User testing
-- [ ] Phase 7 — Design locked
+- [x] Spec locked — Isle Sparks (July 1, 2026)
+- [x] Mockups aligned (sparks, shape-lab, create-spark, buttons)
+- [ ] Tokens implemented in `lib/theme/tokens.dart`
+- [ ] Widget library built (`IsleSpark`, `CreateSparkButton`, `ShapePicker`, `SparkDetailsScreen`)
+- [ ] Screens implemented in Flutter
+- [ ] Interactions and motion
+- [ ] User testing
 
 See [`../../UI_DEVELOPMENT_PLAN.md`](../../UI_DEVELOPMENT_PLAN.md) for the full plan.
 

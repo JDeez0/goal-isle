@@ -34,6 +34,11 @@ The current doc set (`README.md`, `CURRENT_STATUS.md`, `UI_DEVELOPMENT_PLAN.md`,
 | `README_MOCKUP.md` | Same as above. |
 | `TEST_RESUME.md` | A test of whether a new AI can read docs and resume. Not needed. |
 | `MASTER_INDEX.md` | Replaced by `README.md` at project root. |
+| `UI_DEVELOPMENT_PLAN.md` | Pre-redesign 7-phase plan. The spec is now locked (`ISLE_SPARKS_SPEC.md`) and the work is implementation, not design exploration. |
+| `ARCHITECTURE.md` | Described the old Isle/Goal/Sub-point/Mass model. Current model is Isle Sparks (see `ISLE_SPARKS_SPEC.md`). |
+| `DEVELOPMENT.md` | Outdated project layout and development instructions. Current doc set is `CURRENT_STATUS.md` + `ISLE_SPARKS_SPEC.md`. |
+| `SCREENS.md` | Screen inventory for the old model. Current screen inventory is in `ISLE_SPARKS_SPEC.md`. |
+| `BEACH_LINE.md` | Beach-line design (streaked-spark circumscribing stroke) was designed and then deferred — see the Key Decisions table in `../HISTORY.md`. |
 
 ---
 
@@ -43,12 +48,11 @@ The current doc set (`README.md`, `CURRENT_STATUS.md`, `UI_DEVELOPMENT_PLAN.md`,
 |---|---|
 | Project state, what's working now | [`../../CURRENT_STATUS.md`](../../CURRENT_STATUS.md) |
 | Why the Flutter app finally renders | [`../../FLUTTER_DEBUG_LOG.md`](../../FLUTTER_DEBUG_LOG.md) |
-| The plan for designing the UI | [`../../UI_DEVELOPMENT_PLAN.md`](../../UI_DEVELOPMENT_PLAN.md) |
-| Project timeline | [`../HISTORY.md`](../HISTORY.md) |
-| Code architecture | [`../ARCHITECTURE.md`](../ARCHITECTURE.md) |
-| How to develop | [`../DEVELOPMENT.md`](../DEVELOPMENT.md) |
-| Design intent | [`../design/VISION.md`](../design/VISION.md) |
+| The current system spec (Isle Sparks redesign) | [`../design/ISLE_SPARKS_SPEC.md`](../design/ISLE_SPARKS_SPEC.md) |
+| Project timeline + Key Decisions | [`../HISTORY.md`](../HISTORY.md) |
+| Design intent (partial — see spec for current design) | [`../design/VISION.md`](../design/VISION.md) |
 | Design tokens | [`../design/TOKENS.md`](../design/TOKENS.md) |
+| How to run the mockups | [`../design/MOCKUPS.md`](../design/MOCKUPS.md) |
 
 ---
 

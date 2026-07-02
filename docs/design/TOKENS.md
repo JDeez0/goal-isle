@@ -2,7 +2,7 @@
 
 **Date:** June 22, 2026
 
-These tokens are the source of truth for every visual property in the Flutter app. They will be implemented in `lib/theme/tokens.dart` (Phase 2 of the UI plan).
+These tokens are the source of truth for every visual property in the Flutter app. **Some sections below are outdated** (see the warnings within). The current design spec is [`ISLE_SPARKS_SPEC.md`](ISLE_SPARKS_SPEC.md).
 
 **Design principle:** every token below serves the **Minimal. Literal. Clean/cool** vision in `VISION.md`. If a token feels decorative, it's wrong.
 
@@ -53,18 +53,11 @@ Status colors are rare and reserved for their purpose. No warm colors outside th
 
 | Token | Hex | Use |
 |---|---|---|
-| `success` | `#10B981` | Goal completed (used as a checkmark color, not as background) |
-| `warning` | `#F59E0B` | Almost never — only for destructive confirmations |
+| `success` | `#10B981` | Completion checkmark (not background) |
+| `warning` | `#F59E0B` | Destructive confirmations |
 | `error` | `#EF4444` | Error text, validation failure |
 
-### Progress
-
-Sub-points and goals use a cool gray-to-blue gradient for progress.
-
-| Token | Hex | Use |
-|---|---|---|
-| `progressEmpty` | `#E2E8F0` | Unfilled progress |
-| `progressFilled` | `#3B82F6` | Filled progress (matches accent) |
+> ⚠️ The following `progress` tokens are **orphaned** — they were for the mass/progress-bar concept that was deleted. Re-purpose only if the grey-fade needs them (likely not — fade is desaturation, not bar fill).
 
 ---
 
@@ -125,7 +118,12 @@ A simple scale. Most layout decisions should pick from this list.
 | `radiusSm` | 8px | Buttons, input fields, small chips |
 | `radiusMd` | 12px | Cards, isle tiles |
 | `radiusLg` | 16px | Modals, bottom sheets |
-| `radiusFull` | 9999px | Circular elements (avatars, spark button) |
+### Status (cont.)
+
+| Token | Hex | Use |
+|---|---|---|
+| `progressEmpty` | `#E2E8F0` | ⚠️ Orphaned — was for mass/progress bar (deleted) |
+| `progressFilled` | `#3B82F6` | ⚠️ Orphaned — was for mass/progress bar (deleted) |
 
 ---
 
@@ -173,42 +171,16 @@ Subtle and fast. No celebration.
 | Small | 16px (inline with text) |
 | Large | 32px (hero icons) |
 
-**Custom iconography:** The Spark button is a custom element (✨ emoji or custom-painted star). Other icons come from Material outlined.
+> The `CreateSparkButton` is a custom widget (dashed quasi-circle + grey `?`, bottom-right). Other icons come from Material outlined.
 
 ---
 
-## Layout
-
-### Canvas (Home screen)
-
-- Padding around the canvas: `space6` (32px) on all sides.
-- Isle cards: roughly 160×140 px each.
-- Isles can be positioned with slight variation (not a rigid grid).
-- Spark button: fixed at bottom-center, 56px diameter.
-
-### Card (Isle)
-
-- Width: 160px (or `LayoutBuilder` for responsive).
-- Height: 140px.
-- Padding: `space4` (16px) inside.
-- Border radius: `radiusMd` (12px).
-- Elevation: `elevation1`.
-- Background: `surface` (white).
-
-### Spacing Rhythm
-
-- Between elements: `space3` or `space4` (12 or 16px).
-- Between sections: `space5` or `space6` (24 or 32px).
-- Screen padding: `space6` (32px) at top, `space8` (48px) at bottom.
-
----
-
-## What This Document Is NOT
+## What This Document Is Not
 
 - **Not a wireframe.** It defines the language, not the exact pixel positions of every screen.
 - **Not a complete theme spec.** Dark mode is intentionally absent — we'll add it after light mode is locked.
 - **Not a list of all possible values.** If a value isn't here, ask before adding it. The list is intentionally short.
 
----
+> The old **Layout** section (Home canvas, Isle cards, Spacing Rhythm) was removed on 2026-07-01 because it described the old model (160×140 isle cards, bottom-center spark button). Layout decisions for the new design are in [`ISLE_SPARKS_SPEC.md`](ISLE_SPARKS_SPEC.md) and the mockups.
 
-*Last updated: June 22, 2026.*
+*Last updated: July 1, 2026.*

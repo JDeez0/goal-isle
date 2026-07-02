@@ -129,3 +129,10 @@ This vision drives every decision in `TOKENS.md` and `SCREENS.md`:
 ---
 
 *Last updated: June 22, 2026.*
+---
+
+> Archived on 2026-07-01 during vestigial-information cleanup. See [](../AUDIT_2026_07_01.md) for the full cleanup plan.
+
+---
+
+> Archived on 2026-07-01 during vestigial-information cleanup. See [`AUDIT_2026_07_01.md`](../AUDIT_2026_07_01.md) for the full cleanup plan.
