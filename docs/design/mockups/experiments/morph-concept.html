@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goal Isle — Morph Concept</title>
+<style>
+  :root {
+    /* ORIGINAL PALETTE */
+    --water-top: #EEF2F5;
+    --water-bot: #E6ECF1;
+    --surface:   #FFFFFF;
+    --ink:       #1F2937;
+    --muted:     #64748B;
+    --faint:     #94A3B8;
+    --line:      #ECEFF2;
+    --accent:    #3B82F6;
+    --accent-dk: #2563EB;
+    --accent-soft: rgba(59,130,246,0.14);
+    --sparkle:   #FBBF24;
+    --dull-bg:   #F4F6F8;
+    --greyed-bg: #E9ECEF;
+
+    /* SHAPE SYSTEM — border-radius percentages (the shape-lab system) */
+    --r-dull:  40% 12% 40% 12%;   /* rounded rhomboid (dormant) */
+    --r-lit:   6% 6% 6% 6%;       /* near-sharp crystallized (lit) */
+    --r-grey:  18% 18% 18% 18%;   /* soft round (parked) */
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Roboto, sans-serif;
+    background: radial-gradient(130% 90% at 50% 0%, #F1F5F9 0%, #E6ECF1 55%, #DCE3EA 100%);
+    color: var(--ink);
+    padding: 50px 24px 80px;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .page { max-width: 920px; margin: 0 auto; }
+
+  .doc-title { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 8px; }
+  .doc-title::before { content: ''; display: inline-block; width: 22px; height: 2px;
+    background: var(--accent); vertical-align: middle; margin-right: 10px; }
+  .doc-sub { font-size: 14px; color: var(--muted); margin-bottom: 44px; max-width: 620px; line-height: 1.55; }
+
+  .block { background: var(--surface); margin-bottom: 18px; padding: 36px 36px;
+    border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(31,41,55,0.04); }
+  .block-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--faint); margin-bottom: 28px; display: flex; align-items: center; gap: 8px; }
+  .block-tag .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 1px; }
+
+  /* ===== THE SPARK — morphs shape with state ===== */
+  .spark {
+    width: 96px; height: 96px; display: flex; align-items: center; justify-content: center;
+    position: relative; transition: border-radius 700ms cubic-bezier(0.34,1.3,0.64,1),
+      background 400ms ease-out, box-shadow 400ms ease-out, filter 400ms ease-out;
+  }
+  .spark .e { font-size: 48px; line-height: 1; transition: filter 400ms ease-out; user-select: none; }
+
+  /* DULL — rounded rhomboid, desaturated, soft */
+  .spark.dull {
+    border-radius: var(--r-dull);
+    background: var(--dull-bg);
+  }
+  .spark.dull .e { filter: saturate(0.32) opacity(0.6); }
+
+  /* LIT — crystallizes to sharp edges, glow + tint, sparkles, full color */
+  .spark.lit {
+    border-radius: var(--r-lit);
+    background: linear-gradient(135deg, var(--surface), var(--accent-soft));
+    box-shadow: 0 0 0 1.5px var(--accent), 0 8px 24px rgba(59,130,246,0.22);
+  }
+  .spark.lit .e { filter: saturate(1.12); }
+
+  /* GREYED — softens to round, grayscale */
+  .spark.greyed {
+    border-radius: var(--r-grey);
+    background: var(--greyed-bg);
+  }
+  .spark.greyed .e { filter: grayscale(1) opacity(0.42); }
+
+  .sparkle { position: absolute; color: var(--sparkle); opacity: 0; line-height: 1;
+    pointer-events: none; transition: opacity 400ms ease-out 200ms; }
+  .spark.lit .sparkle { opacity: 0.6; }
+
+  .badge { position: absolute; top: -4px; right: -4px; background: var(--accent); color: #fff;
+    font-size: 12px; font-weight: 800; min-width: 22px; height: 22px; padding: 0 6px;
+    display: flex; align-items: center; justify-content: center; border-radius: 30% 30% 30% 8px;
+    box-shadow: 0 1px 3px rgba(59,130,246,0.4); z-index: 3; }
+
+  /* ===== showcase rows ===== */
+  .three-states { display: flex; gap: 56px; align-items: flex-end; flex-wrap: wrap; justify-content: center; }
+  .state-cell { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .state-cap { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--faint); }
+  .state-cap.win { color: var(--accent); }
+  .state-radius { font-size: 10px; color: var(--faint); font-family: ui-monospace, 'SF Mono', monospace; }
+
+  /* ===== live morph demo ===== */
+  .morph-demo { display: flex; flex-direction: column; align-items: center; gap: 30px; }
+  .morph-spark { width: 140px; height: 140px; }
+  .morph-spark .e { font-size: 70px; }
+  .morph-spark .sparkle.x1 { top: 16px; right: 28px; font-size: 20px; }
+  .morph-spark .sparkle.x2 { bottom: 24px; left: 22px; font-size: 14px; }
+  .morph-spark .sparkle.x3 { top: 45%; right: 8%; font-size: 12px; }
+
+  .seg { display: inline-flex; background: var(--dull-bg); border-radius: 8px; padding: 4px; gap: 2px; }
+  .seg button { font: inherit; font-size: 13px; font-weight: 700; padding: 9px 22px; border: none;
+    background: none; cursor: pointer; color: var(--muted); border-radius: 6px;
+    transition: all 150ms ease-out; }
+  .seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(31,41,55,0.1); }
+
+  .morph-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .morph-label b { color: var(--ink); }
+
+  /* ===== sequence: the morph tells a story ===== */
+  .sequence { display: flex; align-items: center; gap: 0; flex-wrap: wrap; justify-content: center; }
+  .seq-cell { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .seq-cell .spark { width: 64px; height: 64px; }
+  .seq-cell .spark .e { font-size: 32px; }
+  .seq-arrow { color: var(--faint); font-size: 20px; padding: 0 14px; align-self: center; padding-bottom: 28px; }
+  .seq-cap { font-size: 10px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: 0.05em; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="doc-title">Morph · shape IS state</div>
+  <p class="doc-sub">
+    The spark's <b>shape</b> is its state. Dormant = rounded rhomboid (soft). Lit = crystallizes to sharp edges (the lighting sharpens it). Parked = softens to round + grey. Border-radius animates the morph smoothly. Same border-radius slider system from the shape-lab.
+  </p>
+
+  <!-- ===== THREE STATES ===== -->
+  <div class="block">
+    <div class="block-tag"><span class="dot"></span>Three states</div>
+    <div class="three-states">
+      <div class="state-cell">
+        <div class="spark dull">
+          <span class="e">💪</span>
+        </div>
+        <span class="state-cap">Dull</span>
+        <span class="state-radius">40% 12% 40% 12%</span>
+      </div>
+      <div class="state-cell">
+        <div class="spark lit">
+          <span class="sparkle" style="top:10px;right:18px;font-size:18px;">✦</span>
+          <span class="sparkle" style="bottom:16px;left:14px;font-size:13px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="state-cap win">Lit</span>
+        <span class="state-radius">6% 6% 6% 6%</span>
+      </div>
+      <div class="state-cell">
+        <div class="spark greyed">
+          <span class="e">💪</span>
+        </div>
+        <span class="state-cap">Greyed</span>
+        <span class="state-radius">18% 18% 18% 18%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LIVE MORPH ===== -->
+  <div class="block">
+    <div class="block-tag"><span class="dot"></span>Live · tap to morph</div>
+    <div class="morph-demo">
+      <div class="spark morph-spark dull" id="morphSpark">
+        <span class="sparkle x1">✦</span>
+        <span class="sparkle x2">✦</span>
+        <span class="sparkle x3">✦</span>
+        <span class="e">💪</span>
+      </div>
+      <div class="seg" id="morphSeg">
+        <button data-s="dull" class="on">Dull</button>
+        <button data-s="lit">Lit</button>
+        <button data-s="greyed">Greyed</button>
+      </div>
+      <span class="morph-label" id="morphLbl">Rounded rhomboid · <b>dormant</b></span>
+    </div>
+  </div>
+
+  <!-- ===== STORY SEQUENCE ===== -->
+  <div class="block">
+    <div class="block-tag"><span class="dot"></span>The story</div>
+    <div class="sequence">
+      <div class="seq-cell">
+        <div class="spark dull"><span class="e">💪</span></div>
+        <span class="seq-cap">created</span>
+      </div>
+      <span class="seq-arrow">→</span>
+      <div class="seq-cell">
+        <div class="spark lit">
+          <span class="sparkle" style="top:7px;right:12px;font-size:11px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="seq-cap">lit</span>
+      </div>
+      <span class="seq-arrow">→</span>
+      <div class="seq-cell">
+        <div class="spark lit">
+          <span class="badge">3</span>
+          <span class="sparkle" style="top:7px;right:14px;font-size:10px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="seq-cap">streak 3</span>
+      </div>
+      <span class="seq-arrow">→</span>
+      <div class="seq-cell">
+        <div class="spark greyed"><span class="e">💪</span></div>
+        <span class="seq-cap">parked</span>
+      </div>
+      <span class="seq-arrow">→</span>
+      <div class="seq-cell">
+        <div class="spark lit">
+          <span class="sparkle" style="top:7px;right:12px;font-size:11px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="seq-cap">relit</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const LABELS = {
+    dull: 'Rounded rhomboid · <b>dormant</b>',
+    lit: 'Sharp crystallized · <b>lit</b>',
+    greyed: 'Soft round · <b>parked</b>',
+  };
+  const spark = document.getElementById('morphSpark');
+  const lbl = document.getElementById('morphLbl');
+  document.getElementById('morphSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const s = b.dataset.s;
+    spark.className = 'spark morph-spark ' + s;
+    lbl.innerHTML = LABELS[s];
+    [...e.currentTarget.children].forEach(c => c.classList.toggle('on', c === b));
+  });
+</script>
+</body>
+</html>

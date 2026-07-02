@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goal Isle — Design Language Lab</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Roboto, sans-serif;
+    background: #0B0E14;
+    color: #E6EAF0;
+    padding: 40px 24px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .lede { font-size: 14px; color: #8A93A3; margin-bottom: 36px; line-height: 1.6; max-width: 760px; }
+  .lede b { color: #E6EAF0; }
+
+  /* ---- shared framework for each direction ---- */
+  .direction {
+    background: var(--bg);
+    color: var(--ink);
+    border-radius: 0;
+    padding: 34px 30px 40px;
+    margin-bottom: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .d-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 4px; flex-wrap: wrap; }
+  .d-num {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    padding: 3px 8px; border: 1px solid currentColor; color: var(--accent);
+    clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%);
+    padding-left: 14px;
+  }
+  .d-title { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .d-sub { font-size: 13px; opacity: 0.62; margin-bottom: 26px; line-height: 1.5; max-width: 600px; }
+
+  .d-grid { display: flex; gap: 36px; flex-wrap: wrap; align-items: flex-start; }
+  .d-col { display: flex; flex-direction: column; gap: 14px; }
+  .d-col-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    opacity: 0.45; margin-bottom: 4px;
+  }
+
+  /* state row (the 4 spark states) */
+  .states { display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap; }
+  .state-cell { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .state-name { font-size: 10px; opacity: 0.5; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ============================================================
+     DIRECTION 1 — RHOBOID (the headline direction)
+     sharp corners, diagonal bias, clipped bevels. Calm but edgy.
+     ============================================================ */
+  .d1 {
+    --bg: #11151E;
+    --ink: #E8ECF2;
+    --accent: #5B8DEF;
+    --line: rgba(255,255,255,0.10);
+  }
+  .d1 .spark {
+    width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
+    position: relative;
+    /* rhomboid squircle via clip-path: sharp TL, round BR — a leaning diamond-ish square */
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 14% 100%, 0 86%);
+    transition: all 250ms ease-out;
+  }
+  .d1 .spark .e { font-size: 32px; line-height: 1; }
+  .d1 .spark.dull { background: #1C2230; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+  .d1 .spark.dull .e { filter: saturate(0.3) opacity(0.5); }
+  .d1 .spark.lit { background: #5B8DEF; }
+  .d1 .spark.lit .e { filter: saturate(1.1) brightness(1.1); }
+  .d1 .spark.greyed { background: #161A24; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04); }
+  .d1 .spark.greyed .e { filter: grayscale(1) opacity(0.4); }
+  .d1 .spark .badge {
+    position: absolute; top: -4px; right: -4px; background: #E8ECF2; color: #11151E;
+    font-size: 11px; font-weight: 800; min-width: 20px; height: 20px; padding: 0 5px;
+    display: flex; align-items: center; justify-content: center;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+  }
+  .d1 .btn {
+    font: inherit; font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
+    padding: 12px 26px 12px 30px; border: none; cursor: pointer; color: #11151E;
+    background: #5B8DEF;
+    clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+    transition: all 150ms ease-out;
+  }
+  .d1 .btn:hover { background: #7AA4F5; transform: translate(1px,-1px); }
+  .d1 .btn.ghost { background: transparent; color: #5B8DEF; box-shadow: inset 0 0 0 1.5px #5B8DEF; }
+  .d1 .card {
+    background: #1A1F2B; padding: 18px 20px; width: 240px;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  }
+  .d1 .card .ct { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .d1 .card .cb { font-size: 12px; opacity: 0.55; line-height: 1.5; }
+  .d1 .chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+    padding: 7px 14px 7px 10px; background: rgba(91,141,239,0.14); color: #9DBBF5;
+    clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  }
+
+  /* ============================================================
+     DIRECTION 2 — MONOLITH (pure straight lines, no diagonals)
+     neubrutalist-adjacent but restrained. Square everything,
+     hard borders, no rounded corners at all.
+     ============================================================ */
+  .d2 {
+    --bg: #F4F5F1;
+    --ink: #0E0E0E;
+    --accent: #2563EB;
+    --line: #0E0E0E;
+  }
+  .d2 .spark {
+    width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
+    position: relative; border: 2px solid #0E0E0E; border-radius: 0;
+    transition: all 250ms ease-out;
+  }
+  .d2 .spark .e { font-size: 32px; line-height: 1; }
+  .d2 .spark.dull { background: #E2E3DE; }
+  .d2 .spark.dull .e { filter: saturate(0.3) opacity(0.55); }
+  .d2 .spark.lit { background: #2563EB; border-color: #0E0E0E; box-shadow: 4px 4px 0 #0E0E0E; }
+  .d2 .spark.lit .e { filter: saturate(1.1) brightness(1.15); }
+  .d2 .spark.greyed { background: #D9DAD4; }
+  .d2 .spark.greyed .e { filter: grayscale(1) opacity(0.4); }
+  .d2 .spark .badge {
+    position: absolute; top: -10px; right: -10px; background: #0E0E0E; color: #fff;
+    font-size: 11px; font-weight: 800; min-width: 22px; height: 22px; padding: 0 5px;
+    border-radius: 0; display: flex; align-items: center; justify-content: center;
+    border: 2px solid #0E0E0E;
+  }
+  .d2 .btn {
+    font: inherit; font-size: 13px; font-weight: 700;
+    padding: 11px 24px; border: 2px solid #0E0E0E; border-radius: 0; cursor: pointer;
+    background: #2563EB; color: #fff; box-shadow: 4px 4px 0 #0E0E0E;
+    transition: all 120ms ease-out;
+  }
+  .d2 .btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #0E0E0E; }
+  .d2 .btn:active { transform: translate(2px,2px); box-shadow: 0 0 0 #0E0E0E; }
+  .d2 .btn.ghost { background: #F4F5F1; color: #0E0E0E; }
+  .d2 .card {
+    background: #fff; padding: 18px; width: 240px; border: 2px solid #0E0E0E;
+    box-shadow: 5px 5px 0 #0E0E0E;
+  }
+  .d2 .card .ct { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .d2 .card .cb { font-size: 12px; opacity: 0.6; line-height: 1.5; }
+  .d2 .chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700;
+    padding: 6px 12px; background: #fff; color: #0E0E0E; border: 2px solid #0E0E0E;
+    border-radius: 0;
+  }
+
+  /* ============================================================
+     DIRECTION 3 — SLASH (diagonal energy, fighting-game lean)
+     everything skewed on the same diagonal; a single slash motif.
+     More aggressive; closer to the fighting-game reference.
+     ============================================================ */
+  .d3 {
+    --bg: #0E1116;
+    --ink: #EDEFF3;
+    --accent: #FF5A3C;
+    --line: rgba(255,255,255,0.08);
+  }
+  .d3 .spark {
+    width: 66px; height: 66px; display: flex; align-items: center; justify-content: center;
+    position: relative;
+    /* sharp parallelogram lean */
+    clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+    transition: all 250ms ease-out;
+  }
+  .d3 .spark .e { font-size: 32px; line-height: 1; transform: skewX(0deg); }
+  .d3 .spark.dull { background: #1B2129; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.07); }
+  .d3 .spark.dull .e { filter: saturate(0.3) opacity(0.5); }
+  .d3 .spark.lit { background: linear-gradient(135deg, #FF5A3C, #FF8A3C); }
+  .d3 .spark.lit .e { filter: saturate(1.15) brightness(1.1); }
+  .d3 .spark.greyed { background: #161A20; }
+  .d3 .spark.greyed .e { filter: grayscale(1) opacity(0.4); }
+  .d3 .spark .badge {
+    position: absolute; top: -2px; right: 6px; background: #EDEFF3; color: #0E1116;
+    font-size: 11px; font-weight: 800; min-width: 20px; height: 20px; padding: 0 5px;
+    display: flex; align-items: center; justify-content: center;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+  }
+  .d3 .btn {
+    font: inherit; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 13px 30px; border: none; cursor: pointer; color: #0E1116;
+    background: #FF5A3C;
+    clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+    transition: all 150ms ease-out;
+  }
+  .d3 .btn:hover { background: #FF7A5C; transform: translateX(2px); }
+  .d3 .btn.ghost { background: transparent; color: #FF5A3C; box-shadow: inset 0 0 0 1.5px #FF5A3C; }
+  .d3 .card {
+    background: #161A21; padding: 18px 22px; width: 240px;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    position: relative;
+  }
+  .d3 .card::before {
+    content: ''; position: absolute; left: 0; top: 0; width: 4px; height: 100%; background: #FF5A3C;
+  }
+  .d3 .card .ct { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .d3 .card .cb { font-size: 12px; opacity: 0.55; line-height: 1.5; }
+  .d3 .chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700;
+    padding: 7px 16px 7px 12px; background: rgba(255,90,60,0.16); color: #FF8A6C;
+    clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  }
+
+  /* ============================================================
+     DIRECTION 4 — FACET (subtle chamfer, premium/restrained)
+     small 45° bevels on one or two corners only. Quiet, geometric,
+     like cut gemstone. The most "calm" of the sharp options.
+     ============================================================ */
+  .d4 {
+    --bg: #F2F0EC;
+    --ink: #1A1A1A;
+    --accent: #1F1F1F;
+    --line: #D8D4CC;
+  }
+  .d4 .spark {
+    width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
+    position: relative;
+    /* single chamfer top-left only — like a cut corner */
+    clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+    transition: all 250ms ease-out;
+  }
+  .d4 .spark .e { font-size: 32px; line-height: 1; }
+  .d4 .spark.dull { background: #E5E2DC; }
+  .d4 .spark.dull .e { filter: saturate(0.3) opacity(0.5); }
+  .d4 .spark.lit { background: #1A1A1A; }
+  .d4 .spark.lit .e { filter: saturate(1.1) brightness(1.3); }
+  .d4 .spark.greyed { background: #DEDCD6; }
+  .d4 .spark.greyed .e { filter: grayscale(1) opacity(0.4); }
+  .d4 .spark .badge {
+    position: absolute; top: 0px; right: 0px; background: #1A1A1A; color: #F2F0EC;
+    font-size: 11px; font-weight: 700; min-width: 20px; height: 20px; padding: 0 5px;
+    display: flex; align-items: center; justify-content: center;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 6px 100%);
+  }
+  .d4 .btn {
+    font: inherit; font-size: 13px; font-weight: 600;
+    padding: 12px 24px; border: none; cursor: pointer; color: #F2F0EC; background: #1A1A1A;
+    clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px);
+    transition: all 150ms ease-out;
+  }
+  .d4 .btn:hover { background: #333; }
+  .d4 .btn.ghost { background: transparent; color: #1A1A1A; box-shadow: inset 0 0 0 1.5px #1A1A1A; }
+  .d4 .card {
+    background: #fff; padding: 20px; width: 240px;
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    box-shadow: 0 1px 0 #D8D4CC, 0 12px 24px rgba(0,0,0,0.04);
+  }
+  .d4 .card .ct { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .d4 .card .cb { font-size: 12px; opacity: 0.6; line-height: 1.5; }
+  .d4 .chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+    padding: 7px 14px; background: #1A1A1A; color: #F2F0EC;
+    clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  }
+
+  /* footer note */
+  .footnote {
+    margin-top: 30px; padding: 20px 24px; background: #141926; color: #8A93A3;
+    font-size: 12px; line-height: 1.6; border-left: 2px solid #5B8DEF;
+  }
+  .footnote b { color: #E6EAF0; }
+
+  @media (max-width: 640px) {
+    .d-grid { gap: 24px; }
+    .states { gap: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Design Language Lab</h1>
+  <p class="lede">
+    Four candidate directions for a <b>sharp, straight-line, slightly rhomboid</b> visual language —
+    inspired by fighting-game UI energy (SF6 / Tekken 8 angularity) and the straight-line discipline of
+    platforms like X, but held back from full neubrutalism to preserve Goal Isle's calm-ritual identity.
+    Each direction shows the same component set: the spark in all four states, a primary + ghost button,
+    a card, and a chip. <b>Pick a direction</b> (or mix) and I'll rebuild the screens in it.
+  </p>
+
+  <!-- ===== DIRECTION 1 ===== -->
+  <div class="direction d1">
+    <div class="d-head">
+      <span class="d-num">01</span>
+      <span class="d-title">Rhomboid</span>
+    </div>
+    <p class="d-sub">The headline direction. Sharp corners with a diagonal bias — clipped bevels cut one or two corners of every shape. Dark, calm, but with a clear edge. Keeps the rhomboid-squircle heritage but makes it the whole language, not just the spark.</p>
+    <div class="d-grid">
+      <div class="d-col">
+        <div class="d-col-label">Spark · 4 states</div>
+        <div class="states">
+          <div class="state-cell"><div class="spark dull"><span class="e">💪</span></div><span class="state-name">Dull</span></div>
+          <div class="state-cell"><div class="spark lit"><span class="e">💪</span></div><span class="state-name">Lit</span></div>
+          <div class="state-cell"><div class="spark lit"><span class="badge">8</span><span class="e">💪</span></div><span class="state-name">Streaked</span></div>
+          <div class="state-cell"><div class="spark greyed"><span class="e">💪</span></div><span class="state-name">Greyed</span></div>
+        </div>
+      </div>
+      <div class="d-col">
+        <div class="d-col-label">Buttons</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn">Create</button>
+          <button class="btn ghost">Cancel</button>
+        </div>
+        <div class="d-col-label" style="margin-top:14px;">Card</div>
+        <div class="card"><div class="ct">Spark</div><div class="cb">A daily ritual with 3 members.</div></div>
+        <div class="d-col-label" style="margin-top:14px;">Chip</div>
+        <div><span class="chip">🏃 ingredient</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DIRECTION 2 ===== -->
+  <div class="direction d2">
+    <div class="d-head">
+      <span class="d-num">02</span>
+      <span class="d-title">Monolith</span>
+    </div>
+    <p class="d-sub">Pure straight lines — no diagonals, no rounded corners anywhere. Hard black borders, offset hard shadows. The most neubrutalist; maximal contrast and structure. Light background. Bold but loud — closest to the Cybertruck / X straight-edge reference.</p>
+    <div class="d-grid">
+      <div class="d-col">
+        <div class="d-col-label">Spark · 4 states</div>
+        <div class="states">
+          <div class="state-cell"><div class="spark dull"><span class="e">💪</span></div><span class="state-name">Dull</span></div>
+          <div class="state-cell"><div class="spark lit"><span class="e">💪</span></div><span class="state-name">Lit</span></div>
+          <div class="state-cell"><div class="spark lit"><span class="badge">8</span><span class="e">💪</span></div><span class="state-name">Streaked</span></div>
+          <div class="state-cell"><div class="spark greyed"><span class="e">💪</span></div><span class="state-name">Greyed</span></div>
+        </div>
+      </div>
+      <div class="d-col">
+        <div class="d-col-label">Buttons</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+          <button class="btn">Create</button>
+          <button class="btn ghost">Cancel</button>
+        </div>
+        <div class="d-col-label" style="margin-top:14px;">Card</div>
+        <div class="card"><div class="ct">Spark</div><div class="cb">A daily ritual with 3 members.</div></div>
+        <div class="d-col-label" style="margin-top:14px;">Chip</div>
+        <div><span class="chip">🏃 ingredient</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DIRECTION 3 ===== -->
+  <div class="direction d3">
+    <div class="d-head">
+      <span class="d-num">03</span>
+      <span class="d-title">Slash</span>
+    </div>
+    <p class="d-sub">Full diagonal energy — every shape is a parallelogram leaning the same way, the fighting-game slash motif. Warm orange accent. Most aggressive and energetic; closest to the SF6/Tekken reference directly. Higher energy than "calm ritual" — included so you can see the upper bound of the aggression dial.</p>
+    <div class="d-grid">
+      <div class="d-col">
+        <div class="d-col-label">Spark · 4 states</div>
+        <div class="states">
+          <div class="state-cell"><div class="spark dull"><span class="e">💪</span></div><span class="state-name">Dull</span></div>
+          <div class="state-cell"><div class="spark lit"><span class="e">💪</span></div><span class="state-name">Lit</span></div>
+          <div class="state-cell"><div class="spark lit"><span class="badge">8</span><span class="e">💪</span></div><span class="state-name">Streaked</span></div>
+          <div class="state-cell"><div class="spark greyed"><span class="e">💪</span></div><span class="state-name">Greyed</span></div>
+        </div>
+      </div>
+      <div class="d-col">
+        <div class="d-col-label">Buttons</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn">Create</button>
+          <button class="btn ghost">Cancel</button>
+        </div>
+        <div class="d-col-label" style="margin-top:14px;">Card</div>
+        <div class="card"><div class="ct">Spark</div><div class="cb">A daily ritual with 3 members.</div></div>
+        <div class="d-col-label" style="margin-top:14px;">Chip</div>
+        <div><span class="chip">🏃 ingredient</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DIRECTION 4 ===== -->
+  <div class="direction d4">
+    <div class="d-head">
+      <span class="d-num">04</span>
+      <span class="d-title">Facet</span>
+    </div>
+    <p class="d-sub">Subtle single-corner chamfer — like a cut gemstone. The quietest of the sharp options: just one 45° bevel per shape, otherwise square and clean. Light, premium, geometric. Best if you want "sharp" to read as "precise and crafted" rather than "aggressive."</p>
+    <div class="d-grid">
+      <div class="d-col">
+        <div class="d-col-label">Spark · 4 states</div>
+        <div class="d-light-states states">
+          <div class="state-cell"><div class="spark dull"><span class="e">💪</span></div><span class="state-name">Dull</span></div>
+          <div class="state-cell"><div class="spark lit"><span class="e">💪</span></div><span class="state-name">Lit</span></div>
+          <div class="state-cell"><div class="spark lit"><span class="badge">8</span><span class="e">💪</span></div><span class="state-name">Streaked</span></div>
+          <div class="state-cell"><div class="spark greyed"><span class="e">💪</span></div><span class="state-name">Greyed</span></div>
+        </div>
+      </div>
+      <div class="d-col">
+        <div class="d-col-label">Buttons</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn">Create</button>
+          <button class="btn ghost">Cancel</button>
+        </div>
+        <div class="d-col-label" style="margin-top:14px;">Card</div>
+        <div class="card"><div class="ct">Spark</div><div class="cb">A daily ritual with 3 members.</div></div>
+        <div class="d-col-label" style="margin-top:14px;">Chip</div>
+        <div><span class="chip">🏃 ingredient</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    <b>How to read this:</b> each direction is a complete system — spark states, buttons, cards, chips all follow one geometry rule.
+    The spark's <i>shape</i> (per the spec) is still user-chosen per spark, but the <i>language</i> (how buttons, cards, sheets, badges behave)
+    is what you're choosing here. <b>Rhomboid</b> and <b>Facet</b> are the calm-compatible options; <b>Monolith</b> is the bold straight-line option;
+    <b>Slash</b> is the max-energy fighting-game option. Tell me which (or which mix) and I'll rebuild the screens.
+  </div>
+</div>
+</body>
+</html>

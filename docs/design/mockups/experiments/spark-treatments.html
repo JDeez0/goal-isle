@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goal Isle — Spark Treatments (no box)</title>
+<style>
+  :root {
+    --ink:#1F2937; --muted:#64748B; --faint:#94A3B8; --line:#ECEFF2;
+    --accent:#3B82F6; --accent-dk:#2563EB; --accent-soft:rgba(59,130,246,0.14);
+    --sparkle:#FBBF24; --water-top:#EEF2F5; --water-bot:#E6ECF1; --surface:#FFFFFF;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',Roboto,sans-serif;
+    background:radial-gradient(130% 90% at 50% 0%,#F1F5F9 0%,#E6ECF1 55%,#DCE3EA 100%);
+    color:var(--ink); padding:50px 24px 80px; -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  .page { max-width:880px; margin:0 auto; }
+  .doc-title { font-size:13px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--accent); margin-bottom:8px; }
+  .doc-title::before { content:''; display:inline-block; width:22px; height:2px;
+    background:var(--accent); vertical-align:middle; margin-right:10px; }
+
+  .opt { background:var(--surface); margin-bottom:18px; padding:36px; border:1px solid var(--line); }
+  .opt-tag { font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--faint); margin-bottom:6px; }
+  .opt-name { font-size:18px; font-weight:700; margin-bottom:24px; }
+  .pair { display:flex; gap:60px; align-items:flex-end; justify-content:center; flex-wrap:wrap; }
+  .cell { display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .cell .lbl { font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--faint); }
+  .cell .lbl.win { color:var(--accent); }
+  .stage { width:130px; height:130px; display:flex; align-items:center; justify-content:center; position:relative; }
+  .stage .e { font-size:62px; line-height:1; user-select:none; transition:all 400ms ease-out; }
+
+  /* OPTION A — naked emoji, state by saturation/sparkles only */
+  .a-uncomp .e { filter:saturate(0.35) opacity(0.5); }
+  .a-lit .e { filter:saturate(1.15); }
+  .a-lit .sp { position:absolute; color:var(--sparkle); opacity:0.65; line-height:1; }
+  .badge { position:absolute; top:-2px; right:0px; background:var(--accent); color:#fff;
+    font-size:12px; font-weight:800; min-width:22px; height:22px; padding:0 6px;
+    display:flex; align-items:center; justify-content:center; border-radius:30% 30% 30% 8px;
+    box-shadow:0 1px 3px rgba(59,130,246,0.4); z-index:3; }
+
+  /* OPTION B — soft radial aura (no edge), brighter when lit */
+  .aura { position:absolute; inset:0; border-radius:50%; transition:all 400ms ease-out; }
+  .b-uncomp .aura { background:radial-gradient(circle, rgba(100,116,139,0.12), transparent 65%); }
+  .b-lit .aura { background:radial-gradient(circle, rgba(59,130,246,0.30), rgba(59,130,246,0.05) 50%, transparent 72%); }
+  .b-uncomp .e { filter:saturate(0.35) opacity(0.55); }
+  .b-lit .e { filter:saturate(1.15); }
+  .b-lit .sp { position:absolute; color:var(--sparkle); opacity:0.65; line-height:1; }
+
+  /* OPTION C — parallelogram GLOW (luminous, no solid fill/outline).
+     Uncompleted = faint diffuse rhomboid glow. Lit = brighter, sharper rhomboid glow. */
+  .glow { position:absolute; width:100px; height:100px; transition:all 500ms ease-out; }
+  .c-uncomp .glow {
+    background:radial-gradient(ellipse at center, rgba(100,116,139,0.10), transparent 70%);
+    clip-path:polygon(15% 0,100% 0,85% 100%,0 100%);
+    filter:blur(8px);
+  }
+  .c-lit .glow {
+    background:radial-gradient(ellipse at center, rgba(59,130,246,0.45), rgba(59,130,246,0.08) 55%, transparent 75%);
+    clip-path:polygon(15% 0,100% 0,85% 100%,0 100%);
+    filter:blur(5px);
+  }
+  .c-uncomp .e { filter:saturate(0.35) opacity(0.55); }
+  .c-lit .e { filter:saturate(1.15); }
+  .c-lit .sp { position:absolute; color:var(--sparkle); opacity:0.65; line-height:1; }
+
+  /* OPTION D — rhomboid light-streaks (rays), fighting-game energy aura.
+     Uncompleted = nothing. Lit = thin diagonal light rays in rhomboid arrangement behind emoji. */
+  .rays { position:absolute; width:110px; height:110px; opacity:0; transition:opacity 400ms ease-out; }
+  .d-lit .rays { opacity:1; }
+  .d-uncomp .e { filter:saturate(0.35) opacity(0.5); }
+  .d-lit .e { filter:saturate(1.15); }
+  .d-lit .sp { position:absolute; color:var(--sparkle); opacity:0.65; line-height:1; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="doc-title">Spark · no box · 4 options</div>
+
+  <!-- A -->
+  <div class="opt">
+    <div class="opt-tag">Option A</div>
+    <div class="opt-name">Naked emoji</div>
+    <div class="pair">
+      <div class="cell">
+        <div class="stage a-uncomp"><span class="e">💪</span></div>
+        <span class="lbl">Uncompleted</span>
+      </div>
+      <div class="cell">
+        <div class="stage a-lit">
+          <span class="sp" style="top:14px;right:22px;font-size:16px;">✦</span>
+          <span class="sp" style="bottom:20px;left:18px;font-size:11px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="lbl win">Lit</span>
+      </div>
+      <div class="cell">
+        <div class="stage a-lit">
+          <span class="badge">8</span>
+          <span class="sp" style="top:14px;right:24px;font-size:14px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="lbl">Lit + streak</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- B -->
+  <div class="opt">
+    <div class="opt-tag">Option B</div>
+    <div class="opt-name">Soft round aura</div>
+    <div class="pair">
+      <div class="cell">
+        <div class="stage b-uncomp"><span class="aura"></span><span class="e">💪</span></div>
+        <span class="lbl">Uncompleted</span>
+      </div>
+      <div class="cell">
+        <div class="stage b-lit">
+          <span class="aura"></span>
+          <span class="sp" style="top:14px;right:22px;font-size:16px;">✦</span>
+          <span class="sp" style="bottom:20px;left:18px;font-size:11px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="lbl win">Lit</span>
+      </div>
+      <div class="cell">
+        <div class="stage b-lit">
+          <span class="aura"></span>
+          <span class="badge">8</span>
+          <span class="sp" style="top:14px;right:24px;font-size:14px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="lbl">Lit + streak</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- C -->
+  <div class="opt">
+    <div class="opt-tag">Option C</div>
+    <div class="opt-name">Rhomboid glow · hardens when lit</div>
+    <div class="pair">
+      <div class="cell">
+        <div class="stage c-uncomp"><span class="glow"></span><span class="e">💪</span></div>
+        <span class="lbl">Uncompleted</span>
+      </div>
+      <div class="cell">
+        <div class="stage c-lit">
+          <span class="glow"></span>
+          <span class="sp" style="top:14px;right:22px;font-size:16px;">✦</span>
+          <span class="sp" style="bottom:20px;left:18px;font-size:11px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="lbl win">Lit</span>
+      </div>
+      <div class="cell">
+        <div class="stage c-lit">
+          <span class="glow"></span>
+          <span class="badge">8</span>
+          <span class="sp" style="top:14px;right:24px;font-size:14px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="lbl">Lit + streak</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- D -->
+  <div class="opt">
+    <div class="opt-tag">Option D</div>
+    <div class="opt-name">Rhomboid light-rays</div>
+    <div class="pair">
+      <div class="cell">
+        <div class="stage d-uncomp"><span class="e">💪</span></div>
+        <span class="lbl">Uncompleted</span>
+      </div>
+      <div class="cell">
+        <div class="stage d-lit">
+          <svg class="rays" viewBox="0 0 110 110">
+            <defs><clipPath id="rp"><polygon points="18,0 110,0 92,110 0,110"/></clipPath></defs>
+            <g clip-path="url(#rp)" stroke="#3B82F6" stroke-width="1.5" opacity="0.5" stroke-linecap="round">
+              <line x1="10" y1="100" x2="100" y2="10"/>
+              <line x1="-5" y1="70" x2="85" y2="-20"/>
+              <line x1="25" y1="120" x2="115" y2="30"/>
+              <line x1="30" y1="55" x2="80" y2="55"/>
+            </g>
+          </svg>
+          <span class="sp" style="top:14px;right:22px;font-size:16px;">✦</span>
+          <span class="sp" style="bottom:20px;left:18px;font-size:11px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="lbl win">Lit</span>
+      </div>
+      <div class="cell">
+        <div class="stage d-lit">
+          <svg class="rays" viewBox="0 0 110 110">
+            <g clip-path="url(#rp)" stroke="#3B82F6" stroke-width="1.5" opacity="0.5" stroke-linecap="round">
+              <line x1="10" y1="100" x2="100" y2="10"/><line x1="-5" y1="70" x2="85" y2="-20"/>
+              <line x1="25" y1="120" x2="115" y2="30"/><line x1="30" y1="55" x2="80" y2="55"/>
+            </g>
+          </svg>
+          <span class="badge">8</span>
+          <span class="sp" style="top:14px;right:24px;font-size:14px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="lbl">Lit + streak</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

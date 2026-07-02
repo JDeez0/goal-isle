@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goal Isle — Slash (refined)</title>
+<style>
+  /* ===== ORIGINAL PALETTE (from TOKENS.md / sparks.html) ===== */
+  :root {
+    --water-top: #EEF2F5;
+    --water-bot: #E6ECF1;
+    --surface:   #FFFFFF;
+    --ink:       #1F2937;
+    --muted:     #64748B;
+    --faint:     #94A3B8;
+    --line:      #ECEFF2;
+    --accent:    #3B82F6;
+    --accent-dk: #2563EB;
+    --accent-soft: rgba(59,130,246,0.12);
+    --sparkle:   #FBBF24;
+    --dull-bg:   #F4F6F8;
+    --greyed-bg: #E9ECEF;
+
+    /* ===== SLASH GEOMETRY — one diagonal rule for everything =====
+       parallelogram lean: bottom-left → top-right (upward energy = "lighting up") */
+    --cut-spark: polygon(15% 0, 100% 0, 85% 100%, 0 100%);
+    --cut-btn:   polygon(11px 0, 100% 0, calc(100% - 11px) 100%, 0 100%);
+    --cut-card:  polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+    --cut-chip:  polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+    --cut-badge: polygon(0 0, 100% 0, 100% 100%, 5px 100%, 0 calc(100% - 5px));
+    --cut-field: polygon(9px 0, 100% 0, 100% 100%, 0 100%, 0 9px);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Roboto, sans-serif;
+    background: radial-gradient(130% 90% at 50% 0%, #F1F5F9 0%, #E6ECF1 55%, #DCE3EA 100%);
+    color: var(--ink);
+    padding: 40px 24px 80px;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .page { max-width: 1080px; margin: 0 auto; }
+
+  /* page chrome (this is a design doc, not the app — labels allowed here only) */
+  .doc-title { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 24px; }
+  .doc-title::before { content: ''; display: inline-block; width: 22px; height: 2px;
+    background: var(--accent); vertical-align: middle; margin-right: 10px; }
+
+  .block { background: var(--surface); margin-bottom: 18px; padding: 28px 30px;
+    border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(31,41,55,0.04); }
+  .block-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--faint); margin-bottom: 22px; display: flex; align-items: center; gap: 8px; }
+  .block-tag .dot { width: 6px; height: 6px; background: var(--accent); transform: skewX(-20deg); }
+
+  /* =========================================================
+     SPARK — parallelogram surface, 4 states, original palette
+     ========================================================= */
+  .spark {
+    width: 72px; height: 72px; display: flex; align-items: center; justify-content: center;
+    position: relative; clip-path: var(--cut-spark); transition: all 280ms ease-out;
+  }
+  .spark .e { font-size: 36px; line-height: 1; transition: filter 280ms ease-out; }
+  .spark.dull { background: var(--dull-bg); }
+  .spark.dull .e { filter: saturate(0.32) opacity(0.6); }
+  .spark.lit { background: linear-gradient(135deg, var(--surface), rgba(59,130,246,0.14));
+    box-shadow: 0 0 0 1.5px var(--accent), 0 6px 20px rgba(59,130,246,0.20); }
+  .spark.lit .e { filter: saturate(1.1); }
+  .spark.lit-glow { background: var(--surface); box-shadow: 0 0 0 1.5px var(--accent),
+    0 6px 20px rgba(59,130,246,0.20); }
+  .spark.lit-glow .e { filter: saturate(1.08); }
+  .spark.lit-fill { background: var(--accent); }
+  .spark.lit-fill .e { filter: saturate(1.15) brightness(1.12); }
+  .spark.greyed { background: var(--greyed-bg); }
+  .spark.greyed .e { filter: grayscale(1) opacity(0.42); }
+  .spark .sparkle { position: absolute; color: var(--sparkle); opacity: 0.6;
+    line-height: 1; pointer-events: none; }
+  .spark .badge { position: absolute; top: -3px; right: 2px; background: var(--accent); color: #fff;
+    font-size: 12px; font-weight: 800; min-width: 22px; height: 22px; padding: 0 6px;
+    display: flex; align-items: center; justify-content: center;
+    clip-path: var(--cut-badge); box-shadow: 0 1px 3px rgba(59,130,246,0.4); }
+
+  .row-states { display: flex; gap: 30px; align-items: flex-end; flex-wrap: wrap; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .cell .cap { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--faint); }
+
+  /* lit-treatment comparison */
+  .vs { display: flex; gap: 40px; align-items: center; flex-wrap: wrap; }
+  .vs-side { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .vs-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; }
+  .vs-label.win { color: var(--accent); }
+
+  /* =========================================================
+     BUTTONS — parallelogram, single verb or icon only
+     ========================================================= */
+  .btn {
+    font: inherit; font-size: 14px; font-weight: 700; letter-spacing: 0.01em;
+    padding: 13px 30px; border: none; cursor: pointer; color: #fff; background: var(--accent);
+    clip-path: var(--cut-btn); transition: all 150ms ease-out; display: inline-flex;
+    align-items: center; gap: 8px;
+  }
+  .btn:hover { background: var(--accent-dk); transform: translateX(2px); }
+  .btn:active { transform: translateX(0) scale(0.99); }
+  .btn.ghost { background: transparent; color: var(--accent);
+    box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .btn.ghost:hover { background: var(--accent-soft); }
+  .btn.icon-only { padding: 13px 16px; }
+  .btn svg { width: 17px; height: 17px; }
+  .btn-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+
+  /* =========================================================
+     CARD — one cut corner (BR), accent rail on left
+     ========================================================= */
+  .card { background: var(--surface); padding: 18px 20px 18px 22px; width: 250px;
+    clip-path: var(--cut-card); box-shadow: 0 1px 2px rgba(31,41,55,0.05);
+    border-left: 3px solid var(--accent); position: relative; }
+  /* fake the border via layered background since clip-path clips borders */
+  .card-inner { display: flex; align-items: center; gap: 14px; }
+
+  /* chip — ingredient */
+  .chip { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600;
+    padding: 8px 16px 8px 12px; background: var(--accent-soft); color: var(--accent-dk);
+    clip-path: var(--cut-chip); }
+  .chip .e { font-size: 16px; }
+  .chip.add { background: transparent; box-shadow: inset 0 0 0 1.5px rgba(59,130,246,0.4);
+    color: var(--accent); }
+
+  /* =========================================================
+     MINI HOME — sparks floating on the water
+     ========================================================= */
+  .home { background: linear-gradient(180deg, var(--water-top) 0%, var(--water-bot) 100%);
+    height: 360px; position: relative; overflow: hidden; clip-path: var(--cut-card); }
+  .home .floating { position: absolute; animation: bob 6s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .home .spark { width: 56px; height: 56px; }
+  .home .spark .e { font-size: 28px; }
+  .home .spark .badge { font-size: 10px; min-width: 18px; height: 18px; top: -2px; }
+  .home .create { position: absolute; bottom: 22px; right: 24px; width: 60px; height: 60px;
+    clip-path: var(--cut-spark); border: 2px dashed var(--faint); background: transparent;
+    display: flex; align-items: center; justify-content: center; color: var(--faint);
+    font-size: 28px; font-weight: 700; cursor: pointer; transition: all 150ms ease-out; }
+  .home .create:hover { border-color: var(--muted); color: var(--muted); transform: translateY(-2px); }
+
+  /* =========================================================
+     MINI COMPOSER (chat input) — parallelogram field
+     ========================================================= */
+  .composer { display: flex; align-items: center; gap: 8px; background: var(--surface);
+    padding: 10px 12px; }
+  .field { flex: 1; height: 42px; clip-path: var(--cut-field);
+    border: 1px solid var(--line); background: var(--surface);
+    display: flex; align-items: center; padding: 0 16px; color: var(--faint); font-size: 14px; }
+  .emoji-btn, .send-btn { width: 42px; height: 42px; flex-shrink: 0; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 150ms ease-out; }
+  .emoji-btn { background: var(--dull-bg); color: var(--muted); clip-path: var(--cut-field); }
+  .emoji-btn:hover { background: var(--line); }
+  .emoji-btn.need { background: var(--accent-soft); color: var(--accent); }
+  .send-btn { background: var(--accent); color: #fff; clip-path: var(--cut-btn); }
+  .send-btn svg, .emoji-btn svg { width: 20px; height: 20px; }
+
+  /* icon-legend chips at bottom (doc-only) */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 18px; padding-top: 18px;
+    border-top: 1px solid var(--line); }
+  .legend .l { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--faint); }
+  .legend .sw { width: 16px; height: 16px; clip-path: var(--cut-chip); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="doc-title">Slash · original palette</div>
+
+  <!-- ===== SPARK STATES ===== -->
+  <div class="block">
+    <div class="block-tag"><span class="dot"></span>Spark · states</div>
+    <div class="row-states">
+      <div class="cell">
+        <div class="spark dull"><span class="e">💪</span></div>
+        <span class="cap">Dull</span>
+      </div>
+      <div class="cell">
+        <div class="spark lit">
+          <span class="sparkle" style="top:10px;right:16px;">✦</span>
+          <span class="sparkle" style="bottom:14px;left:14px;font-size:11px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="cap">Lit</span>
+      </div>
+      <div class="cell">
+        <div class="spark lit">
+          <span class="badge">8</span>
+          <span class="sparkle" style="top:10px;right:18px;">✦</span>
+          <span class="e">💪</span>
+        </div>
+        <span class="cap">Streaked</span>
+      </div>
+      <div class="cell">
+        <div class="spark greyed"><span class="e">💪</span></div>
+        <span class="cap">Greyed</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LOCKED: lit = glow + subtle fill tint ===== -->
+  <div class="block">
+    <div class="block-tag"><span class="dot"></span>Lit · locked ✓</div>
+    <div class="vs">
+      <div class="vs-side">
+        <div class="spark lit" style="width:96px;height:96px;">
+          <span class="sparkle" style="top:14px;right:22px;font-size:18px;">✦</span>
+          <span class="sparkle" style="bottom:20px;left:18px;font-size:13px;">✦</span>
+          <span class="sparkle" style="top:40%;right:8%;font-size:11px;">✦</span>
+          <span class="e" style="font-size:48px;">💪</span>
+        </div>
+        <span class="vs-label win">Glow + fill tint ✓</span>
+      </div>
+      <div class="vs-side">
+        <div class="spark lit" style="width:72px;height:72px;">
+          <span class="sparkle" style="top:10px;right:16px;">✦</span>
+          <span class="e" style="font-size:36px;">💪</span>
+        </div>
+        <span class="vs-label">pure glow (rejected)</span>
+      </div>
+      <div class="vs-side">
+        <div class="spark lit-fill" style="width:72px;height:72px;">
+          <span class="e" style="font-size:36px;">💪</span>
+        </div>
+        <span class="vs-label">solid fill (rejected)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BUTTONS ===== -->
+  <div class="block">
+    <div class="block-tag"><span class="dot"></span>Buttons</div>
+    <div class="btn-row">
+      <button class="btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Create
+      </button>
+      <button class="btn ghost">Cancel</button>
+      <button class="btn icon-only" aria-label="send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </button>
+      <button class="btn icon-only ghost" aria-label="back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <button class="btn icon-only ghost" aria-label="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== CARD + CHIPS ===== -->
+  <div class="block">
+    <div class="block-tag"><span class="dot"></span>Card · chips</div>
+    <div style="display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start;">
+      <div class="card">
+        <div class="card-inner">
+          <div class="spark lit" style="width:48px;height:48px;flex-shrink:0;">
+            <span class="badge" style="font-size:10px;min-width:18px;height:18px;">5</span>
+            <span class="e" style="font-size:24px;">💪</span>
+          </div>
+          <div>
+            <div style="font-size:15px;font-weight:700;">💪 · 5</div>
+            <div style="font-size:12px;color:var(--faint);display:flex;align-items:center;gap:6px;margin-top:2px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <span style="font-weight:600;">·</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/></svg>
+              <span>3</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <span class="chip"><span class="e">🏃</span></span>
+        <span class="chip"><span class="e">💧</span></span>
+        <span class="chip add">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MINI HOME ===== -->
+  <div class="block">
+    <div class="block-tag"><span class="dot"></span>Home</div>
+    <div class="home">
+      <div class="floating" style="top:36px;left:50px;animation-delay:0s;">
+        <div class="spark lit"><span class="sparkle" style="top:5px;right:9px;font-size:8px;">✦</span><span class="e">💪</span></div>
+      </div>
+      <div class="floating" style="top:64px;left:160px;animation-delay:1.1s;">
+        <div class="spark lit"><span class="badge">8</span><span class="sparkle" style="top:4px;right:7px;font-size:7px;">✦</span><span class="e">🏃</span></div>
+      </div>
+      <div class="floating" style="top:130px;left:100px;animation-delay:0.5s;">
+        <div class="spark dull"><span class="e">📚</span></div>
+      </div>
+      <div class="floating" style="top:110px;right:70px;animation-delay:1.8s;">
+        <div class="spark lit"><span class="sparkle" style="top:4px;right:7px;font-size:7px;">✦</span><span class="sparkle" style="bottom:6px;left:6px;font-size:6px;">✦</span><span class="e">🧘</span></div>
+      </div>
+      <div class="floating" style="top:210px;right:140px;animation-delay:1.5s;">
+        <div class="spark dull"><span class="e">💧</span></div>
+      </div>
+      <div class="floating" style="bottom:30px;left:80px;animation-delay:0.8s;">
+        <div class="spark greyed"><span class="e">🏖️</span></div>
+      </div>
+      <div class="floating" style="bottom:26px;left:190px;animation-delay:1.4s;">
+        <div class="spark greyed"><span class="e">✍️</span></div>
+      </div>
+      <button class="create">?</button>
+    </div>
+  </div>
+
+  <!-- ===== MINI COMPOSER ===== -->
+  <div class="block">
+    <div class="block-tag"><span class="dot"></span>Composer</div>
+    <div class="composer">
+      <button class="emoji-btn need" aria-label="emoji">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      </button>
+      <div class="field">💧</div>
+      <button class="send-btn" aria-label="send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
