@@ -56,11 +56,15 @@
   .tb { background: none; border: none; cursor: pointer; color: var(--accent);
     display: flex; align-items: center; padding: 4px; }
   .tb svg { width: 24px; height: 24px; }
-  .top-center { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
-  .top-center .members { font-size: 10px; color: var(--faint); }
+  .top-center { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1;
+    cursor: pointer; padding: 2px 8px; border-radius: 10px; transition: background 150ms ease-out; }
+  .top-center:hover { background: rgba(59,130,246,0.06); }
+  .top-center .members { font-size: 10px; color: var(--faint); display: flex; align-items: center; gap: 3px; }
   .members-pill { display: flex; align-items: center; gap: 4px; }
+  .chev { width: 11px; height: 11px; color: var(--faint); transition: transform 200ms ease-out; }
+  .top-center.open .chev { transform: rotate(180deg); }
 
-  /* mini spark (title substitute) — shares the shape + states */
+  /* mini spark (title) — shares the shape + states */
   .mini-spark { width: 30px; height: 30px; border-radius: var(--shape); display: flex;
     align-items: center; justify-content: center; position: relative; transition: all 300ms ease-out; }
   .mini-spark .emoji { font-size: 17px; line-height: 1; transition: filter 300ms ease-out; }
@@ -78,9 +82,17 @@
     color: #fff; font-size: 9px; font-weight: 700; min-width: 14px; height: 14px;
     padding: 0 3px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
 
-  /* ---- recipe strip (live grey->fill, compressed) ---- */
-  .recipe { display: flex; align-items: center; justify-content: center; gap: 10px;
-    padding: 6px 16px 10px; flex-wrap: wrap; }
+  /* ---- recipe dropdown card (hidden by default; toggled by tapping the title) ---- */
+  .recipe-card { margin: 0 14px; background: #fff; border-radius: 16px; border: 1px solid var(--line);
+    box-shadow: 0 6px 18px rgba(31,41,55,0.10); padding: 16px 16px 14px; display: none;
+    animation: drop 220ms ease-out; }
+  .recipe-card.open { display: block; }
+  @keyframes drop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .recipe-card .rc-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--faint); font-weight: 600; text-align: center; margin-bottom: 10px; }
+  .recipe-card .rc-status { font-size: 11px; color: var(--muted); text-align: center; margin-top: 10px; }
+  .recipe-card .rc-status .accent { color: var(--accent); font-weight: 600; }
+  .recipe { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
   .recipe .dep { display: flex; align-items: center; gap: 5px; }
   .rchip { width: 30px; height: 30px; border-radius: var(--shape); display: flex;
     align-items: center; justify-content: center; transition: all 250ms ease-out; }
@@ -101,7 +113,6 @@
   .rhero.lit { background: #fff; border: 1.5px solid rgba(59,130,246,0.2);
     box-shadow: 0 2px 6px rgba(59,130,246,0.16); }
   .rhero.lit .emoji { filter: saturate(1.05); }
-  .hint { font-size: 11px; color: var(--faint); text-align: center; padding: 0 16px 8px; }
 
   /* ---- message list ---- */
   .msglist { flex: 1; overflow-y: auto; padding: 6px 14px 12px; display: flex;
@@ -160,27 +171,41 @@
   .lit-banner .b-sub { font-size: 11px; color: var(--muted); }
 
   /* ---- composer ---- */
-  .composer { border-top: 1px solid var(--line); background: #fff; padding: 8px 12px 16px;
-    display: flex; flex-direction: column; gap: 8px; }
-  .quick { display: flex; gap: 6px; flex-wrap: wrap; }
-  .quick button { font-size: 20px; width: 38px; height: 38px; border-radius: var(--shape);
-    border: 1px solid var(--line); background: #fff; cursor: pointer; transition: all 150ms ease-out;
-    display: flex; align-items: center; justify-content: center; line-height: 1; }
-  .quick button:hover { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.04); }
-  .quick button.needed { border-color: rgba(59,130,246,0.45); background: rgba(59,130,246,0.06); }
-  .quick button.satisfied { opacity: 0.45; }
-  .quick .more { font-size: 11px; color: var(--faint); align-self: center; margin-left: 2px; }
-  .input-row { display: flex; align-items: center; gap: 8px; }
+  .composer { border-top: 1px solid var(--line); background: #fff; padding: 10px 12px 16px;
+    display: flex; flex-direction: column; gap: 0; }
+  .input-row { display: flex; align-items: center; gap: 6px; }
   .input-row input { flex: 1; height: 38px; border-radius: 19px; border: 1px solid var(--line);
     padding: 0 16px; font-size: 14px; font-family: inherit; color: var(--ink); outline: none;
     transition: border-color 150ms ease-out; }
   .input-row input:focus { border-color: rgba(59,130,246,0.5); }
-  .send { width: 38px; height: 38px; border-radius: 50%; border: none; background: var(--accent);
-    color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  .emoji-btn, .send { width: 38px; height: 38px; border-radius: 50%; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     transition: all 150ms ease-out; }
+  .emoji-btn { background: #F1F5F9; color: var(--muted); }
+  .emoji-btn:hover { background: #E2E8F0; }
+  .emoji-btn svg { width: 20px; height: 20px; }
+  .emoji-btn.has-need { background: rgba(59,130,246,0.10); color: var(--accent); }
+  .send { background: var(--accent); color: #fff; }
   .send:disabled { background: #CBD5E1; cursor: not-allowed; }
   .send svg { width: 18px; height: 18px; }
-  .composer .help { font-size: 10px; color: var(--faint); text-align: center; }
+
+  /* ---- emoji picker sheet (standard grid + Ingredients section) ---- */
+  .emoji-sheet { position: absolute; bottom: 0; left: 0; right: 0; background: #fff;
+    border-radius: 20px 20px 0 0; padding: 10px 14px 22px; z-index: 62;
+    transform: translateY(101%); transition: transform 250ms cubic-bezier(0.22,1,0.36,1);
+    box-shadow: 0 -10px 28px rgba(15,23,42,0.16); max-height: 62%; overflow-y: auto; }
+  .emoji-sheet.open { transform: translateY(0); }
+  .es-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint);
+    font-weight: 600; margin: 4px 4px 8px; }
+  .es-ingredients { background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.18);
+    border-radius: 12px; padding: 8px 8px 4px; margin-bottom: 12px; }
+  .es-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; }
+  .es-grid button { font-size: 22px; width: 100%; aspect-ratio: 1; border: none; background: none;
+    cursor: pointer; border-radius: 8px; transition: background 120ms ease-out; line-height: 1; }
+  .es-grid button:hover { background: #F1F5F9; }
+  .es-ingredients .es-grid button.needed { background: rgba(59,130,246,0.14); }
+  .es-ingredients .es-grid button.satisfied { opacity: 0.4; }
+  .es-divider { height: 1px; background: var(--line); margin: 4px 0 10px; }
 
   /* ---- reaction sheet (long-press) ---- */
   .react-sheet { position: absolute; bottom: 0; left: 0; right: 0; background: #fff;
@@ -232,17 +257,18 @@
     <div class="phone">
       <div class="notch"></div>
 
-      <!-- top bar: back · live mini-spark · members -->
+      <!-- top bar: back · clickable title (mini-spark + members, toggles recipe) · members -->
       <div class="topbar">
         <button class="tb" aria-label="Back">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
-        <div class="top-center">
+        <div class="top-center" id="topCenter">
           <div class="mini-spark dull" id="miniSpark">
             <span class="emoji" id="miniEmoji">💪</span>
           </div>
           <div class="members-pill">
             <span class="members" id="membersLbl">3 members</span>
+            <svg class="chev" id="titleChev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
           </div>
         </div>
         <button class="tb" aria-label="Members">
@@ -250,23 +276,39 @@
         </button>
       </div>
 
-      <!-- live recipe strip -->
-      <div class="recipe" id="recipeStrip"></div>
-      <div class="hint" id="recipeHint"></div>
+      <!-- recipe dropdown card (hidden by default) -->
+      <div class="recipe-card" id="recipeCard">
+        <div class="rc-label">Recipe</div>
+        <div class="recipe" id="recipeStrip"></div>
+        <div class="rc-status" id="recipeStatus"></div>
+      </div>
 
       <!-- messages -->
       <div class="msglist" id="msgList"></div>
 
       <!-- composer -->
       <div class="composer">
-        <div class="quick" id="quickRow"></div>
         <div class="input-row">
+          <button class="emoji-btn" id="emojiBtn" aria-label="Emoji">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </button>
           <input type="text" id="msgInput" placeholder="Message…" autocomplete="off">
           <button class="send" id="sendBtn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
           </button>
         </div>
-        <div class="help">Long-press a message to react · tap a needed emoji to post it as you</div>
+      </div>
+
+      <!-- emoji picker sheet -->
+      <div class="scrim2" id="scrimEmoji"></div>
+      <div class="emoji-sheet" id="emojiSheet">
+        <div class="grabber"></div>
+        <div id="esIngredients" class="es-ingredients">
+          <div class="es-title">Ingredients · post to light the spark</div>
+          <div class="es-grid" id="esIngGrid"></div>
+        </div>
+        <div class="es-title">Emoji</div>
+        <div class="es-grid" id="esStdGrid"></div>
       </div>
 
       <!-- lighting overlay -->
@@ -366,12 +408,14 @@
   }
 
   function renderRecipe() {
-    const strip = $('recipeStrip');
-    const hint = $('recipeHint');
+    const strip = $('recipeStrip'), status = $('recipeStatus');
+    const lit = allMet();
     if (state.mode === 'nodep') {
-      strip.innerHTML = `<div class="rhero ${allMet()?'lit':'dull'}"><span class="emoji">${NODEP_HERO}</span></div>
+      strip.innerHTML = `<div class="rhero ${lit?'lit':'dull'}"><span class="emoji">${NODEP_HERO}</span></div>
         <span class="req"><span class="plus">post</span> ${NODEP_HERO} <span class="eq">=</span> ${NODEP_HERO}</span>`;
-      hint.textContent = allMet() ? 'Lit — post it again next cycle.' : 'Post the emoji to light this spark.';
+      status.innerHTML = lit
+        ? '<span class="accent">Lit</span> — post it again next cycle.'
+        : 'Post the emoji to light this spark.';
       return;
     }
     const chips = SPARK.deps.map(d => {
@@ -379,9 +423,11 @@
       return `<div class="dep"><div class="rchip ${sat?'sat':'unsat'}"><span class="emoji">${d.emoji}</span></div></div>`;
     }).join('');
     const plus = '<span class="req plus">+</span>';
-    strip.innerHTML = `${chips}${plus}<div class="rhero ${allMet()?'lit':'dull'}"><span class="emoji">${SPARK.hero}</span></div>`;
+    strip.innerHTML = `${chips}${plus}<div class="rhero ${lit?'lit':'dull'}"><span class="emoji">${SPARK.hero}</span></div>`;
     const met = SPARK.deps.filter(d => state.sat[d.emoji]).length;
-    hint.textContent = allMet() ? 'Lit — every ingredient is in.' : `Post the missing emoji${SPARK.deps.length - met > 1 ? 's' : ''} to light it (${met}/${SPARK.deps.length}).`;
+    status.innerHTML = lit
+      ? '<span class="accent">Lit</span> — every ingredient is in.'
+      : `Post the missing emoji${SPARK.deps.length - met > 1 ? 's' : ''} to light it (${met}/${SPARK.deps.length}).`;
   }
 
   function renderMessages() {
@@ -409,38 +455,39 @@
     list.scrollTop = list.scrollHeight;
   }
 
-  function renderQuick() {
-    const row = $('quickRow');
-    const needed = depEmojis().filter(e => !state.sat[e]);
-    const emojis = [...new Set([...depEmojis(), '🔥', '❤️'])]; // a couple of non-matching extras
-    row.innerHTML = emojis.map(e => {
+  // a small, representative standard emoji set for the picker grid (demo)
+  const STD_EMOJIS = ['😀','😂','😍','🥰','😎','🤔','😴','🤯','👍','👏','🙏','💪','🔥','✨','🎉','❤️',
+                      '💯','🫡','🥳','😇','🙃','🤝','👀','✅','🌟','⚡','🌈','🌊','☕','🍕','🏃','🧘'];
+
+  function renderEmojiSheet() {
+    // ingredients section (the spark's deps / hero), with need/satisfied states
+    const ing = $('esIngGrid');
+    const ings = state.mode === 'multi' ? SPARK.deps.map(d => d.emoji) : [NODEP_HERO];
+    ing.innerHTML = ings.map(e => {
       const need = isNeeded(e);
       const done = state.sat[e] && depEmojis().includes(e);
-      const cls = ['qbtn'];
-      // build class via attribute on button element
-      let extra = '';
-      if (need) extra = 'needed';
-      else if (done) extra = 'satisfied';
-      return `<button class="qbtn ${extra}" data-e="${e}">${e}</button>`;
-    }).join('') + '<span class="more">tap = post as you</span>';
-    // (re-)attach handlers for quick buttons
-    row.querySelectorAll('.qbtn').forEach(b => {
-      b.addEventListener('click', () => postMessage(ME, null, b.dataset.e));
-    });
+      const cls = need ? 'needed' : (done ? 'satisfied' : '');
+      return `<button class="${cls}" data-e="${e}">${e}</button>`;
+    }).join('');
+    // standard grid
+    $('esStdGrid').innerHTML = STD_EMOJIS.map(e => `<button data-e="${e}">${e}</button>`).join('');
   }
 
   function renderComposer() {
-    const input = $('msgInput'), send = $('sendBtn');
+    const input = $('msgInput'), send = $('sendBtn'), eb = $('emojiBtn');
     send.disabled = input.value.trim().length === 0;
+    // highlight the emoji button while deps are still needed
+    const anyNeed = depEmojis().some(e => !state.sat[e]);
+    eb.classList.toggle('has-need', anyNeed);
   }
 
   // ---- actions ----
   function postMessage(sender, text, big) {
     const m = { id: nextId++, sender, text, big, ts: tick(), reactions: {} };
     state.messages.push(m);
-    // satisfaction: a big-emoji message (typed via quick) satisfies its dep
+    // satisfaction: a posted dep emoji (sent from the input) satisfies its dep
     if (big && depEmojis().includes(big)) satisfy(big, m);
-    renderMessages(); renderQuick(); renderRecipe(); renderTopbar();
+    renderMessages(); renderEmojiSheet(); renderRecipe(); renderTopbar(); renderComposer();
     checkLight();
   }
 
@@ -456,7 +503,7 @@
     }
     // a reaction satisfies a dep too (spec §4)
     if (depEmojis().includes(emoji)) satisfy(emoji, m);
-    renderMessages(); renderQuick(); renderRecipe(); renderTopbar();
+    renderMessages(); renderEmojiSheet(); renderRecipe(); renderTopbar(); renderComposer();
     checkLight();
   }
 
@@ -494,7 +541,7 @@
     renderAll();
   }
 
-  function renderAll() { renderTopbar(); renderRecipe(); renderMessages(); renderQuick(); renderComposer(); }
+  function renderAll() { renderTopbar(); renderRecipe(); renderMessages(); renderEmojiSheet(); renderComposer(); }
 
   // ---- helpers ----
   function fmtTime(d) {
@@ -583,6 +630,36 @@
   $('scrim2').addEventListener('click', closeReactSheet);
 
   $('resetBtn').addEventListener('click', () => { resetCycle(); seed(); renderAll(); });
+
+  // ---- title tap toggles the recipe dropdown card ----
+  $('topCenter').addEventListener('click', () => {
+    const card = $('recipeCard'), tc = $('topCenter');
+    const open = card.classList.toggle('open');
+    tc.classList.toggle('open', open);
+  });
+
+  // ---- emoji picker ----
+  function openEmojiSheet() {
+    renderEmojiSheet();
+    $('emojiSheet').classList.add('open');
+    $('scrimEmoji').classList.add('open');
+  }
+  function closeEmojiSheet() {
+    $('emojiSheet').classList.remove('open');
+    $('scrimEmoji').classList.remove('open');
+  }
+  $('emojiBtn').addEventListener('click', () => {
+    if ($('emojiSheet').classList.contains('open')) closeEmojiSheet();
+    else openEmojiSheet();
+  });
+  $('scrimEmoji').addEventListener('click', closeEmojiSheet);
+  // tapping any emoji in the picker inserts it into the input
+  $('emojiSheet').addEventListener('click', e => {
+    const b = e.target.closest('button[data-e]'); if (!b) return;
+    input.value += b.dataset.e;
+    input.focus();
+    renderComposer();
+  });
 
   // ---- init ----
   seed();
