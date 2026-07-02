@@ -10,6 +10,7 @@ This directory contains the design intent for the Goal Isle Flutter app.
 |---|---|
 | **[`ISLE_SPARKS_SPEC.md`](./ISLE_SPARKS_SPEC.md)** | **🔒 THE current system spec — Isle Sparks redesign. Read this first.** |
 | **[`MOCKUPS.md`](./MOCKUPS.md)** | How to run the design mockups (`mockups/sparks.html`, `mockups/buttons.html`). |
+| **[`SCREEN_INVENTORY.md`](./SCREEN_INVENTORY.md)** | Every potential screen, mocked vs. gap, state variations, open questions — the mockup roadmap. |
 | [`VISION.md`](../archive/VISION.md) | ⚠️ Archived — the original vibe doc. Three Words still hold; most concrete examples are outdated. |
 | [`TOKENS.md`](./TOKENS.md) | Design tokens: colors, typography, spacing, motion. ⚠️ Layout section removed (orphaned). |
 
