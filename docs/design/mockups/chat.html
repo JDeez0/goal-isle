@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goal Isle — Chat (per-spark) mockup</title>
+<style>
+  :root {
+    --shape: 40% 12% 40% 12%;
+    --water-top: #EEF2F5;
+    --water-bot: #E2E8EF;
+    --ink: #1F2937;
+    --muted: #64748B;
+    --faint: #94A3B8;
+    --line: #ECEFF2;
+    --accent: #3B82F6;
+    --bubble-me: #3B82F6;
+    --bubble-them: #FFFFFF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Roboto, sans-serif;
+    background: #F1F5F9;
+    color: var(--ink);
+    padding: 40px 20px 64px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .lede { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.5; max-width: 660px; }
+
+  /* ============================================================
+     STAGE
+     ============================================================ */
+  .stage {
+    display: flex; gap: 36px; align-items: flex-start; flex-wrap: wrap;
+    background: #fff; border-radius: 16px; padding: 30px;
+    border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(31,41,55,0.04);
+    margin-bottom: 36px;
+  }
+
+  .phone {
+    width: 332px; height: 700px; border-radius: 46px; border: 10px solid #0F172A;
+    background: var(--water-top);
+    box-shadow: 0 30px 60px rgba(15,23,42,0.22), 0 6px 14px rgba(15,23,42,0.08);
+    position: relative; overflow: hidden; display: flex; flex-direction: column;
+    flex-shrink: 0;
+  }
+  .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 104px; height: 24px; background: #0F172A; border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px; z-index: 50; }
+
+  /* ---- top bar: back + live mini-spark + members ---- */
+  .topbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 44px 16px 8px; gap: 8px; }
+  .tb { background: none; border: none; cursor: pointer; color: var(--accent);
+    display: flex; align-items: center; padding: 4px; }
+  .tb svg { width: 24px; height: 24px; }
+  .top-center { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
+  .top-center .members { font-size: 10px; color: var(--faint); }
+  .members-pill { display: flex; align-items: center; gap: 4px; }
+
+  /* mini spark (title substitute) — shares the shape + states */
+  .mini-spark { width: 30px; height: 30px; border-radius: var(--shape); display: flex;
+    align-items: center; justify-content: center; position: relative; transition: all 300ms ease-out; }
+  .mini-spark .emoji { font-size: 17px; line-height: 1; transition: filter 300ms ease-out; }
+  .mini-spark.dull { background: #F4F6F8; }
+  .mini-spark.dull .emoji { filter: saturate(0.35) opacity(0.65); }
+  .mini-spark.lit { background: #fff; border: 1.5px solid rgba(59,130,246,0.2);
+    box-shadow: 0 2px 6px rgba(59,130,246,0.16); }
+  .mini-spark.lit .emoji { filter: saturate(1.05); }
+  .mini-spark.lit.lit-pulse { animation: pulse 700ms ease-out; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }
+    100% { box-shadow: 0 0 0 14px rgba(59,130,246,0); }
+  }
+  .mini-spark .badge { position: absolute; top: -4px; right: -4px; background: var(--accent);
+    color: #fff; font-size: 9px; font-weight: 700; min-width: 14px; height: 14px;
+    padding: 0 3px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+
+  /* ---- recipe strip (live grey->fill, compressed) ---- */
+  .recipe { display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 6px 16px 10px; flex-wrap: wrap; }
+  .recipe .dep { display: flex; align-items: center; gap: 5px; }
+  .rchip { width: 30px; height: 30px; border-radius: var(--shape); display: flex;
+    align-items: center; justify-content: center; transition: all 250ms ease-out; }
+  .rchip .emoji { font-size: 16px; transition: filter 250ms ease-out; }
+  .rchip.unsat { background: #F4F6F8; }
+  .rchip.unsat .emoji { filter: saturate(0.3) opacity(0.5); }
+  .rchip.sat { background: #fff; border: 1.5px solid rgba(59,130,246,0.24);
+    box-shadow: 0 1px 4px rgba(59,130,246,0.14); }
+  .rchip.sat .emoji { filter: saturate(1.05); }
+  .req { font-size: 11px; color: var(--faint); }
+  .req .plus { color: var(--accent); }
+  .req .eq { font-weight: 600; }
+  .rhero { width: 30px; height: 30px; border-radius: var(--shape); display: flex;
+    align-items: center; justify-content: center; transition: all 300ms ease-out; }
+  .rhero .emoji { font-size: 16px; transition: filter 300ms ease-out; }
+  .rhero.dull { background: #F4F6F8; }
+  .rhero.dull .emoji { filter: saturate(0.35) opacity(0.65); }
+  .rhero.lit { background: #fff; border: 1.5px solid rgba(59,130,246,0.2);
+    box-shadow: 0 2px 6px rgba(59,130,246,0.16); }
+  .rhero.lit .emoji { filter: saturate(1.05); }
+  .hint { font-size: 11px; color: var(--faint); text-align: center; padding: 0 16px 8px; }
+
+  /* ---- message list ---- */
+  .msglist { flex: 1; overflow-y: auto; padding: 6px 14px 12px; display: flex;
+    flex-direction: column; gap: 10px; scroll-behavior: smooth; }
+  .msg { display: flex; flex-direction: column; max-width: 76%; position: relative; }
+  .msg.me { align-self: flex-end; align-items: flex-end; }
+  .msg.them { align-self: flex-start; }
+  .sender { font-size: 10px; color: var(--faint); margin: 0 8px 2px; }
+  .bubble { padding: 8px 12px; border-radius: 18px; font-size: 14px; line-height: 1.35;
+    word-break: break-word; position: relative; }
+  .msg.me .bubble { background: var(--bubble-me); color: #fff;
+    border-bottom-right-radius: 5px; }
+  .msg.them .bubble { background: var(--bubble-them); color: var(--ink);
+    border: 1px solid var(--line); border-bottom-left-radius: 5px; }
+  .bubble .big { font-size: 26px; line-height: 1.1; }
+  .time { font-size: 9px; color: var(--faint); margin: 2px 8px 0; }
+  /* reactions */
+  .reax { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+  .msg.me .reax { justify-content: flex-end; }
+  .react-chip { font-size: 12px; background: #fff; border: 1px solid var(--line);
+    border-radius: 12px; padding: 1px 7px; display: inline-flex; align-items: center; gap: 3px;
+    cursor: pointer; transition: all 150ms ease-out; }
+  .react-chip:hover { border-color: rgba(59,130,246,0.4); }
+  .react-chip.mine { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.3); }
+  .react-chip b { font-size: 10px; color: var(--muted); font-weight: 600; }
+
+  /* a "just satisfied" marker on a message that lit a dep */
+  .msg.lit-mark .bubble { box-shadow: 0 0 0 2px rgba(59,130,246,0.35); }
+
+  /* ---- lighting sweep overlay (fires when spark lights) ---- */
+  .sweep { position: absolute; inset: 0; pointer-events: none; z-index: 40; opacity: 0;
+    background: radial-gradient(circle at 50% 30%, rgba(59,130,246,0.10), transparent 60%); }
+  .sweep.fire { animation: sweep 1.1s ease-out; }
+  @keyframes sweep {
+    0% { opacity: 0; }
+    25% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .lit-banner { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(255,255,255,0.96); border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 16px; padding: 14px 22px; box-shadow: 0 10px 30px rgba(59,130,246,0.22);
+    display: flex; align-items: center; gap: 12px; z-index: 45; opacity: 0; pointer-events: none; }
+  .lit-banner.fire { animation: banner 2s ease-out; }
+  @keyframes banner {
+    0% { opacity: 0; transform: translate(-50%, -40%) scale(0.9); }
+    15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -55%) scale(0.98); }
+  }
+  .lit-banner .b-spark { width: 40px; height: 40px; border-radius: var(--shape);
+    background: #fff; border: 1.5px solid rgba(59,130,246,0.25);
+    box-shadow: 0 2px 8px rgba(59,130,246,0.18); display: flex; align-items: center;
+    justify-content: center; font-size: 22px; position: relative; }
+  .lit-banner .b-spark .s { position: absolute; color: #FBBF24; opacity: 0.6; font-size: 10px; }
+  .lit-banner .b-txt { font-size: 14px; font-weight: 600; }
+  .lit-banner .b-sub { font-size: 11px; color: var(--muted); }
+
+  /* ---- composer ---- */
+  .composer { border-top: 1px solid var(--line); background: #fff; padding: 8px 12px 16px;
+    display: flex; flex-direction: column; gap: 8px; }
+  .quick { display: flex; gap: 6px; flex-wrap: wrap; }
+  .quick button { font-size: 20px; width: 38px; height: 38px; border-radius: var(--shape);
+    border: 1px solid var(--line); background: #fff; cursor: pointer; transition: all 150ms ease-out;
+    display: flex; align-items: center; justify-content: center; line-height: 1; }
+  .quick button:hover { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.04); }
+  .quick button.needed { border-color: rgba(59,130,246,0.45); background: rgba(59,130,246,0.06); }
+  .quick button.satisfied { opacity: 0.45; }
+  .quick .more { font-size: 11px; color: var(--faint); align-self: center; margin-left: 2px; }
+  .input-row { display: flex; align-items: center; gap: 8px; }
+  .input-row input { flex: 1; height: 38px; border-radius: 19px; border: 1px solid var(--line);
+    padding: 0 16px; font-size: 14px; font-family: inherit; color: var(--ink); outline: none;
+    transition: border-color 150ms ease-out; }
+  .input-row input:focus { border-color: rgba(59,130,246,0.5); }
+  .send { width: 38px; height: 38px; border-radius: 50%; border: none; background: var(--accent);
+    color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 150ms ease-out; }
+  .send:disabled { background: #CBD5E1; cursor: not-allowed; }
+  .send svg { width: 18px; height: 18px; }
+  .composer .help { font-size: 10px; color: var(--faint); text-align: center; }
+
+  /* ---- reaction sheet (long-press) ---- */
+  .react-sheet { position: absolute; bottom: 0; left: 0; right: 0; background: #fff;
+    border-radius: 20px 20px 0 0; padding: 10px 18px 22px; z-index: 60;
+    transform: translateY(101%); transition: transform 250ms cubic-bezier(0.22,1,0.36,1);
+    box-shadow: 0 -10px 28px rgba(15,23,42,0.16); }
+  .react-sheet.open { transform: translateY(0); }
+  .grabber { width: 38px; height: 4px; border-radius: 3px; background: #E2E8F0; margin: 4px auto 12px; }
+  .react-sheet .title { font-size: 12px; color: var(--muted); margin-bottom: 10px; text-align: center; }
+  .react-grid { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .react-grid button { font-size: 24px; width: 46px; height: 46px; border-radius: var(--shape);
+    border: 1px solid var(--line); background: #fff; cursor: pointer; transition: all 150ms ease-out; }
+  .react-grid button:hover { border-color: rgba(59,130,246,0.4); transform: scale(1.08); }
+  .react-grid button.needed { border-color: rgba(59,130,246,0.45); background: rgba(59,130,246,0.06); }
+  .scrim2 { position: absolute; inset: 0; background: rgba(15,23,42,0.35); z-index: 55;
+    opacity: 0; pointer-events: none; transition: opacity 200ms ease-out; }
+  .scrim2.open { opacity: 1; pointer-events: auto; }
+
+  /* ---- dev controls ---- */
+  .controls { flex: 1; min-width: 260px; }
+  .controls h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint);
+    margin-bottom: 14px; font-weight: 600; }
+  .ctl { margin-bottom: 16px; }
+  .ctl-label { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 7px; }
+  .seg { display: inline-flex; background: #F1F5F9; border-radius: 9px; padding: 3px; }
+  .seg button { font: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px; border: none;
+    background: none; cursor: pointer; color: var(--muted); border-radius: 7px; transition: all 150ms ease-out; }
+  .seg button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(31,41,55,0.08); }
+  .ctl-row { display: flex; align-items: center; justify-content: space-between; }
+  .btn-ghost { font: inherit; font-size: 12px; font-weight: 600; padding: 7px 12px; border: 1px solid var(--line);
+    background: #fff; color: var(--accent); border-radius: 8px; cursor: pointer; }
+  .btn-ghost:hover { background: rgba(59,130,246,0.05); }
+  .legend-note { font-size: 11px; color: var(--faint); line-height: 1.5; margin-top: 14px;
+    padding-top: 14px; border-top: 1px solid var(--line); }
+  .legend-note b { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Chat (per-spark)</h1>
+  <p class="lede">
+    The room where members <b>type</b> emojis and <b>react</b> to messages to satisfy dependencies
+    and light the spark. The recipe strip at the top fills live as ingredients land; the mini-spark
+    in the title position reflects current state. When every dependency is met, the spark lights with
+    a calm sweep. Try it: tap a quick-emoji (or type one) to post it, or long-press a message to react.
+  </p>
+
+  <div class="stage">
+    <div class="phone">
+      <div class="notch"></div>
+
+      <!-- top bar: back · live mini-spark · members -->
+      <div class="topbar">
+        <button class="tb" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div class="top-center">
+          <div class="mini-spark dull" id="miniSpark">
+            <span class="emoji" id="miniEmoji">💪</span>
+          </div>
+          <div class="members-pill">
+            <span class="members" id="membersLbl">3 members</span>
+          </div>
+        </div>
+        <button class="tb" aria-label="Members">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.1"/></svg>
+        </button>
+      </div>
+
+      <!-- live recipe strip -->
+      <div class="recipe" id="recipeStrip"></div>
+      <div class="hint" id="recipeHint"></div>
+
+      <!-- messages -->
+      <div class="msglist" id="msgList"></div>
+
+      <!-- composer -->
+      <div class="composer">
+        <div class="quick" id="quickRow"></div>
+        <div class="input-row">
+          <input type="text" id="msgInput" placeholder="Message…" autocomplete="off">
+          <button class="send" id="sendBtn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          </button>
+        </div>
+        <div class="help">Long-press a message to react · tap a needed emoji to post it as you</div>
+      </div>
+
+      <!-- lighting overlay -->
+      <div class="sweep" id="sweep"></div>
+      <div class="lit-banner" id="litBanner">
+        <div class="b-spark"><span class="s" style="top:3px; right:6px;">✦</span><span id="bannerEmoji">💪</span></div>
+        <div><div class="b-txt" id="bannerTxt">Spark lit</div><div class="b-sub" id="bannerSub">streak +1</div></div>
+      </div>
+
+      <!-- reaction sheet -->
+      <div class="scrim2" id="scrim2"></div>
+      <div class="react-sheet" id="reactSheet">
+        <div class="grabber"></div>
+        <div class="title">React — reactions also light dependencies</div>
+        <div class="react-grid" id="reactGrid"></div>
+      </div>
+    </div>
+
+    <!-- dev controls -->
+    <div class="controls">
+      <h3>Preview controls · dev only</h3>
+      <div class="ctl">
+        <div class="ctl-label">Recipe shape</div>
+        <div class="seg" id="modeSeg">
+          <button data-mode="multi" class="on">Multi-dependency</button>
+          <button data-mode="nodep">No dependencies</button>
+        </div>
+      </div>
+      <div class="ctl ctl-row">
+        <span class="ctl-label" style="margin:0;">Reset cycle (clears satisfaction)</span>
+        <button class="btn-ghost" id="resetBtn">Reset</button>
+      </div>
+      <p class="legend-note">
+        <b>Spec fidelity (§4 Completion Mechanics):</b><br>
+        • A dependency is satisfied by one occurrence — typed <i>or</i> reacted.<br>
+        • All deps met → spark lights automatically (no claim step).<br>
+        • Progress is shared across members.<br>
+        • Exact match only. Satisfaction resets each cycle.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---- config (the spark) ----
+  const SPARK = {
+    hero: '💪',
+    deps: [
+      { emoji: '🏃', label: 'run' },
+      { emoji: '💧', label: 'water' },
+      { emoji: '🧘', label: 'calm' },
+    ],
+  };
+  const NODEP_HERO = '📚';
+  const ME = 'You', OTHERS = ['Sam', 'Lia'];
+  const tick = () => new Date();
+
+  // ---- state ----
+  let state = {
+    mode: 'multi',
+    sat: {},                  // emoji -> true (satisfied this cycle)
+    streak: 3,
+    lit: false,               // computed
+    messages: [],             // {id, sender, text, big, ts, reactions:{emoji:[who]}}
+    litOnceThisCycle: false,  // to suppress repeat banners
+  };
+  let nextId = 1;
+
+  const $ = id => document.getElementById(id);
+  const depEmojis = () => state.mode === 'multi' ? SPARK.deps.map(d => d.emoji) : [NODEP_HERO];
+  const heroEmoji = () => state.mode === 'multi' ? SPARK.hero : NODEP_HERO;
+  const allMet = () => depEmojis().every(e => state.sat[e]);
+  const isNeeded = e => depEmojis().includes(e) && !state.sat[e];
+
+  // ---- seed a few messages so the room isn't empty ----
+  function seed() {
+    state.messages = [
+      { id: nextId++, sender: 'Sam', text: 'morning ☀️', ts: tick(), reactions: {} },
+      { id: nextId++, sender: 'Sam', text: 'heading out', big: '🏃', ts: tick(), reactions: {} },
+    ];
+    // Sam's run already satisfied the run dep
+    if (state.mode === 'multi') state.sat['🏃'] = true;
+  }
+
+  // ---- rendering ----
+  function renderTopbar() {
+    const ms = $('miniSpark');
+    const lit = allMet();
+    ms.className = 'mini-spark ' + (lit ? 'lit' : 'dull');
+    $('miniEmoji').textContent = heroEmoji();
+    // streak badge only when lit + streak>=2
+    let badge = ms.querySelector('.badge');
+    if (lit && state.streak >= 2) {
+      if (!badge) { badge = document.createElement('span'); badge.className = 'badge'; ms.appendChild(badge); }
+      badge.textContent = state.streak;
+    } else if (badge) { badge.remove(); }
+  }
+
+  function renderRecipe() {
+    const strip = $('recipeStrip');
+    const hint = $('recipeHint');
+    if (state.mode === 'nodep') {
+      strip.innerHTML = `<div class="rhero ${allMet()?'lit':'dull'}"><span class="emoji">${NODEP_HERO}</span></div>
+        <span class="req"><span class="plus">post</span> ${NODEP_HERO} <span class="eq">=</span> ${NODEP_HERO}</span>`;
+      hint.textContent = allMet() ? 'Lit — post it again next cycle.' : 'Post the emoji to light this spark.';
+      return;
+    }
+    const chips = SPARK.deps.map(d => {
+      const sat = state.sat[d.emoji];
+      return `<div class="dep"><div class="rchip ${sat?'sat':'unsat'}"><span class="emoji">${d.emoji}</span></div></div>`;
+    }).join('');
+    const plus = '<span class="req plus">+</span>';
+    strip.innerHTML = `${chips}${plus}<div class="rhero ${allMet()?'lit':'dull'}"><span class="emoji">${SPARK.hero}</span></div>`;
+    const met = SPARK.deps.filter(d => state.sat[d.emoji]).length;
+    hint.textContent = allMet() ? 'Lit — every ingredient is in.' : `Post the missing emoji${SPARK.deps.length - met > 1 ? 's' : ''} to light it (${met}/${SPARK.deps.length}).`;
+  }
+
+  function renderMessages() {
+    const list = $('msgList');
+    const needed = depEmojis().filter(e => !state.sat[e]);
+    list.innerHTML = state.messages.map(m => {
+      const me = m.sender === ME;
+      const cls = ['msg', me ? 'me' : 'them'];
+      // is this message the one that satisfied a dep? mark it.
+      if (m.big && state.sat[m.big]) cls.push('lit-mark');
+      const reax = Object.entries(m.reactions||{});
+      const reaxHTML = reax.length ? `<div class="reax">${reax.map(([e, who]) =>
+        `<span class="react-chip ${who.includes(ME)?'mine':''}">${e}<b>${who.length}</b></span>`).join('')}</div>` : '';
+      const content = m.big
+        ? `<span class="big">${m.big}</span>`
+        : escapeHtml(m.text);
+      return `<div class="${cls.join(' ')}" data-id="${m.id}">
+        ${!me ? `<div class="sender">${m.sender}</div>` : ''}
+        <div class="bubble">${content}</div>
+        ${reaxHTML}
+        <div class="time">${fmtTime(m.ts)}</div>
+      </div>`;
+    }).join('');
+    // scroll to bottom
+    list.scrollTop = list.scrollHeight;
+  }
+
+  function renderQuick() {
+    const row = $('quickRow');
+    const needed = depEmojis().filter(e => !state.sat[e]);
+    const emojis = [...new Set([...depEmojis(), '🔥', '❤️'])]; // a couple of non-matching extras
+    row.innerHTML = emojis.map(e => {
+      const need = isNeeded(e);
+      const done = state.sat[e] && depEmojis().includes(e);
+      const cls = ['qbtn'];
+      // build class via attribute on button element
+      let extra = '';
+      if (need) extra = 'needed';
+      else if (done) extra = 'satisfied';
+      return `<button class="qbtn ${extra}" data-e="${e}">${e}</button>`;
+    }).join('') + '<span class="more">tap = post as you</span>';
+    // (re-)attach handlers for quick buttons
+    row.querySelectorAll('.qbtn').forEach(b => {
+      b.addEventListener('click', () => postMessage(ME, null, b.dataset.e));
+    });
+  }
+
+  function renderComposer() {
+    const input = $('msgInput'), send = $('sendBtn');
+    send.disabled = input.value.trim().length === 0;
+  }
+
+  // ---- actions ----
+  function postMessage(sender, text, big) {
+    const m = { id: nextId++, sender, text, big, ts: tick(), reactions: {} };
+    state.messages.push(m);
+    // satisfaction: a big-emoji message (typed via quick) satisfies its dep
+    if (big && depEmojis().includes(big)) satisfy(big, m);
+    renderMessages(); renderQuick(); renderRecipe(); renderTopbar();
+    checkLight();
+  }
+
+  function addReaction(msgId, emoji, who) {
+    const m = state.messages.find(x => x.id === msgId);
+    if (!m) return;
+    if (!m.reactions[emoji]) m.reactions[emoji] = [];
+    if (m.reactions[emoji].includes(who)) {
+      m.reactions[emoji] = m.reactions[emoji].filter(w => w !== who);
+      if (m.reactions[emoji].length === 0) delete m.reactions[emoji];
+    } else {
+      m.reactions[emoji].push(who);
+    }
+    // a reaction satisfies a dep too (spec §4)
+    if (depEmojis().includes(emoji)) satisfy(emoji, m);
+    renderMessages(); renderQuick(); renderRecipe(); renderTopbar();
+    checkLight();
+  }
+
+  function satisfy(emoji, sourceMsg) {
+    if (state.sat[emoji]) return;            // already satisfied this cycle
+    state.sat[emoji] = true;
+    // mark the source message that satisfied it
+    if (sourceMsg) sourceMsg._lit = emoji;
+  }
+
+  function checkLight() {
+    if (allMet() && !state.litOnceThisCycle) {
+      state.litOnceThisCycle = true;
+      state.streak += 1;
+      fireLight();
+    }
+  }
+
+  function fireLight() {
+    const sweep = $('sweep'), banner = $('litBanner');
+    $('bannerEmoji').textContent = heroEmoji();
+    $('bannerSub').textContent = `streak ${state.streak}`;
+    sweep.classList.remove('fire'); void sweep.offsetWidth; sweep.classList.add('fire');
+    banner.classList.remove('fire'); void banner.offsetWidth; banner.classList.add('fire');
+    // pulse the mini spark
+    const ms = $('miniSpark');
+    ms.classList.remove('lit-pulse'); void ms.offsetWidth; ms.classList.add('lit-pulse');
+    renderTopbar();
+  }
+
+  function resetCycle() {
+    state.sat = {};
+    state.litOnceThisCycle = false;
+    // keep messages (history stays), re-seed satisfaction off
+    renderAll();
+  }
+
+  function renderAll() { renderTopbar(); renderRecipe(); renderMessages(); renderQuick(); renderComposer(); }
+
+  // ---- helpers ----
+  function fmtTime(d) {
+    const h = d.getHours(), m = d.getMinutes();
+    return `${((h+11)%12)+1}:${m<10?'0'+m:m} ${h<12?'AM':'PM'}`;
+  }
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // ---- wire up ----
+  // mode switch
+  $('modeSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    state.mode = b.dataset.mode;
+    [...e.currentTarget.children].forEach(c => c.classList.toggle('on', c === b));
+    resetCycle();
+    seed();
+    renderAll();
+  });
+
+  // text input send
+  const input = $('msgInput');
+  input.addEventListener('input', renderComposer);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter' && input.value.trim()) sendText(); });
+  $('sendBtn').addEventListener('click', sendText);
+  function sendText() {
+    const v = input.value.trim();
+    if (!v) return;
+    input.value = '';
+    // if the typed text is exactly a dep emoji, treat it as a big-emoji post (satisfies dep)
+    const depMatch = depEmojis().find(e => v === e);
+    postMessage(ME, v, depMatch);
+    renderComposer();
+  }
+
+  // long-press / click a message to open reaction sheet
+  let pressTimer = null, longPressed = false;
+  const msgList = $('msgList');
+  msgList.addEventListener('mousedown', e => {
+    const msgEl = e.target.closest('.msg'); if (!msgEl) return;
+    const id = +msgEl.dataset.id;
+    longPressed = false;
+    pressTimer = setTimeout(() => {
+      longPressed = true;
+      openReactSheet(id);
+    }, 350);
+  });
+  msgList.addEventListener('mouseup', () => { clearTimeout(pressTimer); });
+  msgList.addEventListener('mouseleave', () => { clearTimeout(pressTimer); });
+  // click (short) also opens reactions for demo ease
+  msgList.addEventListener('click', e => {
+    const msgEl = e.target.closest('.msg'); if (!msgEl) return;
+    if (longPressed) return;            // let long-press win
+    // if a react-chip was clicked, toggle it
+    const rc = e.target.closest('.react-chip');
+    if (rc) {
+      const emoji = rc.firstChild.textContent.trim();
+      openReactSheet(+msgEl.dataset.id, emoji);
+      return;
+    }
+    openReactSheet(+msgEl.dataset.id);
+  });
+
+  let activeMsgId = null;
+  function openReactSheet(id, preselect) {
+    activeMsgId = id;
+    const grid = $('reactGrid');
+    const needed = depEmojis().filter(e => !state.sat[e]);
+    const opts = [...new Set([...depEmojis(), '🔥', '❤️', '👏'])];
+    grid.innerHTML = opts.map(e => {
+      const need = isNeeded(e);
+      return `<button class="${need?'needed':''}" data-e="${e}">${e}</button>`;
+    }).join('');
+    grid.querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        addReaction(activeMsgId, b.dataset.e, ME);
+        closeReactSheet();
+      });
+    });
+    $('reactSheet').classList.add('open');
+    $('scrim2').classList.add('open');
+  }
+  function closeReactSheet() {
+    $('reactSheet').classList.remove('open');
+    $('scrim2').classList.remove('open');
+  }
+  $('scrim2').addEventListener('click', closeReactSheet);
+
+  $('resetBtn').addEventListener('click', () => { resetCycle(); seed(); renderAll(); });
+
+  // ---- init ----
+  seed();
+  renderAll();
+</script>
+</body>
+</html>

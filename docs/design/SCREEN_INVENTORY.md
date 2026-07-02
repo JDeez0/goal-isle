@@ -32,7 +32,7 @@ Eight named screens. The full inventory below adds the supporting + edge-case sc
 | 1 | **Home** | Floating sparks on water + Create button (bottom-right). Lit float, greyed sink. Empty state = just the Create button. | ✅ `mockups/sparks.html` |
 | 2 | **New Spark (Create Spark)** | Equation hero + grouped icon-led settings card (shape / repeats / streak / share) + shape picker sheet. | ✅ `mockups/create-spark.html` |
 | 3 | **Spark Details** | Recipe / equation (emojis grey → filled as satisfied), Members button, Chat button, Settings button (creator only). | ✅ `mockups/spark-details.html` |
-| 4 | **Chat (per-spark)** | Room where members type / react emojis to light the spark. Shared across members. | ❌ **Gap** |
+| 4 | **Chat (per-spark)** | Room where members type / react emojis to light the spark. Shared across members. | ✅ `mockups/chat.html` |
 | 5 | **Spark Settings (creator only)** | Member management (add / remove), shape (reopens picker), delete spark. | ❌ **Gap** |
 | 6 | **Member list** | Avatars, names, status (online / offline / last-seen) for a spark's Isle. | ❌ **Gap** (could be a sheet off Spark Details) |
 | 7 | **Friends** | Friends list + add-by-username / phone requests. Global relationship (vs per-spark membership). | ❌ **Gap** |
@@ -91,7 +91,7 @@ When mocking, each screen needs its states mocked too:
 | Home | Empty (just Create button) · 1 spark · many sparks · mix of lit + greyed (sunk) |
 | Spark Details | Dull · Lit · Streaked (badge) · Greyed (parked) · no-deps spark · multi-dep spark (partial fill) · solo spark |
 | Spark Details (access) | Creator view (has Settings) · Member view (no Settings) |
-| Chat | Empty · messages flowing · a dependency just satisfied (spark lights — animation / feedback) |
+| Chat | Empty · messages flowing · a dependency just satisfied (spark lights — animation / feedback) — ✅ all covered live in `chat.html` (post / react deps to watch them light; "Spark lit" banner + mini-spark pulse) |
 | New Spark | Empty (no main emoji) · main-emoji-only · with deps · with shape changed · invalid (Create disabled) |
 | Friends | Empty · has friends · pending requests |
 
@@ -99,11 +99,12 @@ When mocking, each screen needs its states mocked too:
 
 ## § 7 — Summary: Mocked vs. Gap
 
-**Already mocked (5 + 1 dev tool):**
+**Already mocked (6 + 1 dev tool):**
 - Home — `sparks.html`
 - New Spark — `create-spark.html`
 - Shape Picker — inside `create-spark.html`
 - **Spark Details — `spark-details.html`** (interactive: toggle dep satisfaction, streak, parked, creator/member access; plus a gallery of static variants — no-dep, parked, streaked-win, partial-fill)
+- **Chat (per-spark) — `chat.html`** (interactive: post dep emojis as you / type them / react to messages; the recipe strip fills live and the spark lights with a calm sweep when all deps are met; long-press a message to react)
 - Buttons — `buttons.html`
 - Shape Lab — `shape-lab.html` (dev tool, not a shipped screen)
 
@@ -112,8 +113,8 @@ When mocking, each screen needs its states mocked too:
 | Priority | Screen | Why this priority |
 |---|---|---|
 | 1 | ~~**Spark Details**~~ | ✅ **Done** (`spark-details.html`, July 2, 2026). |
-| 2 | **Chat (per-spark)** | Core to the lighting mechanic (spec § 4 — typing / reacting lights the spark). Now the top gap. |
-| 3 | **Spark Settings + Member list** | Creator flows (spec § 6, § 7). Member list may be a sheet off Spark Details. |
+| 2 | ~~**Chat (per-spark)**~~ | ✅ **Done** (`chat.html`, July 2, 2026). |
+| 3 | **Spark Settings + Member list** | Creator flows (spec § 6, § 7). Member list may be a sheet off Spark Details. Now the top gap. |
 | 4 | **Emoji Picker** (shared) | Needed by both New Spark and Chat — block both screens' final form. |
 | 5 | **Friends** | Low-impact per spec, but needed for the Share field to be real. |
 | 6 | **Auth entry** | Needed before any social flow is real (spec § 10). |
@@ -133,4 +134,4 @@ When mocking, each screen needs its states mocked too:
 
 ---
 
-*Last updated: July 2, 2026 — Spark Details mocked (`spark-details.html`); parked-spark recovery question resolved.*
+*Last updated: July 2, 2026 — Spark Details + Chat (per-spark) mocked.*
