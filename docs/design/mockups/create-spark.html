@@ -3,127 +3,264 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Goal Isle — Create Spark (v2)</title>
+<title>Goal Isle — New Spark</title>
 <style>
+  /* ============================================================
+     ORIGINAL PALETTE (locked)
+     ============================================================ */
   :root {
-    --shape: 40% 12% 40% 12%;        /* rhomboid squircle default; updated live by picker */
-    --water-top: #EEF2F5;
-    --water-bot: #E2E8EF;
-    --ink: #1F2937;
-    --muted: #64748B;
-    --faint: #94A3B8;
-    --line: #ECEFF2;
-    --accent: #3B82F6;
+    --water-top:   #EEF2F5;
+    --water-bot:   #E2E8EF;
+    --surface:     #FFFFFF;
+    --ink:         #1F2937;
+    --muted:       #64748B;
+    --faint:       #94A3B8;
+    --line:        #ECEFF2;
+    --accent:      #3B82F6;
+    --accent-dk:   #2563EB;
+    --accent-soft: rgba(59,130,246,0.14);
+    --sparkle:     #FBBF24;
+    --dull:        #F4F6F8;
+    --phone:       #0F172A;
+    --grey:        #CBD5E1;
+
+    /* The spark's OWN silhouette — per-corner radius. Separate from the fixed
+       skewX parallelogram lean. This is what the shape picker reshapes live. */
+    --shape-radius: 40px 12px 40px 12px;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Roboto, sans-serif;
     background: radial-gradient(130% 90% at 50% 0%, #F1F5F9 0%, #E6ECF1 55%, #DCE3EA 100%);
+    color: var(--ink);
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    padding: 40px 20px; -webkit-font-smoothing: antialiased; color: var(--ink);
+    padding: 40px 20px; -webkit-font-smoothing: antialiased;
   }
 
-  /* ===== Phone ===== */
+  /* ============================================================
+     PHONE FRAME
+     ============================================================ */
   .phone {
-    width: 332px; height: 700px; border-radius: 46px; border: 10px solid #0F172A;
+    width: 332px; height: 700px; border-radius: 46px; border: 10px solid var(--phone);
     background: linear-gradient(180deg, var(--water-top) 0%, var(--water-bot) 100%);
     box-shadow: 0 30px 60px rgba(15,23,42,0.22), 0 6px 14px rgba(15,23,42,0.08);
     position: relative; overflow: hidden; display: flex; flex-direction: column;
   }
   .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    width: 104px; height: 24px; background: #0F172A; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; z-index: 50; }
+    width: 104px; height: 24px; background: var(--phone);
+    border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; z-index: 50; }
 
-  /* ===== top bar (verbs only; no noun title) ===== */
-  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 44px 22px 6px; }
-  .tb { font-size: 16px; font-weight: 500; background: none; border: none; cursor: pointer; }
-  .tb.muted { color: var(--faint); }
-  .tb.accent { color: var(--accent); font-weight: 600; }
-  .tb.accent:disabled { color: #CBD5E1; cursor: not-allowed; }
-
-  /* ===== body ===== */
-  .body { flex: 1; overflow-y: auto; padding: 14px 22px 28px; display: flex; flex-direction: column; }
-
-  /* ----- the equation ----- */
-  .equation { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 10px 0 6px; }
-  .deps { display: flex; gap: 16px; align-items: flex-end; }
-  .dep { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .dep-label { font-size: 11px; color: var(--faint); min-height: 14px; }
-
-  /* a "spark shape" — used for hero, deps, mini previews; shape updates live */
-  .spark-shape { border-radius: var(--shape); }
-  .hero {
-    width: 116px; height: 116px; background: #fff;
-    border: 1.5px solid rgba(59,130,246,0.20);
-    box-shadow: 0 6px 18px rgba(59,130,246,0.14), 0 1px 3px rgba(31,41,55,0.06);
-    display: flex; align-items: center; justify-content: center; position: relative;
+  /* ============================================================
+     THE SPARK — locked treatment (copied EXACTLY from spark-final.html)
+     parallelogram (skewX) + border-radius (rounds→hardens)
+     + soft aura behind + counter-skewed emoji
+     ============================================================ */
+  .spark {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
   }
-  .hero .emoji { font-size: 60px; line-height: 1; }
-  .hero::after { /* subtle edit hint */
-    content: ''; position: absolute; inset: 0; border-radius: var(--shape);
-    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.6); pointer-events: none;
+  .aura {
+    position: absolute;
+    transform: skewX(-14deg);
+    border-radius: 26px;
+    transition: all 550ms ease-out;
+    z-index: 0;
   }
+  .body {
+    position: relative;
+    transform: skewX(-14deg);
+    display: flex; align-items: center; justify-content: center;
+    transition: border-radius 650ms cubic-bezier(0.34,1.2,0.64,1),
+                background 400ms ease-out, box-shadow 400ms ease-out;
+    z-index: 2;
+  }
+  .e {
+    line-height: 1; user-select: none;
+    transform: skewX(14deg);
+    transition: filter 400ms ease-out;
+    z-index: 3; position: relative;
+  }
+  .sparkle {
+    position: absolute; color: var(--sparkle); line-height: 1; pointer-events: none;
+    z-index: 4; opacity: 0; transition: opacity 400ms ease-out 150ms;
+    transform: skewX(14deg);
+  }
+  /* UNCOMPLETED */
+  .spark.uncomp .body {
+    border-radius: 24px;
+    background: var(--dull);
+    box-shadow: inset 0 0 0 1px rgba(31,41,55,0.06);
+  }
+  .spark.uncomp .aura {
+    background: radial-gradient(ellipse, rgba(100,116,139,0.10), transparent 70%);
+    filter: blur(10px);
+  }
+  .spark.uncomp .e { filter: saturate(0.3) opacity(0.5); }
+  /* LIT */
+  .spark.lit .body {
+    border-radius: 3px;
+    background: linear-gradient(135deg, var(--surface), var(--accent-soft));
+    box-shadow: 0 0 0 1.5px var(--accent), 0 6px 22px rgba(59,130,246,0.22);
+  }
+  .spark.lit .aura {
+    background: radial-gradient(ellipse, rgba(59,130,246,0.35), rgba(59,130,246,0.06) 55%, transparent 75%);
+    filter: blur(7px);
+    border-radius: 6px;
+  }
+  .spark.lit .e { filter: saturate(1.15); }
+  .spark.lit .sparkle { opacity: 0.65; }
 
-  .dep-chip { width: 46px; height: 46px; background: #fff; border: 1.5px solid rgba(31,41,55,0.10);
-    box-shadow: 0 1px 2px rgba(31,41,55,0.05); display: flex; align-items: center; justify-content: center; font-size: 24px; }
-  .add-dep { width: 46px; height: 46px; border: 1.5px dashed rgba(59,130,246,0.4);
-    background: transparent; color: var(--accent); border-radius: var(--shape);
-    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 150ms ease-out; }
-  .add-dep:hover { background: rgba(59,130,246,0.06); }
-  .add-dep svg { width: 18px; height: 18px; }
-  .equals { font-size: 22px; font-weight: 600; color: var(--faint); line-height: 1; }
+  /* SHAPED — only on the spark being created/shaped (hero + picker preview).
+     Overrides the locked 3px with the user's chosen per-corner silhouette.
+     The fixed skewX parallelogram lean is untouched; only the radius changes. */
+  .spark.shaped .body {
+    border-radius: var(--shape-radius) !important;
+    transition: border-radius 280ms ease-out;
+  }
+  /* badge — skewed to match the lean */
+  .badge {
+    position: absolute; top: 2px; right: 2px; z-index: 5;
+    background: var(--accent); color: #fff; font-size: 12px; font-weight: 800;
+    min-width: 22px; height: 22px; padding: 0 6px;
+    display: flex; align-items: center; justify-content: center;
+    transform: skewX(-14deg);
+    box-shadow: 0 1px 3px rgba(59,130,246,0.4);
+  }
+  .badge span { transform: skewX(14deg); display: block; }
 
-  /* ----- grouped settings card (icon-led, no noun headers) ----- */
-  .card { margin-top: 26px; background: #fff; border-radius: 18px;
-    border: 1.5px solid var(--line); box-shadow: 0 1px 2px rgba(31,41,55,0.04); overflow: hidden; }
-  .row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer; transition: background 150ms ease-out; }
-  .row + .row { border-top: 1px solid var(--line); }
-  .row:hover { background: #F8FAFC; }
-  .row .ico { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; color: var(--muted); flex-shrink: 0; }
+  /* ---- spark size variants ---- */
+  /* HERO — large main-emoji spark */
+  .spark.hero { width: 150px; height: 150px; }
+  .spark.hero .aura { width: 116px; height: 116px; }
+  .spark.hero .body { width: 116px; height: 116px; }
+  .spark.hero .e { font-size: 60px; }
+  .spark.hero .sparkle.s1 { top: 16px; right: 26px; font-size: 18px; }
+  .spark.hero .sparkle.s2 { bottom: 20px; left: 22px; font-size: 13px; }
+
+  /* DEP — small ingredient spark (~46px body) */
+  .spark.dep { width: 60px; height: 60px; }
+  .spark.dep .aura { width: 46px; height: 46px; }
+  .spark.dep .body { width: 46px; height: 46px; }
+  .spark.dep .e { font-size: 24px; }
+  .spark.dep .sparkle.s1 { top: 6px; right: 9px; font-size: 9px; }
+
+  /* ============================================================
+     TOP BAR — verbs only: Cancel (flat text) + Create (accent / disabled)
+     straight-line chrome, no clip-paths
+     ============================================================ */
+  .topbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 46px 22px 4px; }
+  .tb { font: inherit; font-size: 16px; font-weight: 600; background: none; border: none;
+    cursor: pointer; transition: all 150ms ease-out; }
+  .tb.cancel { color: var(--faint); }
+  .tb.cancel:hover { color: var(--muted); }
+  .tb.create { color: #fff; background: var(--accent); padding: 9px 20px;
+    border-radius: 12px; font-weight: 700; }
+  .tb.create:hover { background: var(--accent-dk); }
+  .tb.create:disabled { color: var(--grey); background: transparent; cursor: not-allowed; }
+
+  /* ============================================================
+     SCROLL BODY
+     ============================================================ */
+  .scroll { flex: 1; overflow-y: auto; padding: 4px 0 28px; }
+
+  /* ============================================================
+     THE EQUATION (HERO): deps ABOVE "=" , hero main-emoji BELOW
+     reads top→down: ingredients = result
+     ============================================================ */
+  .equation { display: flex; flex-direction: column; align-items: center;
+    gap: 16px; padding: 18px 0 8px; }
+  .deps { display: flex; gap: 14px; align-items: center; }
+  .equals { font-size: 26px; font-weight: 700; color: var(--faint); line-height: 1; }
+
+  /* add-dep chip — the ONE skewed parallelogram in chrome (it spawns a spark) */
+  .dep-add { width: 46px; height: 46px; background: transparent; border: none; cursor: pointer;
+    box-shadow: inset 0 0 0 1.5px rgba(59,130,246,0.45);
+    transform: skewX(-14deg); border-radius: 10px;
+    color: var(--accent); display: flex; align-items: center; justify-content: center;
+    transition: all 150ms ease-out; }
+  .dep-add:hover { background: var(--accent-soft); }
+  .dep-add span { transform: skewX(14deg); display: block; }
+  .dep-add svg { width: 18px; height: 18px; }
+
+  /* hero tap affordance */
+  .hero-wrap { cursor: pointer; transition: transform 150ms ease-out; }
+  .hero-wrap:active { transform: scale(0.98); }
+
+  /* ============================================================
+     SETTINGS PANEL — FLAT. thin top line, 1px row separators.
+     icon-led rows, no noun headers.
+     ============================================================ */
+  .panel { margin: 28px 22px 0; background: var(--surface);
+    border-top: 1px solid var(--line); }
+  .row { display: flex; align-items: center; gap: 14px; padding: 15px 4px;
+    cursor: pointer; transition: opacity 120ms ease-out; position: relative; }
+  .row + .row::before { content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 1px; background: var(--line); }
+  .row:active { opacity: 0.6; }
+  .row .ico { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    color: var(--muted); flex-shrink: 0; }
   .row .ico svg { width: 21px; height: 21px; }
-  /* shape row uses a live mini spark as its icon */
-  .row .ico.shape-mini { padding: 0; }
-  .row .ico.shape-mini .ms { width: 22px; height: 22px; background: var(--accent); border-radius: var(--shape); opacity: 0.9; }
+  /* Shape row icon = tiny skewed spark swatch (filled accent), wearing chosen silhouette */
+  .row .ico .swatch { width: 22px; height: 22px; background: var(--accent);
+    transform: skewX(-14deg); border-radius: var(--shape-radius);
+    box-shadow: 0 1px 3px rgba(59,130,246,0.35);
+    transition: border-radius 280ms ease-out; }
   .row .val { font-size: 15px; color: var(--ink); font-weight: 500; }
   .row .val.placeholder { color: var(--faint); font-weight: 400; }
   .row .right { margin-left: auto; display: flex; align-items: center; gap: 10px; color: var(--faint); }
   .row .right svg { width: 18px; height: 18px; }
 
-  /* streak toggle */
-  .toggle { width: 44px; height: 26px; border-radius: 14px; background: var(--accent); position: relative; flex-shrink: 0; transition: background 200ms ease; }
-  .toggle::after { content: ''; position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: all 200ms ease; }
-  .toggle.off { background: #CBD5E1; }
+  /* streak toggle — accent on / line off, SQUARE edges (flat chrome) */
+  .toggle { width: 44px; height: 26px; border-radius: 6px; background: var(--accent);
+    position: relative; flex-shrink: 0; transition: background 200ms ease;
+    box-shadow: 0 1px 3px rgba(59,130,246,0.30); cursor: pointer; }
+  .toggle::after { content: ''; position: absolute; top: 3px; right: 3px; width: 20px; height: 20px;
+    border-radius: 4px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    transition: all 200ms ease; }
+  .toggle.off { background: var(--line); box-shadow: inset 0 0 0 1px var(--line); }
   .toggle.off::after { right: auto; left: 3px; }
 
-  /* ===== bottom sheet (shape picker) ===== */
-  .scrim { position: absolute; inset: 0; background: rgba(15,23,42,0.4); opacity: 0; pointer-events: none; transition: opacity 220ms ease-out; z-index: 60; }
+  /* ============================================================
+     BOTTOM SHEET (shape picker) — flat, scrim + slide-up
+     ============================================================ */
+  .scrim { position: absolute; inset: 0; background: rgba(15,23,42,0.42);
+    opacity: 0; pointer-events: none; transition: opacity 220ms ease-out; z-index: 60; }
   .scrim.open { opacity: 1; pointer-events: auto; }
-  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 24px 24px 0 0;
-    padding: 12px 22px 30px; transform: translateY(101%); transition: transform 300ms cubic-bezier(0.22,1,0.36,1);
-    z-index: 70; max-height: 90%; overflow-y: auto; box-shadow: 0 -12px 34px rgba(15,23,42,0.16); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--surface);
+    border-radius: 24px 24px 0 0; padding: 8px 22px 28px;
+    transform: translateY(101%); transition: transform 320ms cubic-bezier(0.22,1,0.36,1);
+    z-index: 70; max-height: 94%; overflow-y: auto;
+    box-shadow: 0 -12px 34px rgba(15,23,42,0.16); }
   .sheet.open { transform: translateY(0); }
-  .grabber { width: 40px; height: 5px; border-radius: 3px; background: #E2E8F0; margin: 4px auto 16px; }
+  .grabber { width: 40px; height: 5px; border-radius: 3px; background: #E2E8F0; margin: 6px auto 16px; }
 
-  .picker-stage { background: linear-gradient(180deg,var(--water-top),var(--water-bot)); border-radius: 18px;
-    height: 168px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; border: 1px solid rgba(31,41,55,0.06); }
-  .picker-stage .spark-shape { width: 116px; height: 116px; background: #fff; border: 1.5px solid rgba(59,130,246,0.2);
-    box-shadow: 0 4px 14px rgba(59,130,246,0.12); display: flex; align-items: center; justify-content: center; }
-  .picker-stage .emoji { font-size: 60px; }
-  .picker-stage .sparkle { position: absolute; color: #FBBF24; opacity: 0.5; line-height: 1; }
+  /* preview stage — large live preview spark (wearing chosen silhouette) */
+  .picker-stage { background: linear-gradient(180deg, var(--water-top), var(--water-bot));
+    border-radius: 14px; height: 168px; display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px; }
 
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
-  .chip { font: inherit; font-size: 12px; font-weight: 600; padding: 8px 13px; border-radius: 20px;
-    border: 1.5px solid rgba(31,41,55,0.12); background: #fff; color: var(--muted); cursor: pointer; transition: all 150ms ease-out; }
-  .chip:hover { border-color: var(--accent); color: var(--accent); }
-  .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  /* preset chips — flat chips, active = accent text + underline */
+  .chips { display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 22px; }
+  .chip { font: inherit; font-size: 13px; font-weight: 600; padding: 8px 12px;
+    border: none; background: none; color: var(--muted); cursor: pointer;
+    transition: all 150ms ease-out; border-bottom: 2px solid transparent; }
+  .chip:hover { color: var(--ink); }
+  .chip.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-  .sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 26px; margin-bottom: 20px; }
-  .sl > div { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
-  .sl b { color: var(--ink); }
-  .sl input[type=range] { width: 100%; accent-color: var(--accent); }
+  /* corner sliders — TL / TR / BR / BL, 0–50 */
+  .sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; margin-bottom: 24px; }
+  .sl .sl-head { display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .sl .sl-head b { color: var(--ink); font-weight: 700; font-size: 12px; }
+  .sl input[type=range] { width: 100%; accent-color: var(--accent); height: 4px; }
 
-  .done { width: 100%; height: 52px; border-radius: var(--shape); border: none; background: var(--accent); color: #fff;
-    font-size: 16px; font-weight: 600; cursor: pointer; transition: all 150ms ease-out; }
-  .done:hover { background: #2563EB; transform: translateY(-1px); }
+  /* Done button — flat word button */
+  .done { width: 100%; height: 48px; border: none; background: var(--accent); color: #fff;
+    font-size: 16px; font-weight: 700; cursor: pointer; border-radius: 12px;
+    transition: all 150ms ease-out; }
+  .done:hover { background: var(--accent-dk); }
   .done:active { transform: scale(0.99); }
 </style>
 </head>
@@ -133,135 +270,164 @@
 
   <!-- top bar: verbs only -->
   <div class="topbar">
-    <button class="tb muted">Cancel</button>
-    <button class="tb accent" id="createBtn" disabled>Create</button>
+    <button class="tb cancel">Cancel</button>
+    <button class="tb create" id="createBtn">Create</button>
   </div>
 
-  <div class="body">
-    <!-- ===== equation: deps above, =, hero main emoji ===== -->
+  <div class="scroll">
+    <!-- ===== equation: deps above, = , hero main-emoji spark below ===== -->
     <div class="equation">
       <div class="deps">
-        <div class="dep">
-          <div class="dep-chip spark-shape"><span style="font-size:24px;">🏃</span></div>
-          <span class="dep-label">run</span>
-        </div>
-        <div class="dep">
-          <div class="dep-chip spark-shape"><span style="font-size:24px;">💧</span></div>
-          <span class="dep-label">water</span>
-        </div>
-        <div class="dep">
-          <button class="add-dep">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-          </button>
-          <span class="dep-label">&nbsp;</span>
-        </div>
+        <div class="spark dep lit"><div class="aura"></div><div class="body"><span class="e">🏃</span></div></div>
+        <div class="spark dep lit"><div class="aura"></div><div class="body"><span class="e">💧</span></div></div>
+        <button class="dep-add" aria-label="add dependency">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        </button>
       </div>
       <span class="equals">=</span>
-      <div class="hero spark-shape"><span class="emoji">💪</span></div>
+      <div class="hero-wrap" id="heroWrap">
+        <div class="spark hero lit shaped" id="hero">
+          <div class="aura"></div>
+          <div class="body">
+            <span class="sparkle s1">✦</span>
+            <span class="sparkle s2">✦</span>
+            <span class="e" id="heroE">💪</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- ===== grouped settings: icon-led, no noun headers ===== -->
-    <div class="card">
-      <!-- shape: icon = live mini spark -->
+    <!-- ===== settings: flat panel, icon-led rows, no noun headers ===== -->
+    <div class="panel">
+      <!-- Row 1: Shape — skewed swatch icon, value, chevron -->
       <div class="row" id="shapeRow">
-        <span class="ico shape-mini"><span class="ms"></span></span>
-        <span class="val" id="shapeName">Rhomboid squircle</span>
+        <span class="ico"><span class="swatch" id="rowSwatch"></span></span>
+        <span class="val" id="shapeName">Rhomboid</span>
         <span class="right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
       </div>
-      <!-- repeats -->
+      <!-- Row 2: Repeats — clock icon, value, chevron -->
       <div class="row">
         <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
         <span class="val">Daily</span>
         <span class="right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
       </div>
-      <!-- streak -->
-      <div class="row">
+      <!-- Row 3: Streak — flame icon, flat square toggle -->
+      <div class="row" id="streakRow">
         <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
-        <span class="val">Breaks on miss</span>
         <span class="right"><span class="toggle" id="streakToggle"></span></span>
       </div>
-      <!-- share -->
+      <!-- Row 4: Share — user-plus icon, faint placeholder, chevron -->
       <div class="row">
         <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span>
-        <span class="val placeholder">Add members…</span>
+        <span class="val placeholder">—</span>
         <span class="right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
       </div>
     </div>
   </div>
 
-  <!-- ===== shape picker sheet ===== -->
+  <!-- ===== shape picker bottom sheet ===== -->
   <div class="scrim" id="scrim"></div>
   <div class="sheet" id="sheet">
     <div class="grabber"></div>
 
     <div class="picker-stage">
-      <div class="spark-shape" id="pickerSpark" style="position:relative;">
-        <span class="sparkle" style="top:12px; right:20px;">✦</span>
-        <span class="sparkle" style="bottom:18px; left:16px; font-size:11px;">✦</span>
-        <span class="emoji">💪</span>
+      <div class="spark hero lit shaped" id="pickerSpark">
+        <div class="aura"></div>
+        <div class="body">
+          <span class="sparkle s1">✦</span>
+          <span class="sparkle s2">✦</span>
+          <span class="e">💪</span>
+        </div>
       </div>
     </div>
 
     <div class="chips" id="chips">
-      <button class="chip" data-p="rhomboid">Rhomboid</button>
-      <button class="chip" data-p="soft">Soft rhomboid</button>
+      <button class="chip active" data-p="rhomboid">Rhomboid</button>
+      <button class="chip" data-p="soft">Soft</button>
       <button class="chip" data-p="squircle">Squircle</button>
-      <button class="chip" data-p="original">Sharp corner</button>
+      <button class="chip" data-p="original">Original</button>
       <button class="chip" data-p="circle">Circle</button>
     </div>
 
     <div class="sliders" id="sliders">
-      <div class="sl"><div><span>Top-Left</span><b><span id="v-tl">40</span>%</b></div><input type="range" min="0" max="50" value="40" id="s-tl"></div>
-      <div class="sl"><div><span>Top-Right</span><b><span id="v-tr">12</span>%</b></div><input type="range" min="0" max="50" value="12" id="s-tr"></div>
-      <div class="sl"><div><span>Bottom-Left</span><b><span id="v-bl">12</span>%</b></div><input type="range" min="0" max="50" value="12" id="s-bl"></div>
-      <div class="sl"><div><span>Bottom-Right</span><b><span id="v-br">40</span>%</b></div><input type="range" min="0" max="50" value="40" id="s-br"></div>
+      <div class="sl"><div class="sl-head"><span>TL</span><b><span id="v-tl">40</span></b></div><input type="range" min="0" max="50" value="40" id="s-tl"></div>
+      <div class="sl"><div class="sl-head"><span>TR</span><b><span id="v-tr">12</span></b></div><input type="range" min="0" max="50" value="12" id="s-tr"></div>
+      <div class="sl"><div class="sl-head"><span>BR</span><b><span id="v-br">40</span></b></div><input type="range" min="0" max="50" value="40" id="s-br"></div>
+      <div class="sl"><div class="sl-head"><span>BL</span><b><span id="v-bl">12</span></b></div><input type="range" min="0" max="50" value="12" id="s-bl"></div>
     </div>
 
-    <button class="done spark-shape" id="doneBtn">Done</button>
+    <button class="done" id="doneBtn">Done</button>
   </div>
 </div>
 
 <script>
+  // ===== shape presets: per-corner radius (the spark's OWN silhouette) =====
+  // The fixed skewX parallelogram lean coexists with this radius.
   const PRESETS = {
-    rhomboid: { tl: 40, tr: 12, br: 40, bl: 12, name: 'Rhomboid squircle' },
-    soft:     { tl: 44, tr: 22, br: 44, bl: 22, name: 'Soft rhomboid' },
-    squircle: { tl: 32, tr: 32, br: 32, bl: 32, name: 'Squircle' },
-    original: { tl: 0,  tr: 50, br: 50, bl: 50, name: 'Sharp corner' },
-    circle:   { tl: 50, tr: 50, br: 50, bl: 50, name: 'Circle' },
+    rhomboid: { tl:40, tr:12, br:40, bl:12, name:'Rhomboid' },
+    soft:     { tl:44, tr:22, br:44, bl:22, name:'Soft' },
+    squircle: { tl:32, tr:32, br:32, bl:32, name:'Squircle' },
+    original: { tl:0,  tr:50, br:50, bl:50, name:'Original' },
+    circle:   { tl:50, tr:50, br:50, bl:50, name:'Circle' },
   };
   const IDS = ['tl','tr','br','bl'];
   let shape = { ...PRESETS.rhomboid };
-  const radiusStr = s => `${s.tl}% ${s.tr}% ${s.br}% ${s.bl}%`;
+  const radiusStr = s => `${s.tl}px ${s.tr}px ${s.br}px ${s.bl}px`;
 
   function render() {
-    // live-update the whole screen's shape
-    document.documentElement.style.setProperty('--shape', radiusStr(shape));
-    IDS.forEach(k => { document.getElementById('s-'+k).value = shape[k]; document.getElementById('v-'+k).textContent = shape[k]; });
+    // one CSS var reshapes the hero body, the row swatch, and the picker preview live.
+    document.documentElement.style.setProperty('--shape-radius', radiusStr(shape));
+    IDS.forEach(k => {
+      document.getElementById('s-'+k).value = shape[k];
+      document.getElementById('v-'+k).textContent = shape[k];
+    });
     document.querySelectorAll('.chip').forEach(c => {
       const p = PRESETS[c.dataset.p];
       c.classList.toggle('active', p && IDS.every(k => p[k] === shape[k]));
     });
     const matched = Object.values(PRESETS).find(p => IDS.every(k => p[k] === shape[k]));
-    document.getElementById('shapeName').textContent = matched ? matched.name : 'Custom shape';
+    document.getElementById('shapeName').textContent = matched ? matched.name : 'Custom';
   }
 
-  const scrim = document.getElementById('scrim'), sheet = document.getElementById('sheet');
-  const open = () => { scrim.classList.add('open'); sheet.classList.add('open'); };
+  // ===== sheet open/close (scrim tap closes) =====
+  const scrim = document.getElementById('scrim');
+  const sheet = document.getElementById('sheet');
+  const open  = () => { scrim.classList.add('open'); sheet.classList.add('open'); };
   const close = () => { scrim.classList.remove('open'); sheet.classList.remove('open'); };
   document.getElementById('shapeRow').addEventListener('click', open);
   document.getElementById('doneBtn').addEventListener('click', close);
   scrim.addEventListener('click', close);
 
-  IDS.forEach(k => document.getElementById('s-'+k).addEventListener('input', e => { shape[k] = +e.target.value; render(); }));
-  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { shape = { ...PRESETS[c.dataset.p] }; render(); }));
+  // ===== sliders + chips drive the live silhouette =====
+  IDS.forEach(k => document.getElementById('s-'+k)
+    .addEventListener('input', e => { shape[k] = +e.target.value; render(); }));
+  document.querySelectorAll('.chip').forEach(c => c
+    .addEventListener('click', () => { shape = { ...PRESETS[c.dataset.p] }; render(); }));
 
-  // streak toggle interplay (cosmetic)
+  // ===== streak toggle (square, accent on / line off) =====
   const tg = document.getElementById('streakToggle');
-  document.querySelector('.row:has(#streakToggle)').addEventListener('click', e => {
-    if (e.target !== tg) tg.classList.toggle('off');
+  document.getElementById('streakRow').addEventListener('click', e => {
+    if (e.target === tg || tg.contains(e.target)) return; // toggle self-handles
+    tg.classList.toggle('off');
+  });
+  tg.addEventListener('click', e => { e.stopPropagation(); tg.classList.toggle('off'); });
+
+  // ===== Create enable/disable: enabled when hero emoji present =====
+  const heroE = document.getElementById('heroE');
+  const createBtn = document.getElementById('createBtn');
+  let heroHasEmoji = true;
+  function refreshCreate() { createBtn.disabled = !heroHasEmoji; }
+
+  // demo: tap hero to toggle between 💪 and empty (?) state
+  document.getElementById('heroWrap').addEventListener('click', () => {
+    heroHasEmoji = !heroHasEmoji;
+    heroE.textContent = heroHasEmoji ? '💪' : '?';
+    heroE.style.opacity = heroHasEmoji ? '' : '0.3';
+    refreshCreate();
   });
 
   render();
+  refreshCreate();
 </script>
 </body>
 </html>
