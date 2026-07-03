@@ -148,10 +148,11 @@
   @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
   /* create button — fixed bottom-right, never moves */
   .create-pin{position:absolute;bottom:66px;right:22px;z-index:10;}
-  /* bottom nav bar */
+  /* bottom nav bar — durable across home/chats/league */
   .bottom-bar{position:absolute;left:0;right:0;bottom:0;height:50px;background:rgba(255,255,255,0.82);
     backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;align-items:center;
     justify-content:center;gap:28px;z-index:20;}
+  .screen{padding-bottom:50px;}
   .nav-btn{width:32px;height:32px;border:none;background:none;cursor:pointer;color:var(--faint);
     display:flex;align-items:center;justify-content:center;transition:color 150ms ease-out,transform 150ms ease-out;}
   .nav-btn svg{width:22px;height:22px;}
@@ -343,13 +344,15 @@
     <div class="home-canvas" id="homeCanvas">
       <div class="home-grid" id="homeGrid"><!-- injected by JS --></div>
     </div>
-    <div class="bottom-bar">
-      <button class="nav-btn" onclick="go('chats')" aria-label="Chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
-      <span class="nav-dot"></span>
-      <button class="nav-btn active" onclick="go('home')" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></button>
-      <span class="nav-dot"></span>
-      <button class="nav-btn" onclick="go('league')" aria-label="League"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.24C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.24C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg></button>
-    </div>
+  </div>
+
+  <!-- durable bottom nav -->
+  <div class="bottom-bar" id="globalBottomBar">
+    <button class="nav-btn" id="navChats" onclick="go('chats')" aria-label="Chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+    <span class="nav-dot"></span>
+    <button class="nav-btn active" id="navHome" onclick="go('home')" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></button>
+    <span class="nav-dot"></span>
+    <button class="nav-btn" id="navLeague" onclick="go('league')" aria-label="League"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.24C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.24C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg></button>
   </div>
 
   <!-- ====================================================
@@ -739,9 +742,10 @@
   const historyStack = [];
   function back(){ historyStack.pop(); const prev=historyStack.pop()||'home'; go(prev); }
   function updateNavDots(active){
-    document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',
-      (active==='home'&&i===1)||(active==='chats'&&i===0)||(active==='league'&&i===2)
-    ));
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    if(active==='home') $('navHome').classList.add('active');
+    if(active==='chats') $('navChats').classList.add('active');
+    if(active==='league') $('navLeague').classList.add('active');
   }
   function swipeTo(dir){
     if(dir==='left' && homeIndex<2){ homeIndex++; }
