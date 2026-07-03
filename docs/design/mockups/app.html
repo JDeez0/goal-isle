@@ -93,7 +93,8 @@
   .league-name{font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;}
   .league-sub{font-size:12px;font-weight:600;color:var(--faint);}
   /* chat list rows — full-width horizontal dividers, no box */
-  .chat-row{display:flex;align-items:center;gap:14px;padding:13px 22px;cursor:pointer;transition:background 150ms ease-out;}
+  .chat-row{display:flex;align-items:center;gap:14px;padding:13px 22px;cursor:pointer;transition:background 150ms ease-out;border-bottom:1px solid var(--line);}
+  .chat-row:last-child{border-bottom:none;}
   .chat-row:hover{background:#F8FAFC;}
   .chat-row .spark{flex-shrink:0;}
 
@@ -163,10 +164,10 @@
   .create-btn span{transform:skewX(14deg);font-size:26px;font-weight:700;color:var(--faint);}
   .create-btn:hover{border-color:var(--muted);}
   .create-btn:hover span{color:var(--muted);}
-  /* you-avatar — top-right corner entry point */
+  /* you-avatar — durable top-right profile entry point */
   .you-avatar{position:absolute;top:46px;right:18px;width:36px;height:36px;border-radius:50%;
     background:var(--surface);border:1px solid var(--line);font-size:20px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;z-index:10;
+    display:flex;align-items:center;justify-content:center;z-index:30;
     box-shadow:0 1px 3px rgba(31,41,55,0.08);transition:transform 150ms ease-out;}
   .you-avatar:hover{transform:scale(1.05);}
   .you-avatar:active{transform:scale(0.95);}
@@ -341,7 +342,6 @@
   <div class="screen active" id="screen-home">
     <div class="home-canvas" id="homeCanvas">
       <div class="home-grid" id="homeGrid"><!-- injected by JS --></div>
-      <button class="you-avatar" onclick="openSheet('youSheet')" aria-label="You">🧑</button>
     </div>
     <div class="bottom-bar">
       <button class="nav-btn" onclick="go('chats')" aria-label="Chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
@@ -355,6 +355,8 @@
   <!-- ====================================================
        SCREEN: NEW SPARK (CREATE)
        ==================================================== -->
+  <button class="you-avatar" id="globalProfileBtn" onclick="openSheet('youSheet')" aria-label="You">🧑</button>
+
   <div class="screen" id="screen-create">
     <div class="topbar">
       <button class="tb-word muted" onclick="go('home')">Cancel</button>
@@ -1043,8 +1045,7 @@
       const last = s.msgs.length ? s.msgs[s.msgs.length-1] : null;
       const preview = last ? (last.big || last.text || '—') : 'no messages';
       const sender = last && last.sender!=='You' ? last.sender+': ' : '';
-      const border = i===0 ? '' : 'border-top:1px solid var(--line);';
-      return `<div class="chat-row" style="${border}" onclick="openSpark(${s.id})">
+      return `<div class="chat-row" onclick="openSpark(${s.id})">
         ${sparkEl(s.hero, s.lit, 'sz-rc')}
         <div style="flex:1;min-width:0;">
           <div class="val" style="font-weight:700;">${s.hero}</div>
