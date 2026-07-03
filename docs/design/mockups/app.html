@@ -148,7 +148,7 @@
   @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
   /* create button — fixed bottom-right, never moves */
   .create-pin{position:absolute;bottom:66px;right:22px;z-index:10;}
-  /* bottom nav bar — durable across home/chats/league */
+  /* bottom nav bar — durable across home/notes/league */
   .bottom-bar{position:absolute;left:0;right:0;bottom:0;height:50px;background:rgba(255,255,255,0.82);
     backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;align-items:center;
     justify-content:center;gap:28px;z-index:20;}
@@ -348,7 +348,7 @@
 
   <!-- durable bottom nav -->
   <div class="bottom-bar" id="globalBottomBar">
-    <button class="nav-btn" id="navChats" onclick="go('chats')" aria-label="Chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+    <button class="nav-btn" id="navNotes" onclick="go('notes')" aria-label="Notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
     <span class="nav-dot"></span>
     <button class="nav-btn active" id="navHome" onclick="go('home')" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></button>
     <span class="nav-dot"></span>
@@ -456,14 +456,14 @@
   <!-- ====================================================
        SCREEN: RECENT CHATS — chronological spark chat list
        ==================================================== -->
-  <div class="screen" id="screen-chats">
+  <div class="screen" id="screen-notes">
     <div class="topbar">
       <button class="tb-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
       <span style="flex:1;"></span><span class="tb-spacer"></span>
     </div>
     <div class="scroll" style="padding:0 0 24px;">
-      <div class="sec-label">Chats</div><div class="divider"></div>
-      <div id="chatsList" style="padding:0 16px;"></div>
+      <div class="sec-label">Notes</div><div class="divider"></div>
+      <div id="notesList" style="padding:0 16px;"></div>
     </div>
   </div>
 
@@ -728,13 +728,13 @@
   };
 
   // ===== ROUTER =====
-  let homeIndex = 0; // 0=chats,1=home,2=league
+  let homeIndex = 0; // 0=notes,1=home,2=league
   function go(screen){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     $('screen-'+screen).classList.add('active');
     closeAllSheets();
     if(screen==='friends') renderFriends();
-    if(screen==='chats') renderChats();
+    if(screen==='notes') renderNotes();
     if(screen==='league') renderLeague();
     updateNavDots(screen);
     historyStack.push(screen);
@@ -744,13 +744,13 @@
   function updateNavDots(active){
     document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
     if(active==='home') $('navHome').classList.add('active');
-    if(active==='chats') $('navChats').classList.add('active');
+    if(active==='notes') $('navNotes').classList.add('active');
     if(active==='league') $('navLeague').classList.add('active');
   }
   function swipeTo(dir){
     if(dir==='left' && homeIndex<2){ homeIndex++; }
     if(dir==='right' && homeIndex>0){ homeIndex--; }
-    const map=['chats','home','league']; go(map[homeIndex]);
+    const map=['notes','home','league']; go(map[homeIndex]);
   }
   function openSpark(id){ activeSpark=id; if(!chatLitOnce[id])chatLitOnce[id]=false; renderChat(); go('chat'); }
 
@@ -1039,7 +1039,7 @@
   },{passive:true});
 
   // ===== CHAT LIST =====
-  function renderChats(){
+  function renderNotes(){
     const sorted = SPARKS.slice().sort((a,b)=>{
       const ta = a.msgs.length ? a.msgs[a.msgs.length-1].id : 0;
       const tb = b.msgs.length ? b.msgs[b.msgs.length-1].id : 0;
@@ -1057,7 +1057,7 @@
         </div>
       </div>`;
     }).join('');
-    $('chatsList').innerHTML = rows;
+    $('notesList').innerHTML = rows;
   }
 
   // ===== LEAGUE =====
