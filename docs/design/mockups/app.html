@@ -78,6 +78,13 @@
   .spark.sz-rc .aura,.spark.sz-rc .body{width:24px;height:24px;}
   .spark.sz-rc .e{font-size:14px;}
 
+  /* league rank rows */
+  .rank-row{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--line);}
+  .rank-row:last-child{border-bottom:none;}
+  .rank-num{width:24px;text-align:center;font-size:13px;font-weight:800;color:var(--faint);}
+  .rank-row.top .rank-num{color:var(--accent);}
+  .rank-streak{margin-left:auto;font-size:15px;font-weight:800;color:var(--accent);}
+
   /* ===== SHARED CHROME ===== */
   .topbar{display:flex;align-items:center;padding:44px 14px 8px;gap:6px;}
   .tb-btn{background:none;border:none;cursor:pointer;color:var(--accent);width:32px;height:32px;
@@ -127,15 +134,25 @@
   .home-cell:active .home-bob{transform:scale(0.95);}
   @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
   /* create button — fixed bottom-right, never moves */
-  .create-pin{position:absolute;bottom:24px;right:22px;z-index:10;}
+  .create-pin{position:absolute;bottom:66px;right:22px;z-index:10;}
+  /* bottom nav bar */
+  .bottom-bar{position:absolute;left:0;right:0;bottom:0;height:50px;background:rgba(255,255,255,0.82);
+    backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;align-items:center;
+    justify-content:center;gap:28px;z-index:20;}
+  .nav-btn{width:32px;height:32px;border:none;background:none;cursor:pointer;color:var(--faint);
+    display:flex;align-items:center;justify-content:center;transition:color 150ms ease-out,transform 150ms ease-out;}
+  .nav-btn svg{width:22px;height:22px;}
+  .nav-btn.active{color:var(--accent);}
+  .nav-btn:hover{color:var(--muted);}
+  .nav-dot{width:4px;height:4px;border-radius:50%;background:var(--line);}
   .create-btn{width:58px;height:58px;border:2px dashed var(--faint);border-radius:var(--spark-r);
     transform:skewX(-14deg);background:transparent;display:flex;align-items:center;justify-content:center;
     cursor:pointer;transition:all 150ms ease-out;}
   .create-btn span{transform:skewX(14deg);font-size:26px;font-weight:700;color:var(--faint);}
   .create-btn:hover{border-color:var(--muted);}
   .create-btn:hover span{color:var(--muted);}
-  /* you-avatar — the ONLY chrome on Home (top-left corner entry point) */
-  .you-avatar{position:absolute;top:46px;left:18px;width:36px;height:36px;border-radius:50%;
+  /* you-avatar — top-right corner entry point */
+  .you-avatar{position:absolute;top:46px;right:18px;width:36px;height:36px;border-radius:50%;
     background:var(--surface);border:1px solid var(--line);font-size:20px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;z-index:10;
     box-shadow:0 1px 3px rgba(31,41,55,0.08);transition:transform 150ms ease-out;}
@@ -310,9 +327,16 @@
        SCREEN: HOME — even 3×3 grid, sparks map to data
        ==================================================== -->
   <div class="screen active" id="screen-home">
-    <div class="home-canvas">
+    <div class="home-canvas" id="homeCanvas">
       <div class="home-grid" id="homeGrid"><!-- injected by JS --></div>
       <button class="you-avatar" onclick="openSheet('youSheet')" aria-label="You">🧑</button>
+    </div>
+    <div class="bottom-bar">
+      <button class="nav-btn" onclick="go('chats')" aria-label="Chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+      <span class="nav-dot"></span>
+      <button class="nav-btn active" onclick="go('home')" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></button>
+      <span class="nav-dot"></span>
+      <button class="nav-btn" onclick="go('league')" aria-label="League"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.24C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.24C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg></button>
     </div>
   </div>
 
@@ -409,6 +433,38 @@
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
         <span class="val">Edit</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
       </div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: RECENT CHATS — chronological spark chat list
+       ==================================================== -->
+  <div class="screen" id="screen-chats">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <span style="flex:1;"></span><span class="tb-spacer"></span>
+    </div>
+    <div class="scroll" style="padding:0 0 24px;">
+      <div class="sec-label">Chats</div><div class="divider"></div>
+      <div id="chatsList" style="padding:0 16px;"></div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: LEAGUE — global ranking by emoji / streak
+       ==================================================== -->
+  <div class="screen" id="screen-league">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <span style="flex:1;"></span><span class="tb-spacer"></span>
+    </div>
+    <div class="scroll" style="padding:0 0 24px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 0 8px;">
+        <div class="spark sz-dep uncomp" id="leagueSpark"><div class="aura"></div><div class="body"><span class="e">💪</span></div></div>
+      </div>
+      <div class="sec-label" style="text-align:center;padding-top:4px;">League</div>
+      <div class="divider"></div>
+      <div id="leagueList" style="padding:0 22px;"></div>
     </div>
   </div>
 
@@ -643,11 +699,28 @@
   };
 
   // ===== ROUTER =====
+  let homeIndex = 0; // 0=chats,1=home,2=league
   function go(screen){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     $('screen-'+screen).classList.add('active');
     closeAllSheets();
     if(screen==='friends') renderFriends();
+    if(screen==='chats') renderChats();
+    if(screen==='league') renderLeague();
+    updateNavDots(screen);
+    historyStack.push(screen);
+  }
+  const historyStack = [];
+  function back(){ historyStack.pop(); const prev=historyStack.pop()||'home'; go(prev); }
+  function updateNavDots(active){
+    document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',
+      (active==='home'&&i===1)||(active==='chats'&&i===0)||(active==='league'&&i===2)
+    ));
+  }
+  function swipeTo(dir){
+    if(dir==='left' && homeIndex<2){ homeIndex++; }
+    if(dir==='right' && homeIndex>0){ homeIndex--; }
+    const map=['chats','home','league']; go(map[homeIndex]);
   }
   function openSpark(id){ activeSpark=id; if(!chatLitOnce[id])chatLitOnce[id]=false; renderChat(); go('chat'); }
 
@@ -925,7 +998,58 @@
 
   function escapeHtml(s){return(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
+  // ===== SWIPES on Home canvas =====
+  let sx=null,sy=null;
+  $('homeCanvas').addEventListener('touchstart',function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  $('homeCanvas').addEventListener('touchmove',function(e){},{passive:true});
+  $('homeCanvas').addEventListener('touchend',function(e){
+    if(sx==null)return; const dx=e.changedTouches[0].clientX-sx; const dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)*1.2){ swipeTo(dx<0?'left':'right'); }
+    sx=null;sy=null;
+  },{passive:true});
+
+  // ===== CHAT LIST =====
+  function renderChats(){
+    const rows = SPARKS.slice().sort((a,b)=>{
+      const ta = a.msgs.length ? a.msgs[a.msgs.length-1].id : 0;
+      const tb = b.msgs.length ? b.msgs[b.msgs.length-1].id : 0;
+      return tb-ta;
+    }).map(s => {
+      const last = s.msgs.length ? s.msgs[s.msgs.length-1] : null;
+      const preview = last ? (last.big || last.text || '—') : 'no messages';
+      const sender = last && last.sender!=='You' ? last.sender+': ' : '';
+      return `<div class="row" style="justify-content:flex-start;gap:12px;padding:13px 16px;" onclick="openSpark(${s.id})">
+        ${sparkEl(s.hero, s.lit, 'sz-rc')}
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <span class="val" style="font-weight:700;">${s.hero}</span>
+            <span style="font-size:11px;color:var(--faint);font-weight:600;">${s.lit?'lit':'dull'}</span>
+          </div>
+          <div style="font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;">${sender}${preview}</div>
+        </div>
+        ${s.streak>=2?`<span style="font-size:11px;font-weight:800;color:var(--accent);background:var(--accent-soft);padding:3px 7px;border-radius:10px;">${s.streak}</span>`:''}
+      </div>`;
+    }).join('');
+    $('chatsList').innerHTML = `<div class="panel">${rows}</div>`;
+  }
+
+  // ===== LEAGUE =====
+  const LEAGUE_DATA = [
+    { name:'Sam',  avatar:'🧑‍🦰', streak:24, hero:'💪' },
+    { name:'You',  avatar:'🧑',    streak:18, hero:'💪' },
+    { name:'Lia',  avatar:'👩',    streak:15, hero:'💪' },
+    { name:'Mia',  avatar:'🧑‍🦱', streak:11, hero:'💪' },
+    { name:'Tom',  avatar:'👨',    streak:6,  hero:'💪' },
+  ];
+  function renderLeague(){
+    const list = LEAGUE_DATA.slice().sort((a,b)=>b.streak-a.streak).map((p,i) =>
+      `<div class="rank-row ${i===0?'top':''}"><div class="rank-num">${i+1}</div><div class="mbr-avatar">${p.avatar}</div><div class="mbr-info"><div class="mbr-name">${p.name}</div></div><div class="rank-streak">${p.streak}</div></div>`
+    ).join('');
+    $('leagueList').innerHTML = list;
+  }
+
   // ===== INIT =====
+  historyStack.push('home');
   renderHome();
   renderMain(); for(let i=0;i<3;i++)renderDep(i);
   renderRepeatOpts();
