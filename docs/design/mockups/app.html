@@ -118,13 +118,16 @@
   .toggle.off{background:var(--line);box-shadow:inset 0 0 0 1px var(--line);}
   .toggle.off::after{right:auto;left:3px;}
 
-  /* ===== HOME — dispersed-random absolute placement ===== */
+  /* ===== HOME — dispersed-random absolute placement (positions never move) ===== */
   .home-canvas{flex:1;position:relative;overflow:hidden;}
   .home-grid{position:absolute;inset:0;}
-  .home-cell{position:absolute;cursor:pointer;animation:bob 6s ease-in-out infinite;
-    transition:transform 150ms ease-out;transform-origin:center;}
-  .home-cell:active{transform:scale(0.95);}
+  /* outer cell: holds position (never animates transform). inner bobs. */
+  .home-cell{position:absolute;cursor:pointer;}
+  .home-bob{animation:bob 6s ease-in-out infinite;transition:transform 150ms ease-out;display:block;}
+  .home-cell:active .home-bob{transform:scale(0.95);}
   @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+  /* create button — fixed bottom-right, never moves */
+  .create-pin{position:absolute;bottom:24px;right:22px;z-index:10;}
   .create-btn{width:58px;height:58px;border:2px dashed var(--faint);border-radius:var(--spark-r);
     transform:skewX(-14deg);background:transparent;display:flex;align-items:center;justify-content:center;
     cursor:pointer;transition:all 150ms ease-out;}
@@ -542,41 +545,70 @@
   function closeAllSheets(){ $('scrim').classList.remove('open'); document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open')); }
 
   // ===== HOME — render grid from data =====
-  // dispersed-random placement: jittered grid so sparks are spread out
-  // but never overlap. Positions computed once (seeded → stable until reshuffle).
+  // Poisson-disk-like dispersion: each spark is ≥ D from every other spark
+  // and ≥ D/2 from every edge, so spacing between sparks ≈ spacing to edges.
+  // Starts near the top, disperses downward. Computed once (seeded → stable forever).
   let homeLayout = null;
   function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
   function computeHomeLayout(){
-    const items = SPARKS.length + 1; // +1 create btn
-    const cols = 3, rows = Math.ceil(items / cols);
-    const rng = mulberry32(42);
-    // usable area in % — leave margins so sparks don't clip edges
-    const xMin = 14, xMax = 86, yMin = 12, yMax = 88;
-    const cellW = (xMax - xMin) / cols, cellH = (yMax - yMin) / rows;
-    const slots = [];
-    for (let i = 0; i < items; i++){
-      const col = i % cols, row = Math.floor(i / cols);
-      // jitter to 25–75% within the cell
-      const jx = rng() * 0.5 + 0.25;
-      const jy = rng() * 0.5 + 0.25;
-      slots.push({
-        x: xMin + cellW * (col + jx),
-        y: yMin + cellH * (row + jy)
-      });
+    const n = SPARKS.length;   // sparks only (create btn is pinned separately)
+    const rng = mulberry32(7);
+    // canvas aspect: width 312px, height ~580px → tall. Work in % of canvas.
+    // min distance D chosen so n sparks fit with comfortable spread.
+    // Reserve the bottom ~14% for the create button zone.
+    const xMin=16, xMax=84, yMin=14, yMax=78;
+    const usableW = xMax-xMin, usableH = yMax-yMin;
+    // approximate D: packing n sparks in a rect → D ≈ sqrt(area/(n*2.2))
+    const area = usableW * usableH;
+    let D = Math.sqrt(area / (n * 2.2));
+    const edgeD = D * 0.5;  // distance to nearest edge (≈ half inter-spark distance)
+    const placed = [];
+    const tooClose = (x,y) => {
+      if (x - xMin < edgeD || xMax - x < edgeD || y - yMin < edgeD || yMax - y < edgeD) return true;
+      for (const p of placed){
+        const dx = x-p.x, dy = (y-p.y) * (usableW/usableH); // correct for aspect
+        if (Math.sqrt(dx*dx + dy*dy) < D) return true;
+      }
+      return false;
+    };
+    let attempts = 0, maxAttempts = 5000;
+    for (let i = 0; i < n && attempts < maxAttempts; attempts++){
+      // bias toward top: first spark near top-center, later ones can be lower
+      let x, y;
+      if (i === 0){ x = 50; y = yMin + edgeD + 4; }
+      else {
+        x = xMin + edgeD + rng() * (usableW - edgeD*2);
+        y = yMin + edgeD + rng() * (usableH - edgeD*2);
+      }
+      if (!tooClose(x,y)){ placed.push({x,y}); i++; attempts = 0; }
     }
-    homeLayout = slots;
+    // fallback: if we couldn't place all, relax D and retry remaining
+    while (placed.length < n){
+      D *= 0.9;
+      let added = false;
+      for (let t = 0; t < 800 && !added; t++){
+        const x = xMin + edgeD + rng() * (usableW - edgeD*2);
+        const y = yMin + edgeD + rng() * (usableH - edgeD*2);
+        let ok = true;
+        for (const p of placed){ const dx=x-p.x, dy=(y-p.y)*(usableW/usableH); if(Math.sqrt(dx*dx+dy*dy)<D){ok=false;break;} }
+        if (ok){ placed.push({x,y}); added = true; }
+      }
+      if(!added) break;
+    }
+    homeLayout = placed;
   }
 
   function renderHome(){
     if(!homeLayout) computeHomeLayout();
-    const createIdx = SPARKS.length;
     let html = SPARKS.map((s, i) => {
       const showBadge = s.lit && s.streak >= 2;
-      const p = homeLayout[i];
-      return `<div class="home-cell" style="left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%);animation-delay:${(i*0.6).toFixed(1)}s;" onclick="openSpark(${s.id})">${sparkEl(s.hero, s.lit, 'sz-home', showBadge?s.streak:null)}</div>`;
+      const p = homeLayout[i] || {x:50, y:50};
+      return `<div class="home-cell" style="left:${p.x.toFixed(1)}%;top:${p.y.toFixed(1)}%;" onclick="openSpark(${s.id})">
+        <div class="home-bob" style="animation-delay:${(i*0.7).toFixed(1)}s;">${sparkEl(s.hero, s.lit, 'sz-home', showBadge?s.streak:null)}</div>
+      </div>`;
     }).join('');
-    const cp = homeLayout[createIdx];
-    html += `<div class="home-cell" style="left:${cp.x}%;top:${cp.y}%;transform:translate(-50%,-50%);"><button class="create-btn" onclick="go('create')"><span>?</span></button></div>`;
+    // create button — pinned, never part of the layout
+    html += `<div class="create-pin"><button class="create-btn" onclick="go('create')"><span>?</span></button></div>`;
     $('homeGrid').innerHTML = html;
   }
 
