@@ -52,7 +52,8 @@
     border-bottom-right-radius: 15px; z-index: 50; }
 
   /* ============================================================
-     THE SPARK — LOCKED treatment (copied exactly from spark-final)
+     THE SPARK — shape is FIXED (chosen at create-screen). State shows
+     only by color/glow/saturation. Shape via --spark-r border-radius.
      .spark / .aura / .body / .e · skewX(-14deg) · uncomp | lit
      ============================================================ */
   .spark {
@@ -63,17 +64,17 @@
   .aura {
     position: absolute;
     transform: skewX(-14deg);
-    border-radius: 26px;
+    border-radius: var(--spark-r, 40% 12% 40% 12%);
     transition: all 550ms ease-out;
     z-index: 0;
   }
-  /* the parallelogram body — skewX for the lean, border-radius for the edges */
+  /* the parallelogram body — skewX for the lean, fixed border-radius */
   .body {
     position: relative;
     transform: skewX(-14deg);
+    border-radius: var(--spark-r, 40% 12% 40% 12%);
     display: flex; align-items: center; justify-content: center;
-    transition: border-radius 650ms cubic-bezier(0.34,1.2,0.64,1),
-                background 400ms ease-out, box-shadow 400ms ease-out;
+    transition: background 400ms ease-out, box-shadow 400ms ease-out;
     z-index: 2;
   }
   /* emoji counter-skewed to stay upright */
@@ -88,9 +89,8 @@
     z-index: 4; opacity: 0; transition: opacity 400ms ease-out 150ms;
     transform: skewX(14deg); /* counter-skew like the emoji */
   }
-  /* ---- UNCOMPLETED: soft rounded parallelogram, faint ---- */
+  /* ---- UNCOMPLETED: faint, desaturated, grey aura (same shape) ---- */
   .spark.uncomp .body {
-    border-radius: 24px;
     background: var(--dull);
     box-shadow: inset 0 0 0 1px rgba(31,41,55,0.06);
   }
@@ -99,16 +99,14 @@
     filter: blur(10px);
   }
   .spark.uncomp .e { filter: saturate(0.3) opacity(0.5); }
-  /* ---- LIT: hardened sharp parallelogram, glow + tint ---- */
+  /* ---- LIT: glow + tint, saturated (same shape) ---- */
   .spark.lit .body {
-    border-radius: 3px;
     background: linear-gradient(135deg, var(--surface), var(--accent-soft));
     box-shadow: 0 0 0 1.5px var(--accent), 0 6px 22px rgba(59,130,246,0.22);
   }
   .spark.lit .aura {
     background: radial-gradient(ellipse, rgba(59,130,246,0.35), rgba(59,130,246,0.06) 55%, transparent 75%);
     filter: blur(7px);
-    border-radius: 6px; /* aura also tightens */
   }
   .spark.lit .e { filter: saturate(1.15); }
   .spark.lit .sparkle { opacity: 0.65; }
@@ -224,22 +222,23 @@
   .react-chip b { font-size: 10px; color: var(--muted); font-weight: 700; }
 
   /* ============================================================
-     COMPOSER — emoji btn · flat field · flat send (no placeholder text)
+     COMPOSER — round emoji btn · pill field · round send (squircle/circle)
      ============================================================ */
   .composer { border-top: 1px solid var(--line); background: var(--surface); padding: 10px 12px 16px; }
-  .input-row { display: flex; align-items: center; gap: 7px; }
-  .emoji-btn, .send-btn { height: 40px; flex-shrink: 0; border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; transition: all 150ms ease-out; }
-  .emoji-btn { width: 40px; background: var(--dull); color: var(--muted); }
+  .input-row { display: flex; align-items: center; gap: 8px; }
+  .emoji-btn, .send-btn { width: 40px; height: 40px; flex-shrink: 0; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; border-radius: 20px;
+    transition: all 150ms ease-out; }
+  .emoji-btn { background: var(--dull); color: var(--muted); }
   .emoji-btn:hover { background: var(--line); }
   .emoji-btn.need { background: var(--accent-soft); color: var(--accent); }
-  .send-btn { background: var(--accent); color: #fff; padding: 0 14px;
-    font: inherit; font-size: 13px; font-weight: 700; letter-spacing: 0.02em; }
+  .send-btn { background: var(--accent); color: #fff; }
   .send-btn:hover:not(:disabled) { background: var(--accent-dk); }
   .send-btn:disabled { background: var(--greyed); color: var(--faint); cursor: not-allowed; }
+  .send-btn svg { width: 18px; height: 18px; }
   .emoji-btn svg { width: 20px; height: 20px; }
-  input.field { flex: 1; height: 40px; border: 1px solid var(--line);
-    background: var(--surface); padding: 0 14px; font: inherit; font-size: 14px; color: var(--ink);
+  input.field { flex: 1; height: 40px; border: 1px solid var(--line); border-radius: 20px;
+    background: var(--surface); padding: 0 16px; font: inherit; font-size: 14px; color: var(--ink);
     outline: none; transition: border-color 150ms ease-out; min-width: 0; }
   input.field:focus { border-color: rgba(59,130,246,0.5); }
 
