@@ -6,9 +6,9 @@
 <title>Goal Isle — App</title>
 <style>
   /* ============================================================
-     GOAL ISLE · connected app shell — all screens, all buttons wired.
-     Spark = locked treatment (fixed shape, glow on lit).
-     Chrome = straight lines, flat, minimal. Sheets = rounded.
+     GOAL ISLE · connected app shell — per-spark data model.
+     Home spark → Chat (direct). Details via info btn on recipe card.
+     Recipe card: one line [deps] = [main], settings btn → Details.
      ============================================================ */
   :root {
     --bg:#EEF2F5; --water-top:#EEF2F5; --water-bot:#E6ECF1; --surface:#FFFFFF;
@@ -63,16 +63,20 @@
   .spark.sz-home .aura,.spark.sz-home .body{width:48px;height:48px;}
   .spark.sz-home .e{font-size:30px;}
   .spark.sz-home .badge{font-size:9px;min-width:16px;height:16px;top:-2px;right:-2px;}
-  .spark.sz-hero{width:116px;height:116px;}
-  .spark.sz-hero .aura,.spark.sz-hero .body{width:88px;height:88px;}
-  .spark.sz-hero .e{font-size:46px;}
-  .spark.sz-dep{width:48px;height:48px;}
-  .spark.sz-dep .aura,.spark.sz-dep .body{width:36px;height:36px;}
-  .spark.sz-dep .e{font-size:19px;}
-  .spark.sz-mini{width:32px;height:32px;}
-  .spark.sz-mini .aura,.spark.sz-mini .body{width:24px;height:24px;}
-  .spark.sz-mini .e{font-size:13px;}
-  .spark.sz-mini .badge{font-size:8px;min-width:12px;height:12px;top:-2px;right:-2px;}
+  .spark.sz-hero{width:96px;height:96px;}
+  .spark.sz-hero .aura,.spark.sz-hero .body{width:72px;height:72px;}
+  .spark.sz-hero .e{font-size:38px;}
+  .spark.sz-dep{width:40px;height:40px;}
+  .spark.sz-dep .aura,.spark.sz-dep .body{width:30px;height:30px;}
+  .spark.sz-dep .e{font-size:16px;}
+  .spark.sz-mini{width:30px;height:30px;}
+  .spark.sz-mini .aura,.spark.sz-mini .body{width:22px;height:22px;}
+  .spark.sz-mini .e{font-size:12px;}
+  .spark.sz-mini .badge{font-size:7px;min-width:11px;height:11px;top:-2px;right:-2px;}
+  /* tiny recipe-card spark (inline) */
+  .spark.sz-rc{width:30px;height:30px;}
+  .spark.sz-rc .aura,.spark.sz-rc .body{width:24px;height:24px;}
+  .spark.sz-rc .e{font-size:14px;}
 
   /* ===== SHARED CHROME ===== */
   .topbar{display:flex;align-items:center;padding:44px 14px 8px;gap:6px;}
@@ -107,7 +111,6 @@
   .row .chev{color:var(--faint);}
   .row .chev svg{width:16px;height:16px;}
 
-  /* toggle */
   .toggle{width:42px;height:25px;border-radius:6px;background:var(--accent);position:relative;flex-shrink:0;
     transition:background 200ms ease;box-shadow:0 1px 3px rgba(59,130,246,0.30);cursor:pointer;}
   .toggle::after{content:'';position:absolute;top:3px;right:3px;width:19px;height:19px;border-radius:4px;
@@ -115,14 +118,23 @@
   .toggle.off{background:var(--line);box-shadow:inset 0 0 0 1px var(--line);}
   .toggle.off::after{right:auto;left:3px;}
 
-  /* ===== HOME ===== */
-  .home-canvas{flex:1;position:relative;overflow:hidden;}
-  .floating{position:absolute;cursor:pointer;animation:bob 6s ease-in-out infinite;transition:transform 150ms ease-out;}
-  .floating:active{transform:scale(0.95);}
-  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
-  .create-btn{position:absolute;bottom:24px;right:22px;width:58px;height:58px;border:2px dashed var(--faint);
-    border-radius:var(--spark-r);transform:skewX(-14deg);background:transparent;display:flex;align-items:center;
-    justify-content:center;cursor:pointer;transition:all 150ms ease-out;}
+  /* ===== HOME — even spacing grid ===== */
+  .home-canvas{flex:1;position:relative;overflow:hidden;padding:20px 16px;}
+  .home-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+    gap:18px 14px;height:100%;align-items:center;justify-items:center;}
+  .home-cell{cursor:pointer;animation:bob 6s ease-in-out infinite;transition:transform 150ms ease-out;
+    display:flex;flex-direction:column;align-items:center;gap:5px;}
+  .home-cell:active{transform:scale(0.95);}
+  .home-cell:nth-child(2){animation-delay:0.7s;}
+  .home-cell:nth-child(3){animation-delay:1.4s;}
+  .home-cell:nth-child(4){animation-delay:0.3s;}
+  .home-cell:nth-child(5){animation-delay:1.0s;}
+  .home-cell:nth-child(6){animation-delay:1.7s;}
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+  .create-cell{display:flex;align-items:center;justify-content:center;}
+  .create-btn{width:58px;height:58px;border:2px dashed var(--faint);border-radius:var(--spark-r);
+    transform:skewX(-14deg);background:transparent;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:all 150ms ease-out;}
   .create-btn span{transform:skewX(14deg);font-size:26px;font-weight:700;color:var(--faint);}
   .create-btn:hover{border-color:var(--muted);}
   .create-btn:hover span{color:var(--muted);}
@@ -136,8 +148,7 @@
   .main-row{display:flex;align-items:center;gap:14px;}
   .main-spark{cursor:pointer;flex-shrink:0;width:72px;height:72px;position:relative;display:flex;align-items:center;justify-content:center;}
   .main-spark .aura{position:absolute;width:56px;height:56px;transform:skewX(-14deg);border-radius:var(--spark-r);
-    background:radial-gradient(ellipse,rgba(100,116,139,0.10),transparent 70%);filter:blur(8px);z-index:0;
-    transition:all 400ms ease-out;}
+    background:radial-gradient(ellipse,rgba(100,116,139,0.10),transparent 70%);filter:blur(8px);z-index:0;transition:all 400ms ease-out;}
   .main-spark .body{position:relative;width:56px;height:56px;transform:skewX(-14deg);border-radius:var(--spark-r);
     background:var(--dull);box-shadow:inset 0 0 0 1px rgba(31,41,55,0.06);display:flex;align-items:center;justify-content:center;
     transition:all 400ms ease-out;z-index:2;}
@@ -157,9 +168,7 @@
     font-size:14px;color:var(--ink);padding:7px 2px;outline:none;transition:border-color 150ms ease-out;}
   .dep-item .dep-label:focus{border-bottom-color:var(--accent);}
   .dep-item .dep-label::placeholder{color:var(--faint);}
-
-  /* live preview bubble */
-  .preview-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 4px;}
+  .preview-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 0 24px;}
   .preview-cap{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);}
 
   /* ===== DETAILS ===== */
@@ -179,17 +188,22 @@
   .rc-eq{font-size:18px;font-weight:800;color:var(--faint);line-height:1;}
   .sd-actions{margin:14px 16px 0;}
 
+  /* ===== CHAT recipe card (top, always visible, one line) ===== */
+  .chat-recipe{margin:0 14px 8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:10px 14px;display:flex;align-items:center;gap:8px;}
+  .chat-recipe .cr-deps{display:flex;gap:6px;align-items:center;}
+  .chat-recipe .cr-eq{font-size:16px;font-weight:800;color:var(--faint);margin:0 4px;line-height:1;}
+  .chat-recipe .cr-hero{margin-left:2px;}
+  .chat-recipe .cr-info{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--faint);
+    width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    transition:color 150ms ease-out;border-radius:8px;}
+  .chat-recipe .cr-info:hover{color:var(--accent);background:var(--accent-soft);}
+  .chat-recipe .cr-info svg{width:18px;height:18px;}
+
   /* ===== CHAT ===== */
   .members{display:flex;align-items:center;gap:3px;color:var(--faint);}
   .members svg{width:13px;height:13px;}
   .members b{font-size:11px;font-weight:700;color:var(--muted);}
-  .recipe-card{margin:0 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;
-    filter:drop-shadow(0 6px 14px rgba(31,41,55,0.10));padding:14px;display:none;}
-  .recipe-card.open{display:block;animation:drop 220ms ease-out;}
-  @keyframes drop{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
-  .rc-deps-chat{display:flex;gap:14px;justify-content:center;}
-  .rc-count{font-size:11px;font-weight:800;color:var(--accent-dk);background:var(--accent-soft);
-    padding:2px 9px;text-align:center;border-radius:8px;}
   .msglist{flex:1;overflow-y:auto;padding:10px 14px 14px;display:flex;flex-direction:column;gap:12px;}
   .msg{display:flex;flex-direction:column;max-width:78%;position:relative;cursor:pointer;}
   .msg.me{align-self:flex-end;align-items:flex-end;}
@@ -220,7 +234,7 @@
     padding:0 16px;font:inherit;font-size:14px;color:var(--ink);outline:none;min-width:0;}
   input.field:focus{border-color:rgba(59,130,246,0.5);}
 
-  /* ===== SHEETS (shared: scrim + slide-up, rounded) ===== */
+  /* ===== SHEETS ===== */
   .scrim{position:absolute;inset:0;background:rgba(15,23,42,0.35);z-index:55;opacity:0;pointer-events:none;
     transition:opacity 200ms ease-out;}
   .scrim.open{opacity:1;pointer-events:auto;}
@@ -236,8 +250,6 @@
     transition:background 120ms ease-out;line-height:1;}
   .es-grid button:hover{background:var(--accent-soft);}
   .es-grid button.needed{background:var(--accent-soft);}
-
-  /* option rows in sheets (repeats picker, etc.) */
   .opt-list{display:flex;flex-direction:column;}
   .opt{display:flex;align-items:center;gap:12px;padding:14px 4px;cursor:pointer;border-bottom:1px solid var(--line);
     font-size:15px;font-weight:500;color:var(--ink);transition:color 120ms ease-out;}
@@ -246,8 +258,6 @@
   .opt .check{margin-left:auto;width:20px;height:20px;color:var(--accent);opacity:0;}
   .opt.sel .check{opacity:1;}
   .opt.sel{color:var(--accent);font-weight:700;}
-
-  /* member rows (settings / member list) */
   .mbr{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--line);}
   .mbr:last-child{border-bottom:none;}
   .mbr-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;
@@ -256,8 +266,6 @@
   .mbr-name{font-size:14px;font-weight:600;color:var(--ink);}
   .mbr-role{font-size:11px;color:var(--faint);}
   .mbr-remove{font-size:12px;font-weight:600;color:var(--warn);background:none;border:none;cursor:pointer;}
-
-  /* delete confirm */
   .confirm-box{text-align:center;padding:8px 0;}
   .confirm-box .ct{font-size:16px;font-weight:700;margin-bottom:6px;}
   .confirm-box .cs{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5;}
@@ -266,13 +274,9 @@
   .btn-delete:hover{background:#DC2626;}
   .btn-cancel{width:100%;height:46px;border:none;background:none;color:var(--muted);font-size:15px;font-weight:600;
     cursor:pointer;margin-top:8px;}
-
-  /* search field in sheet */
   .search{width:100%;height:40px;border:1px solid var(--line);border-radius:20px;padding:0 16px;font:inherit;
     font-size:14px;color:var(--ink);outline:none;margin-bottom:14px;}
   .search:focus{border-color:rgba(59,130,246,0.5);}
-
-  /* lighting overlay */
   .sweep{position:absolute;inset:0;pointer-events:none;z-index:40;opacity:0;
     background:radial-gradient(circle at 50% 30%,rgba(59,130,246,0.10),transparent 60%);}
   .sweep.fire{animation:sweep 1.1s ease-out;}
@@ -291,35 +295,17 @@
 </head>
 <body>
 <div class="app-title">Goal Isle</div>
-<div class="app-sub">tap sparks & buttons to navigate · all wired</div>
+<div class="app-sub">tap a spark → its chat · info button → details</div>
 
 <div class="phone">
   <div class="notch"></div>
 
   <!-- ====================================================
-       SCREEN: HOME
+       SCREEN: HOME — even 3×3 grid, sparks map to data
        ==================================================== -->
   <div class="screen active" id="screen-home">
     <div class="home-canvas">
-      <div class="floating" style="top:54px;left:46px;animation-delay:0s;" onclick="go('details')">
-        <div class="spark sz-home lit"><div class="aura"></div><div class="body">
-          <span class="sparkle" style="top:5px;right:9px;font-size:9px;">✦</span><span class="e">💪</span></div></div>
-      </div>
-      <div class="floating" style="top:84px;left:168px;animation-delay:1.1s;" onclick="go('details')">
-        <div class="spark sz-home lit"><div class="aura"></div><div class="body">
-          <div class="badge"><span>8</span></div><span class="sparkle" style="top:4px;right:7px;font-size:7px;">✦</span><span class="e">🏃</span></div></div>
-      </div>
-      <div class="floating" style="top:160px;left:96px;animation-delay:0.5s;" onclick="go('details')">
-        <div class="spark sz-home uncomp"><div class="aura"></div><div class="body"><span class="e">📚</span></div></div>
-      </div>
-      <div class="floating" style="top:140px;right:64px;animation-delay:1.8s;" onclick="go('details')">
-        <div class="spark sz-home lit"><div class="aura"></div><div class="body">
-          <span class="sparkle" style="top:4px;right:7px;font-size:7px;">✦</span><span class="e">🧘</span></div></div>
-      </div>
-      <div class="floating" style="top:240px;right:130px;animation-delay:1.5s;" onclick="go('details')">
-        <div class="spark sz-home uncomp"><div class="aura"></div><div class="body"><span class="e">💧</span></div></div>
-      </div>
-      <button class="create-btn" onclick="go('create')"><span>?</span></button>
+      <div class="home-grid" id="homeGrid"><!-- injected by JS --></div>
     </div>
   </div>
 
@@ -330,11 +316,10 @@
     <div class="topbar">
       <button class="tb-word muted" onclick="go('home')">Cancel</button>
       <span style="flex:1;"></span>
-      <button class="tb-word solid" id="createBtn" disabled onclick="go('details')">Create</button>
+      <button class="tb-word solid" id="createBtn" disabled>Create</button>
     </div>
     <div class="scroll">
-      <div class="sec-label">Spark</div>
-      <div class="divider"></div>
+      <div class="sec-label">Spark</div><div class="divider"></div>
       <div class="equation">
         <div class="main-row">
           <div class="main-spark" id="mainSpark" onclick="pickMainEmoji()">
@@ -343,22 +328,15 @@
           <input type="text" class="main-label" placeholder="name">
         </div>
       </div>
-
       <div class="divider"></div>
-      <div class="sec-label">Ingredients</div>
-      <div class="divider"></div>
+      <div class="sec-label">Ingredients</div><div class="divider"></div>
       <div class="equation">
-        <div class="dep-item"><span class="dep-emoji empty" id="dep0" onclick="pickDepEmoji(0)">+</span>
-          <input type="text" class="dep-label" placeholder="label"></div>
-        <div class="dep-item"><span class="dep-emoji empty" id="dep1" onclick="pickDepEmoji(1)">+</span>
-          <input type="text" class="dep-label" placeholder="label"></div>
-        <div class="dep-item"><span class="dep-emoji empty" id="dep2" onclick="pickDepEmoji(2)">+</span>
-          <input type="text" class="dep-label" placeholder="label"></div>
+        <div class="dep-item"><span class="dep-emoji empty" id="dep0" onclick="pickDepEmoji(0)">+</span><input type="text" class="dep-label" placeholder="label"></div>
+        <div class="dep-item"><span class="dep-emoji empty" id="dep1" onclick="pickDepEmoji(1)">+</span><input type="text" class="dep-label" placeholder="label"></div>
+        <div class="dep-item"><span class="dep-emoji empty" id="dep2" onclick="pickDepEmoji(2)">+</span><input type="text" class="dep-label" placeholder="label"></div>
       </div>
-
       <div class="divider"></div>
-      <div class="sec-label">Repeat</div>
-      <div class="divider"></div>
+      <div class="sec-label">Repeat</div><div class="divider"></div>
       <div class="panel" style="margin:0 16px;">
         <div class="row" onclick="openSheet('repeatSheet')">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
@@ -371,10 +349,8 @@
           <span class="toggle off" id="streakToggleCreate"></span>
         </div>
       </div>
-
       <div class="divider" style="margin-top:16px;"></div>
-      <div class="sec-label">Share</div>
-      <div class="divider"></div>
+      <div class="sec-label">Share</div><div class="divider"></div>
       <div class="panel" style="margin:0 16px;">
         <div class="row" onclick="openSheet('shareSheet')">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span>
@@ -382,11 +358,9 @@
           <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
         </div>
       </div>
-
       <div class="divider" style="margin-top:16px;"></div>
-      <div class="sec-label">Preview</div>
-      <div class="divider"></div>
-      <div class="preview-wrap" style="padding:18px 0 24px;">
+      <div class="sec-label">Preview</div><div class="divider"></div>
+      <div class="preview-wrap">
         <div class="spark sz-home uncomp" id="previewSpark"><div class="aura"></div><div class="body"><span class="e" id="previewE" style="font-size:20px;color:var(--faint);">—</span></div></div>
         <span class="preview-cap" id="previewCap">pick a spark</span>
       </div>
@@ -394,49 +368,35 @@
   </div>
 
   <!-- ====================================================
-       SCREEN: SPARK DETAILS
+       SCREEN: SPARK DETAILS (accessed from chat info btn)
        ==================================================== -->
   <div class="screen" id="screen-details">
     <div class="topbar">
-      <button class="tb-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-      <div class="title" id="detailsTitle" onclick="toggleDetailsCard()">
-        <div class="spark sz-mini uncomp" id="detailsTitleSpark"><div class="aura"></div><div class="body"><span class="e">💪</span></div></div>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-      </div>
+      <button class="tb-btn" onclick="go('chat')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <span style="flex:1;"></span>
       <span class="tb-spacer"></span>
     </div>
     <div class="card-wrap">
       <div class="card" id="detailsCard">
         <div class="card-top" onclick="toggleDetailsCard()">
-          <div class="spark sz-hero uncomp" id="detailsHero"><div class="aura"></div><div class="body">
-            <span class="sparkle" style="top:10px;right:14px;font-size:14px;">✦</span><span class="e">💪</span></div></div>
+          <div class="spark sz-hero uncomp" id="detailsHero"><div class="aura"></div><div class="body"><span class="e">💪</span></div></div>
           <div class="meta-row">
-            <span class="g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>2/3</span></span>
+            <span class="g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="detTimer">Daily</span></span>
             <span class="sep">·</span>
-            <span class="g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg><span>3</span></span>
+            <span class="g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg><span id="detStreak">3</span></span>
           </div>
         </div>
-        <div class="card-expand">
-          <div class="recipe">
-            <div class="rc-deps">
-              <div class="spark sz-dep lit"><div class="aura"></div><div class="body"><span class="e">🏃</span></div></div>
-              <div class="spark sz-dep lit"><div class="aura"></div><div class="body"><span class="e">💧</span></div></div>
-              <div class="spark sz-dep uncomp"><div class="aura"></div><div class="body"><span class="e">🧘</span></div></div>
-            </div>
-            <div class="rc-eq">=</div>
-            <div class="spark sz-dep uncomp"><div class="aura"></div><div class="body"><span class="e">💪</span></div></div>
-          </div>
-        </div>
+        <div class="card-expand"><div class="recipe" id="detailsRecipe"></div></div>
       </div>
     </div>
     <div class="panel sd-actions">
       <div class="row" onclick="openSheet('memberListSheet')">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.1"/><path d="M17.5 14.3a5.5 5.5 0 0 1 3 4.9"/></svg></span>
-        <span class="val">3</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        <span class="val" id="detMembers">3</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
       </div>
       <div class="row cta" onclick="go('chat')">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-        <span class="val">Light</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        <span class="val" id="detChatLabel">Chat</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
       </div>
       <div class="row" onclick="go('settings')">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
@@ -446,51 +406,24 @@
   </div>
 
   <!-- ====================================================
-       SCREEN: SPARK SETTINGS (creator only)
+       SCREEN: SPARK SETTINGS (creator)
        ==================================================== -->
   <div class="screen" id="screen-settings">
     <div class="topbar">
       <button class="tb-btn" onclick="go('details')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-      <span style="flex:1;"></span>
-      <span class="tb-spacer"></span>
+      <span style="flex:1;"></span><span class="tb-spacer"></span>
     </div>
     <div class="scroll" style="padding:0 0 24px;">
-      <div class="sec-label">Members</div>
+      <div class="sec-label">Members</div><div class="divider"></div>
+      <div style="padding:0 22px;" id="settingsMembers"></div>
+      <div style="padding:14px 22px;"><button class="tb-word" style="font-size:14px;" onclick="openSheet('shareSheet')">+ Add</button></div>
       <div class="divider"></div>
-      <div style="padding:0 22px;">
-        <div class="mbr">
-          <div class="mbr-avatar">🧑</div>
-          <div class="mbr-info"><div class="mbr-name">You</div><div class="mbr-role">creator</div></div>
-        </div>
-        <div class="mbr">
-          <div class="mbr-avatar">🧑‍🦰</div>
-          <div class="mbr-info"><div class="mbr-name">Sam</div><div class="mbr-role">member</div></div>
-          <button class="mbr-remove">Remove</button>
-        </div>
-        <div class="mbr">
-          <div class="mbr-avatar">👩</div>
-          <div class="mbr-info"><div class="mbr-name">Lia</div><div class="mbr-role">member</div></div>
-          <button class="mbr-remove">Remove</button>
-        </div>
-      </div>
-      <div style="padding:14px 22px;">
-        <button class="tb-word" style="font-size:14px;" onclick="openSheet('shareSheet')">+ Add</button>
-      </div>
-
-      <div class="divider"></div>
-      <div class="sec-label">Shape</div>
-      <div class="divider"></div>
+      <div class="sec-label">Shape</div><div class="divider"></div>
       <div class="panel" style="margin:0 16px;">
-        <div class="row" onclick="openSheet('repeatSheet')">
-          <span class="ic"><span style="width:22px;height:22px;background:var(--accent);transform:skewX(-14deg);border-radius:var(--spark-r);display:inline-block;box-shadow:0 1px 3px rgba(59,130,246,0.35);"></span></span>
-          <span class="val">Rhomboid</span>
-          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
-        </div>
+        <div class="row"><span class="ic"><span style="width:22px;height:22px;background:var(--accent);transform:skewX(-14deg);border-radius:var(--spark-r);display:inline-block;box-shadow:0 1px 3px rgba(59,130,246,0.35);"></span></span><span class="val">Rhomboid</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
       </div>
-
       <div class="divider" style="margin-top:20px;"></div>
-      <div class="sec-label">Danger</div>
-      <div class="divider"></div>
+      <div class="sec-label">Danger</div><div class="divider"></div>
       <div class="panel" style="margin:0 16px;">
         <div class="row danger" onclick="openSheet('deleteSheet')">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span>
@@ -501,25 +434,16 @@
   </div>
 
   <!-- ====================================================
-       SCREEN: CHAT
+       SCREEN: CHAT — recipe card always on top (one line)
        ==================================================== -->
   <div class="screen" id="screen-chat">
     <div class="topbar">
-      <button class="tb-btn" onclick="go('details')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-      <div class="title" id="chatTitle" onclick="toggleChatRecipe()">
-        <div class="spark sz-mini uncomp" id="chatMiniSpark"><div class="aura"></div><div class="body"><span class="e">💪</span></div></div>
-        <span class="members"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.1"/></svg><b>3</b></span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-      </div>
+      <button class="tb-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <span style="flex:1;"></span>
       <span class="tb-spacer"></span>
     </div>
-    <div class="recipe-card" id="chatRecipeCard">
-      <div class="rc-deps-chat" id="chatRecipeDeps"></div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;">
-        <span class="rc-eq" style="font-size:18px;font-weight:800;color:var(--faint);">=</span>
-        <span class="rc-count" id="chatRcCount">1/3</span>
-      </div>
-    </div>
+    <!-- recipe card: one line [deps] = [main] + info btn -->
+    <div class="chat-recipe" id="chatRecipeBar"></div>
     <div class="msglist" id="msgList"></div>
     <div class="composer">
       <div class="input-row">
@@ -529,34 +453,20 @@
       </div>
     </div>
     <div class="sweep" id="chatSweep"></div>
-    <div class="lit-banner" id="chatBanner">
-      <div class="b-spark"><div class="ba"></div><div class="be">💪</div></div>
-      <div><div class="b-sub" id="chatBannerSub">streak +1</div></div>
-    </div>
+    <div class="lit-banner" id="chatBanner"><div class="b-spark"><div class="ba"></div><div class="be" id="chatBannerEmoji">💪</div></div><div><div class="b-sub" id="chatBannerSub">streak +1</div></div></div>
   </div>
 
   <!-- ====================================================
-       SHEETS (shared scrim + sheet system)
+       SHEETS
        ==================================================== -->
   <div class="scrim" id="scrim" onclick="closeAllSheets()"></div>
 
-  <!-- EMOJI SHEET (create screen) -->
-  <div class="sheet" id="createEmojiSheet">
-    <div class="grabber"></div>
-    <div class="es-grid" id="createEmojiGrid"></div>
-  </div>
+  <div class="sheet" id="createEmojiSheet"><div class="grabber"></div><div class="es-grid" id="createEmojiGrid"></div></div>
 
-  <!-- REPEAT SHEET -->
-  <div class="sheet" id="repeatSheet">
-    <div class="grabber"></div>
-    <div class="sheet-title">Repeat</div>
-    <div class="opt-list" id="repeatOpts"></div>
-  </div>
+  <div class="sheet" id="repeatSheet"><div class="grabber"></div><div class="sheet-title">Repeat</div><div class="opt-list" id="repeatOpts"></div></div>
 
-  <!-- SHARE / ADD-MEMBER SHEET -->
   <div class="sheet" id="shareSheet">
-    <div class="grabber"></div>
-    <div class="sheet-title">Share with friends</div>
+    <div class="grabber"></div><div class="sheet-title">Share with friends</div>
     <input type="text" class="search" placeholder="@username">
     <div class="es-grid" style="grid-template-columns:repeat(4,1fr);">
       <button style="font-size:14px;font-weight:600;color:var(--accent);">Sam</button>
@@ -567,16 +477,11 @@
     <button class="tb-word solid" style="border-radius:12px;padding:12px;width:100%;text-align:center;margin-top:8px;">Copy invite link</button>
   </div>
 
-  <!-- MEMBER LIST SHEET (from details) -->
   <div class="sheet" id="memberListSheet">
-    <div class="grabber"></div>
-    <div class="sheet-title">Members · 3</div>
-    <div class="mbr"><div class="mbr-avatar">🧑</div><div class="mbr-info"><div class="mbr-name">You</div><div class="mbr-role">creator</div></div></div>
-    <div class="mbr"><div class="mbr-avatar">🧑‍🦰</div><div class="mbr-info"><div class="mbr-name">Sam</div><div class="mbr-role">member</div></div></div>
-    <div class="mbr"><div class="mbr-avatar">👩</div><div class="mbr-info"><div class="mbr-name">Lia</div><div class="mbr-role">member</div></div></div>
+    <div class="grabber"></div><div class="sheet-title" id="memberListTitle">Members · 3</div>
+    <div id="memberListBody"></div>
   </div>
 
-  <!-- DELETE CONFIRM SHEET -->
   <div class="sheet" id="deleteSheet">
     <div class="grabber"></div>
     <div class="confirm-box">
@@ -587,10 +492,8 @@
     </div>
   </div>
 
-  <!-- CHAT EMOJI SHEET -->
   <div class="sheet" id="chatEmojiSheet">
-    <div class="grabber"></div>
-    <div class="sheet-title">Ingredients</div>
+    <div class="grabber"></div><div class="sheet-title">Ingredients</div>
     <div class="es-grid" id="chatIngGrid"></div>
     <div class="sheet-title" style="margin-top:10px;">Emoji</div>
     <div class="es-grid" id="chatStdGrid"></div>
@@ -599,182 +502,192 @@
 </div>
 
 <script>
+  // ============================================================
+  // DATA MODEL — each spark is a full isle with its own recipe/chat
+  // ============================================================
+  const SPARKS = [
+    { id:0, hero:'💪', streak:5, lit:false, sat:{'🏃':true,'💧':true,'🧘':false},
+      deps:[{emoji:'🏃'},{emoji:'💧'},{emoji:'🧘'}], members:[
+        {name:'You',role:'creator',avatar:'🧑'},{name:'Sam',role:'member',avatar:'🧑‍🦰'},{name:'Lia',role:'member',avatar:'👩'}],
+      msgs:[{id:1,sender:'Sam',text:'morning',big:null,reactions:{}},{id:2,sender:'Sam',text:null,big:'🏃',reactions:{}},{id:3,sender:'Lia',text:null,big:'💧',reactions:{}}] },
+    { id:1, hero:'🏃', streak:8, lit:true, sat:{'🥗':true,'💧':true},
+      deps:[{emoji:'🥗'},{emoji:'💧'}], members:[{name:'You',role:'creator',avatar:'🧑'},{name:'Sam',role:'member',avatar:'🧑‍🦰'}],
+      msgs:[{id:1,sender:'Sam',text:null,big:'🥗',reactions:{}},{id:2,sender:'You',text:null,big:'💧',reactions:{}}] },
+    { id:2, hero:'📚', streak:0, lit:false, sat:{},
+      deps:[], members:[{name:'You',role:'creator',avatar:'🧑'}],
+      msgs:[{id:1,sender:'You',text:'read 10 pages',big:null,reactions:{}}] },
+    { id:3, hero:'🧘', streak:2, lit:true, sat:{'🌙':true},
+      deps:[{emoji:'🌙'}], members:[{name:'You',role:'creator',avatar:'🧑'},{name:'Lia',role:'member',avatar:'👩'}],
+      msgs:[{id:1,sender:'Lia',text:null,big:'🌙',reactions:{}}] },
+    { id:4, hero:'💧', streak:0, lit:false, sat:{},
+      deps:[], members:[{name:'You',role:'creator',avatar:'🧑'}],
+      msgs:[] },
+  ];
+  const MEMBERS_SAMPLE = [{name:'You',role:'creator',avatar:'🧑'},{name:'Sam',role:'member',avatar:'🧑‍🦰'},{name:'Lia',role:'member',avatar:'👩'}];
+  let activeSpark = 0;          // which spark is open in chat/details/settings
+  let chatLitOnce = {};         // per-spark: already fired lighting this session
+
+  const $ = id => document.getElementById(id);
+  const sparkEl = (emoji, lit, sz, badgeNum) => {
+    const bd = (lit && badgeNum) ? `<div class="badge"><span>${badgeNum}</span></div>` : '';
+    const sp = lit ? `<span class="sparkle" style="top:6px;right:8px;font-size:9px;">✦</span>` : '';
+    return `<div class="spark ${sz} ${lit?'lit':'uncomp'}"><div class="aura"></div><div class="body">${bd}${sp}<span class="e">${emoji}</span></div></div>`;
+  };
+
   // ===== ROUTER =====
-  function go(screen){
-    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-    document.getElementById('screen-'+screen).classList.add('active');
-    closeAllSheets();
+  function go(screen){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $('screen-'+screen).classList.add('active'); closeAllSheets(); }
+  function openSpark(id){ activeSpark=id; if(!chatLitOnce[id])chatLitOnce[id]=false; renderChat(); go('chat'); }
+
+  // ===== SHEETS =====
+  function openSheet(id){ closeAllSheets(); $('scrim').classList.add('open'); $(id).classList.add('open'); }
+  function closeAllSheets(){ $('scrim').classList.remove('open'); document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open')); }
+
+  // ===== HOME — render grid from data =====
+  function renderHome(){
+    let html = SPARKS.map(s => {
+      const showBadge = s.lit && s.streak >= 2;
+      return `<div class="home-cell" onclick="openSpark(${s.id})">${sparkEl(s.hero, s.lit, 'sz-home', showBadge?s.streak:null)}</div>`;
+    }).join('');
+    html += `<div class="home-cell create-cell"><button class="create-btn" onclick="go('create')"><span>?</span></button></div>`;
+    $('homeGrid').innerHTML = html;
   }
 
-  // ===== SHEET SYSTEM (single scrim, one open at a time) =====
-  function openSheet(id){
-    closeAllSheets();
-    document.getElementById('scrim').classList.add('open');
-    document.getElementById(id).classList.add('open');
+  // ===== DETAILS =====
+  function toggleDetailsCard(){ const c=$('detailsCard'); c.classList.toggle('open'); }
+  function renderDetails(){
+    const s = SPARKS[activeSpark];
+    $('detailsHero').outerHTML = `<div class="spark sz-hero ${s.lit?'lit':'uncomp'}" id="detailsHero"><div class="aura"></div><div class="body">${s.lit?'<span class="sparkle" style="top:8px;right:10px;font-size:12px;">✦</span>':''}<span class="e">${s.hero}</span></div></div>`;
+    $('detTimer').textContent = 'Daily';
+    $('detStreak').textContent = s.streak;
+    $('detMembers').textContent = s.members.length;
+    $('detChatLabel').textContent = s.lit ? 'Chat' : 'Light';
+    // recipe (expandable)
+    const depHTML = s.deps.map(d => sparkEl(d.emoji, s.sat[d.emoji], 'sz-dep')).join('');
+    $('detailsRecipe').innerHTML = s.deps.length
+      ? `<div class="rc-deps">${depHTML}</div><div class="rc-eq">=</div>${sparkEl(s.hero, s.lit, 'sz-dep')}`
+      : `${sparkEl(s.hero, s.lit, 'sz-dep')}`;
+    // member list sheet
+    $('memberListTitle').textContent = 'Members · ' + s.members.length;
+    $('memberListBody').innerHTML = s.members.map(m =>
+      `<div class="mbr"><div class="mbr-avatar">${m.avatar}</div><div class="mbr-info"><div class="mbr-name">${m.name}</div><div class="mbr-role">${m.role}</div></div>${m.role!=='creator'?`<button class="mbr-remove">Remove</button>`:''}</div>`
+    ).join('');
+    // settings members
+    $('settingsMembers').innerHTML = s.members.map(m =>
+      `<div class="mbr"><div class="mbr-avatar">${m.avatar}</div><div class="mbr-info"><div class="mbr-name">${m.name}</div><div class="mbr-role">${m.role}</div></div>${m.role!=='creator'?`<button class="mbr-remove">Remove</button>`:''}</div>`
+    ).join('');
   }
-  function closeAllSheets(){
-    document.getElementById('scrim').classList.remove('open');
-    document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'));
-  }
-
-  // ===== DETAILS card toggle =====
-  function toggleDetailsCard(){
-    const c=document.getElementById('detailsCard');
-    const t=document.getElementById('detailsTitle');
-    c.classList.toggle('open'); t.classList.toggle('open',c.classList.contains('open'));
-  }
-
-  // ===== CREATE: emoji state =====
-  const EMOJI_POOL=['💪','🏃','💧','🧘','📚','🥗','😴','🚭','✍️','🎸','🏋️','🚶','🧹','💊','☀️','🌙','🔥','🎯','📖','🧠','❤️','🩹','🫧','⏰'];
-  let createMain=null;
-  let createDeps=[null,null,null];
-  let pickTarget=null;
-
-  function renderMain(){
-    const s=document.getElementById('mainSpark');
-    const b=s.querySelector('.body');
-    if(createMain){s.classList.add('has-emoji');b.innerHTML=`<span class="e">${createMain}</span>`;}
-    else{s.classList.remove('has-emoji');b.innerHTML=`<span class="placeholder-q">?</span>`;}
-    document.getElementById('createBtn').disabled=!createMain;
-    renderPreview();
-  }
-  function renderDep(i){
-    const el=document.getElementById('dep'+i);
-    if(createDeps[i]){el.textContent=createDeps[i];el.classList.remove('empty');}
-    else{el.textContent='+';el.classList.add('empty');}
-    renderPreview();
-  }
-  function renderPreview(){
-    const e=document.getElementById('previewE');
-    const cap=document.getElementById('previewCap');
-    const sp=document.getElementById('previewSpark');
-    if(createMain){
-      e.textContent=createMain;e.style.color='';e.style.fontSize='';
-      sp.classList.remove('uncomp');sp.classList.add('lit');
-      e.style.filter='saturate(1.15)';
-      cap.textContent='this is your spark';
-    }else{
-      e.textContent='—';e.style.color='var(--faint)';e.style.fontSize='20px';
-      sp.classList.remove('lit');sp.classList.add('uncomp');
-      cap.textContent='pick a spark';
-    }
-  }
-  function pickMainEmoji(){pickTarget='main';openCreateEmoji();}
-  function pickDepEmoji(i){pickTarget=i;openCreateEmoji();}
-  function openCreateEmoji(){
-    document.getElementById('createEmojiGrid').innerHTML=
-      EMOJI_POOL.map(e=>`<button onclick="chooseCreateEmoji('${e}')">${e}</button>`).join('');
-    openSheet('createEmojiSheet');
-  }
-  function chooseCreateEmoji(e){
-    if(pickTarget==='main'){createMain=e;renderMain();}
-    else{createDeps[pickTarget]=e;renderDep(pickTarget);}
-    closeAllSheets();
-  }
-
-  // ===== CREATE: streak toggle (default off) =====
-  document.getElementById('streakRowCreate').addEventListener('click',function(e){
-    const tg=document.getElementById('streakToggleCreate');
-    if(e.target===tg||tg.contains(e.target))return;
-    tg.classList.toggle('off');
-  });
-  document.getElementById('streakToggleCreate').addEventListener('click',function(e){
-    e.stopPropagation();this.classList.toggle('off');
-  });
-
-  // ===== REPEAT picker =====
-  const REPEATS=['Instant','Daily','Weekly','Monthly'];
-  let repeatIdx=1;
-  function renderRepeatOpts(){
-    document.getElementById('repeatOpts').innerHTML=REPEATS.map((r,i)=>`
-      <div class="opt ${i===repeatIdx?'sel':''}" onclick="setRepeat(${i})">
-        <span>${r}</span>
-        <span class="check"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
-      </div>`).join('');
-  }
-  function setRepeat(i){repeatIdx=i;document.getElementById('repeatVal').textContent=REPEATS[i];renderRepeatOpts();closeAllSheets();}
 
   // ===== CHAT =====
-  const CHAT_DEPS=[{emoji:'🏃'},{emoji:'💧'},{emoji:'🧘'}];
-  const STD_EMOJIS=['😀','😂','😍','👍','👏','🔥','✨','🎉','❤️','💯','🌟','☕','🏃','🧘','💧','💪'];
-  let chatSat={'🏃':true};
-  let chatStreak=3, chatLitOnce=false;
-  let chatMsgs=[{id:1,sender:'Sam',text:'morning',big:null,reactions:{}},{id:2,sender:'Sam',text:null,big:'🏃',reactions:{}}];
-  let chatId=100;
-  const chatAllMet=()=>CHAT_DEPS.every(d=>chatSat[d.emoji]);
+  const STD_EMOJIS = ['😀','😂','😍','👍','👏','🔥','✨','🎉','❤️','💯','🌟','☕','🏃','🧘','💧','💪'];
+  let chatId = 500;
 
   function renderChat(){
-    const list=document.getElementById('msgList');
-    list.innerHTML=chatMsgs.map(m=>{
-      const me=m.sender==='You';
-      const reax=Object.entries(m.reactions||{});
-      const reaxHTML=reax.length?`<div class="reax">${reax.map(([e,w])=>`<span class="react-chip ${w.includes('You')?'mine':''}">${e}<b>${w.length}</b></span>`).join('')}</div>`:'';
-      const content=m.big?`<span class="big">${m.big}</span>`:escapeHtml(m.text);
-      return `<div class="msg ${me?'me':'them'}" onclick="reactMsg(${m.id})">
-        ${!me?`<div class="sender">${m.sender}</div>`:''}
-        <div class="bubble">${content}</div>${reaxHTML}</div>`;
+    const s = SPARKS[activeSpark];
+    // recipe bar: ONE line [deps] = [hero] + info btn
+    const depsHTML = s.deps.length
+      ? s.deps.map(d => sparkEl(d.emoji, s.sat[d.emoji], 'sz-rc')).join('')
+      : '';
+    $('chatRecipeBar').innerHTML = `
+      <div class="cr-deps">${depsHTML}</div>
+      ${s.deps.length ? '<span class="cr-eq">=</span>' : ''}
+      <div class="cr-hero">${sparkEl(s.hero, s.lit, 'sz-rc')}</div>
+      <button class="cr-info" onclick="renderDetails();go('details')" aria-label="info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      </button>`;
+    // messages
+    $('msgList').innerHTML = s.msgs.map(m => {
+      const me = m.sender === 'You';
+      const reax = Object.entries(m.reactions||{});
+      const reaxHTML = reax.length ? `<div class="reax">${reax.map(([e,w])=>`<span class="react-chip ${w.includes('You')?'mine':''}">${e}<b>${w.length}</b></span>`).join('')}</div>`:'';
+      const content = m.big ? `<span class="big">${m.big}</span>` : escapeHtml(m.text);
+      return `<div class="msg ${me?'me':'them'}" onclick="reactMsg(${m.id})">${!me?`<div class="sender">${m.sender}</div>`:''}<div class="bubble">${content}</div>${reaxHTML}</div>`;
     }).join('');
-    list.scrollTop=list.scrollHeight;
-    const lit=chatAllMet();
-    document.getElementById('chatMiniSpark').className='spark sz-mini '+(lit?'lit':'uncomp');
-    document.getElementById('chatRecipeDeps').innerHTML=CHAT_DEPS.map(d=>
-      `<div class="spark sz-dep ${chatSat[d.emoji]?'lit':'uncomp'}"><div class="aura"></div><div class="body"><span class="e">${d.emoji}</span></div></div>`
-    ).join('');
-    const met=CHAT_DEPS.filter(d=>chatSat[d.emoji]).length;
-    document.getElementById('chatRcCount').textContent=met+'/'+CHAT_DEPS.length;
-    document.getElementById('emojiBtn').classList.toggle('need',CHAT_DEPS.some(d=>!chatSat[d.emoji]));
+    $('msgList').scrollTop = $('msgList').scrollHeight;
+    // emoji button need state
+    $('emojiBtn').classList.toggle('need', s.deps.some(d=>!s.sat[d.emoji]));
+    // banner emoji
+    $('chatBannerEmoji').textContent = s.hero;
     renderChatEmoji();
   }
+
   function renderChatEmoji(){
-    document.getElementById('chatIngGrid').innerHTML=CHAT_DEPS.map(d=>{
-      const need=!chatSat[d.emoji];
+    const s = SPARKS[activeSpark];
+    $('chatIngGrid').innerHTML = s.deps.map(d => {
+      const need = !s.sat[d.emoji];
       return `<button class="${need?'needed':''}" onclick="insertChat('${d.emoji}')">${d.emoji}</button>`;
     }).join('');
-    document.getElementById('chatStdGrid').innerHTML=STD_EMOJIS.map(e=>`<button onclick="insertChat('${e}')">${e}</button>`).join('');
+    $('chatStdGrid').innerHTML = STD_EMOJIS.map(e=>`<button onclick="insertChat('${e}')">${e}</button>`).join('');
   }
-  function insertChat(e){
-    document.getElementById('chatInput').value+=e;
-    document.getElementById('chatInput').focus();updateSend();closeAllSheets();
-  }
-  function updateSend(){document.getElementById('sendBtn').disabled=document.getElementById('chatInput').value.trim().length===0;}
+  function insertChat(e){ $('chatInput').value += e; $('chatInput').focus(); updateSend(); closeAllSheets(); }
+  function updateSend(){ $('sendBtn').disabled = $('chatInput').value.trim().length === 0; }
+
   function sendChat(){
-    const inp=document.getElementById('chatInput');const v=inp.value.trim();if(!v)return;
-    inp.value='';updateSend();
-    const big=CHAT_DEPS.find(d=>d.emoji===v)?v:null;
-    chatMsgs.push({id:chatId++,sender:'You',text:big?null:v,big,reactions:{}});
-    if(big)chatSat[big]=true;
-    renderChat();checkChatLight();
+    const s = SPARKS[activeSpark];
+    const inp = $('chatInput'); const v = inp.value.trim(); if(!v) return;
+    inp.value=''; updateSend();
+    const big = s.deps.find(d => d.emoji === v) ? v : null;
+    s.msgs.push({id:chatId++, sender:'You', text:big?null:v, big, reactions:{}});
+    if(big) s.sat[big] = true;
+    s.lit = s.deps.length ? s.deps.every(d=>s.sat[d.emoji]) : (s.lit || (big===s.hero));
+    renderChat(); renderHome(); checkChatLight();
   }
+
   function reactMsg(id){
-    const m=chatMsgs.find(x=>x.id===id);if(!m)return;
-    const unsat=CHAT_DEPS.find(d=>!chatSat[d.emoji]);
-    const emoji=unsat?unsat.emoji:'🔥';
-    if(!m.reactions[emoji])m.reactions[emoji]=[];
-    if(m.reactions[emoji].includes('You')){m.reactions[emoji]=m.reactions[emoji].filter(w=>w!=='You');if(m.reactions[emoji].length===0)delete m.reactions[emoji];}
-    else{m.reactions[emoji].push('You');}
-    if(unsat)chatSat[unsat.emoji]=true;
-    renderChat();checkChatLight();
+    const s = SPARKS[activeSpark];
+    const m = s.msgs.find(x=>x.id===id); if(!m) return;
+    const unsat = s.deps.find(d=>!s.sat[d.emoji]);
+    const emoji = unsat ? unsat.emoji : '🔥';
+    if(!m.reactions[emoji]) m.reactions[emoji]=[];
+    if(m.reactions[emoji].includes('You')){ m.reactions[emoji]=m.reactions[emoji].filter(w=>w!=='You'); if(!m.reactions[emoji].length)delete m.reactions[emoji]; }
+    else m.reactions[emoji].push('You');
+    if(unsat) s.sat[unsat.emoji]=true;
+    s.lit = s.deps.length ? s.deps.every(d=>s.sat[d.emoji]) : s.lit;
+    renderChat(); renderHome(); checkChatLight();
   }
+
   function checkChatLight(){
-    if(chatAllMet()&&!chatLitOnce){
-      chatLitOnce=true;chatStreak++;
-      const sweep=document.getElementById('chatSweep'),banner=document.getElementById('chatBanner');
-      document.getElementById('chatBannerSub').textContent='streak '+chatStreak;
-      sweep.classList.remove('fire');void sweep.offsetWidth;sweep.classList.add('fire');
-      banner.classList.remove('fire');void banner.offsetWidth;banner.classList.add('fire');
+    const s = SPARKS[activeSpark];
+    if(s.lit && !chatLitOnce[s.id]){
+      chatLitOnce[s.id]=true; s.streak++;
+      $('chatBannerSub').textContent='streak '+s.streak;
+      const sw=$('chatSweep'),bn=$('chatBanner');
+      sw.classList.remove('fire');void sw.offsetWidth;sw.classList.add('fire');
+      bn.classList.remove('fire');void bn.offsetWidth;bn.classList.add('fire');
+      renderHome();
     }
   }
-  function toggleChatRecipe(){
-    const c=document.getElementById('chatRecipeCard'),t=document.getElementById('chatTitle');
-    c.classList.toggle('open');t.classList.toggle('open',c.classList.contains('open'));
-  }
+
+  // ===== CREATE =====
+  const EMOJI_POOL=['💪','🏃','💧','🧘','📚','🥗','😴','🚭','✍️','🎸','🏋️','🚶','🧹','💊','☀️','🌙','🔥','🎯','📖','🧠','❤️','🩹','🫧','⏰'];
+  let createMain=null, createDeps=[null,null,null], pickTarget=null;
+  function renderMain(){ const s=$('mainSpark'),b=s.querySelector('.body');
+    if(createMain){s.classList.add('has-emoji');b.innerHTML=`<span class="e">${createMain}</span>`;}
+    else{s.classList.remove('has-emoji');b.innerHTML=`<span class="placeholder-q">?</span>`;}
+    $('createBtn').disabled=!createMain; renderPreview(); }
+  function renderDep(i){ const el=$('dep'+i);
+    if(createDeps[i]){el.textContent=createDeps[i];el.classList.remove('empty');}
+    else{el.textContent='+';el.classList.add('empty');} renderPreview(); }
+  function renderPreview(){ const e=$('previewE'),cap=$('previewCap'),sp=$('previewSpark');
+    if(createMain){e.textContent=createMain;e.style.color='';e.style.fontSize='';sp.classList.remove('uncomp');sp.classList.add('lit');e.style.filter='saturate(1.15)';cap.textContent='your spark';}
+    else{e.textContent='—';e.style.color='var(--faint)';e.style.fontSize='20px';sp.classList.remove('lit');sp.classList.add('uncomp');cap.textContent='pick a spark';} }
+  function pickMainEmoji(){pickTarget='main';openCreateEmoji();}
+  function pickDepEmoji(i){pickTarget=i;openCreateEmoji();}
+  function openCreateEmoji(){$('createEmojiGrid').innerHTML=EMOJI_POOL.map(e=>`<button onclick="chooseCreateEmoji('${e}')">${e}</button>`).join('');openSheet('createEmojiSheet');}
+  function chooseCreateEmoji(e){ if(pickTarget==='main'){createMain=e;renderMain();}else{createDeps[pickTarget]=e;renderDep(pickTarget);} closeAllSheets(); }
+
+  $('streakRowCreate').addEventListener('click',function(e){const tg=$('streakToggleCreate');if(e.target===tg||tg.contains(e.target))return;tg.classList.toggle('off');});
+  $('streakToggleCreate').addEventListener('click',function(e){e.stopPropagation();this.classList.toggle('off');});
+
+  const REPEATS=['Instant','Daily','Weekly','Monthly']; let repeatIdx=1;
+  function renderRepeatOpts(){$('repeatOpts').innerHTML=REPEATS.map((r,i)=>`<div class="opt ${i===repeatIdx?'sel':''}" onclick="setRepeat(${i})"><span>${r}</span><span class="check"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></div>`).join('');}
+  function setRepeat(i){repeatIdx=i;$('repeatVal').textContent=REPEATS[i];renderRepeatOpts();closeAllSheets();}
+
   function escapeHtml(s){return(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
   // ===== INIT =====
-  renderMain();
-  for(let i=0;i<3;i++)renderDep(i);
+  renderHome();
+  renderMain(); for(let i=0;i<3;i++)renderDep(i);
   renderRepeatOpts();
-  renderChat();
 </script>
 </body>
 </html>
