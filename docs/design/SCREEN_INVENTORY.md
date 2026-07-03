@@ -19,23 +19,27 @@ Home ─tap spark─► Spark Details ─┬─ Members ─► Member list
                                  └─ Settings ► Spark Settings (creator only)
 Home ─Create────► New Spark ─Shape► Shape Picker (sheet)
 Home ───────────► Friends (low-impact)
+Home ←swipe right─ Notes (chronological spark activity)
+Home ─swipe left→ League (emoji-based streak ranking)
 ```
 
 Eight named screens. The full inventory below adds the supporting + edge-case screens the spec implies but doesn't name.
 
 ---
 
-## § 2 — Tier 1: Core (explicitly in spec, must exist)
+## § 2 — Tier 1: Core
 
 | # | Screen | What it does | Mockup? |
 |---|---|---|---|
-| 1 | **Home** | Floating sparks on water + Create button (bottom-right). Lit float, greyed sink. Empty state = just the Create button. | ✅ `mockups/sparks.html` |
-| 2 | **New Spark (Create Spark)** | Equation hero + grouped icon-led settings card (shape / repeats / streak / share) + shape picker sheet. | ✅ `mockups/create-spark.html` |
-| 3 | **Spark Details** | Recipe / equation (emojis grey → filled as satisfied), Members button, Chat button, Settings button (creator only). | ✅ `mockups/spark-details.html` |
-| 4 | **Chat (per-spark)** | Room where members type / react emojis to light the spark. Shared across members. | ✅ `mockups/chat.html` |
-| 5 | **Spark Settings (creator only)** | Member management (add / remove), shape (reopens picker), delete spark. | ❌ **Gap** |
-| 6 | **Member list** | Avatars, names, status (online / offline / last-seen) for a spark's Isle. | ❌ **Gap** (could be a sheet off Spark Details) |
-| 7 | **Friends** | Friends list + add-by-username / phone requests. Global relationship (vs per-spark membership). | ❌ **Gap** |
+| 1 | **Home** | Floating sparks on water + Create button (bottom-right). Lit float, greyed sink. Empty state = just the Create button. | ✅ `mockups/app.html` |
+| 2 | **New Spark (Create Spark)** | Equation hero + grouped icon-led settings card (shape / repeats / streak / share) + shape picker sheet. | ✅ in `mockups/app.html` |
+| 3 | **Spark Details** | Recipe / equation (emojis grey → filled as satisfied), Members button, Chat button, Settings button (creator only). | ✅ in `mockups/app.html` |
+| 4 | **Chat (per-spark)** | Room where members type / react emojis to light the spark. Shared across members. | ✅ in `mockups/app.html` |
+| 5 | **Spark Settings (creator only)** | Member management (add / remove), shape (reopens picker), delete spark. | ✅ in `mockups/app.html` |
+| 6 | **Member list** | Avatars, names, status (online / offline / last-seen) for a spark's Isle. | ✅ sheet in `mockups/app.html` |
+| 7 | **Friends** | Friends list + add-by-username / phone requests. Global relationship (vs per-spark membership). | ✅ in `mockups/app.html` |
+| 8 | **Notes** | Chronological list of all spark activity across sparks. Swipe right from Home or bottom nav. | ✅ in `mockups/app.html` |
+| 9 | **League** | Global leaderboard for a selected emoji, ranked by streak length. Swipe left from Home or bottom nav. | ✅ in `mockups/app.html` |
 
 ---
 
@@ -99,39 +103,50 @@ When mocking, each screen needs its states mocked too:
 
 ## § 7 — Summary: Mocked vs. Gap
 
-**Already mocked (6 + 1 dev tool):**
-- Home — `sparks.html`
-- New Spark — `create-spark.html`
-- Shape Picker — inside `create-spark.html`
-- **Spark Details — `spark-details.html`** (interactive: toggle dep satisfaction, streak, parked, creator/member access; plus a gallery of static variants — no-dep, parked, streaked-win, partial-fill)
-- **Chat (per-spark) — `chat.html`** (interactive: post dep emojis as you / type them / react to messages; the recipe strip fills live and the spark lights with a calm sweep when all deps are met; long-press a message to react)
+**Already mocked:**
+- Home — `app.html`
+- Notes — `app.html`
+- League — `app.html`
+- New Spark — `app.html`
+- Spark Details — `app.html`
+- Chat (per-spark) — `app.html`
+- Spark Settings + Member list — `app.html`
+- Friends — `app.html`
+- Profile — `app.html`
+- App Settings — `app.html`
 - Buttons — `buttons.html`
-- Shape Lab — `shape-lab.html` (dev tool, not a shipped screen)
+- Shape Lab — `shape-lab.html` (dev tool)
+
+**Standalone reference files** (superseded by `app.html` but kept as isolated references):
+- `create-spark.html`
+- `spark-details.html`
+- `chat.html`
+- `sparks.html`
 
 **Gaps to mock, in priority order:**
 
 | Priority | Screen | Why this priority |
 |---|---|---|
-| 1 | ~~**Spark Details**~~ | ✅ **Done** (`spark-details.html`, July 2, 2026). |
-| 2 | ~~**Chat (per-spark)**~~ | ✅ **Done** (`chat.html`, July 2, 2026). |
-| 3 | **Spark Settings + Member list** | Creator flows (spec § 6, § 7). Member list may be a sheet off Spark Details. Now the top gap. |
-| 4 | **Emoji Picker** (shared) | Needed by both New Spark and Chat — block both screens' final form. |
-| 5 | **Friends** | Low-impact per spec, but needed for the Share field to be real. |
-| 6 | **Auth entry** | Needed before any social flow is real (spec § 10). |
-| 7 | **App Settings + Profile** | Entry point TBD (see § 3 open question). |
+| 1 | ~~**Spark Details**~~ | ✅ Done in `app.html`. |
+| 2 | ~~**Chat (per-spark)**~~ | ✅ Done in `app.html`. |
+| 3 | ~~**Spark Settings + Member list**~~ | ✅ Done in `app.html`. |
+| 4 | ~~**Friends**~~ | ✅ Done in `app.html`. |
+| 5 | ~~**Emoji Picker**~~ | ✅ Picker sheets inside `app.html`. |
+| 6 | ~~**Profile + App Settings**~~ | ✅ Done in `app.html`. |
+| 7 | **Auth entry** | Needed before any social flow is real (spec § 10). |
 | 8 | **Invite-link landing** | Edge case, can wait. |
 
 ---
 
-## § 8 — Open Design Questions (decide before / during mocking)
+## § 8 — Open Design Questions
 
-1. **Where are the entry points for Friends / Profile / App Settings**, given Home has no chrome? (blocks Tier 2)
+1. ✅ **Entry points for Friends / Profile / App Settings** — resolved July 3, 2026: durable top-right avatar opens You menu; durable bottom nav on Home for Notes/League.
 2. **Is there an onboarding screen**, or does the app open straight to empty Home? (spec leans: no onboarding)
-3. **Does Profile have an avatar / emoji identity?** Custom emojis are future (spec § 10); what represents "you" until then?
+3. **Does Profile have an avatar / emoji identity?** Currently a generic avatar; custom emojis are future (spec § 10).
 4. **Auth entry point** — modal? first-launch gate? triggered only when a social action is attempted?
-5. **Member list** — full screen or bottom sheet off Spark Details?
-6. ~~**How does a parked (greyed) spark indicate its parked-ness** when tapped — same Spark Details with greyed visuals, or a distinct recovery view?~~ **✅ Resolved (July 2, 2026):** same screen, greyed state — no separate recovery view. See the "Parked (missed)" variant in `mockups/spark-details.html`. A "Complete this cycle to relight" hint appears; the recipe deps render greyed; the hero renders greyed.
+5. ✅ **Member list** — resolved as a bottom sheet off Spark Details (in `app.html`).
+6. ✅ **Parked spark recovery view** — resolved July 2, 2026: same Spark Details, greyed state.
 
 ---
 
-*Last updated: July 2, 2026 — Spark Details + Chat (per-spark) mocked.*
+*Last updated: July 3, 2026 — connected app shell mocked; Notes + League added; entry points resolved.*

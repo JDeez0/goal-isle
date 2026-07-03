@@ -39,7 +39,7 @@ Read [`VISION.md`](./VISION.md) for the full rationale.
 ## Status
 
 - [x] Spec locked — Isle Sparks (July 1, 2026)
-- [x] Mockups aligned (sparks, shape-lab, create-spark, buttons)
+- [x] Mockups aligned (app shell, sparks, shape-lab, create-spark, buttons)
 - [ ] Tokens implemented in `lib/theme/tokens.dart`
 - [ ] Widget library built (`IsleSpark`, `CreateSparkButton`, `ShapePicker`, `SparkDetailsScreen`)
 - [ ] Screens implemented in Flutter
@@ -50,4 +50,4 @@ See [`../../UI_DEVELOPMENT_PLAN.md`](../../UI_DEVELOPMENT_PLAN.md) for the full 
 
 ---
 
-*Last updated: July 1, 2026.*
+*Last updated: July 3, 2026.*
