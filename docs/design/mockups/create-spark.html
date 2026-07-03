@@ -159,46 +159,70 @@
   /* ============================================================
      SCROLL BODY
      ============================================================ */
-  .scroll { flex: 1; overflow-y: auto; padding: 4px 0 28px; }
+  .scroll { flex: 1; overflow-y: auto; padding: 0; }
+
+  /* full-width horizontal divider */
+  .divider { height: 1px; background: var(--line); width: 100%; }
+
+  /* section label (tiny, left-aligned, muted) */
+  .sec-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--faint); padding: 22px 22px 12px; }
 
   /* ============================================================
-     THE EQUATION (HERO): main emoji ABOVE "=" , deps BELOW on the left
-     reads top→down: result = ingredients
-     Main emoji inside a rhomboid spark; deps are bare emoji + word labels.
+     EQUATION — everything in the LEFT column, vertically.
+     main emoji row (with rhomboid) → = → dep rows (bare emoji + label).
+     No defaults: emoji slots empty, labels empty.
      ============================================================ */
-  .equation { display: flex; flex-direction: column; align-items: center;
-    gap: 14px; padding: 18px 0 8px; }
-  .equals { font-size: 26px; font-weight: 700; color: var(--faint); line-height: 1; }
+  .equation { padding: 6px 22px; display: flex; flex-direction: column; gap: 20px; }
 
-  /* hero tap affordance */
-  .hero-wrap { cursor: pointer; transition: transform 150ms ease-out; }
-  .hero-wrap:active { transform: scale(0.98); }
+  /* main emoji row — the rhomboid spark + label input */
+  .main-row { display: flex; align-items: center; gap: 14px; }
+  .main-row .main-spark { cursor: pointer; flex-shrink: 0;
+    width: 72px; height: 72px; position: relative; display: flex; align-items: center; justify-content: center; }
+  .main-row .main-spark .aura { position: absolute; width: 56px; height: 56px;
+    transform: skewX(-14deg); border-radius: var(--shape-radius);
+    background: radial-gradient(ellipse, rgba(100,116,139,0.10), transparent 70%); filter: blur(8px); z-index: 0; }
+  .main-row .main-spark .body { position: relative; width: 56px; height: 56px;
+    transform: skewX(-14deg); border-radius: var(--shape-radius); background: var(--dull);
+    box-shadow: inset 0 0 0 1px rgba(31,41,55,0.06); display: flex; align-items: center; justify-content: center;
+    transition: border-radius 280ms ease-out, background 400ms ease-out, box-shadow 400ms ease-out; z-index: 2; }
+  .main-row .main-spark.has-emoji .body { background: linear-gradient(135deg, var(--surface), var(--accent-soft));
+    box-shadow: 0 0 0 1.5px var(--accent), 0 4px 14px rgba(59,130,246,0.18); }
+  .main-row .main-spark .e { font-size: 30px; line-height: 1; transform: skewX(14deg); z-index: 3; position: relative; }
+  .main-row .main-spark .placeholder-q { font-size: 24px; font-weight: 700; color: var(--faint);
+    transform: skewX(14deg); z-index: 3; position: relative; }
+  .main-row .main-label { flex: 1; border: none; border-bottom: 1px solid var(--line);
+    background: transparent; font: inherit; font-size: 15px; color: var(--ink); padding: 8px 2px;
+    outline: none; transition: border-color 150ms ease-out; }
+  .main-row .main-label:focus { border-bottom-color: var(--accent); }
+  .main-row .main-label::placeholder { color: var(--faint); }
 
-  /* deps list — vertical, on the left, each = bare emoji + word label */
-  .deps-list { display: flex; flex-direction: column; gap: 12px; align-self: stretch;
-    padding: 0 22px; }
-  .dep-item { display: flex; align-items: center; gap: 12px; }
-  .dep-item .dep-emoji { font-size: 28px; line-height: 1; width: 40px; text-align: center; }
+  .equals-row { display: flex; justify-content: center; padding: 2px 0; }
+  .equals { font-size: 22px; font-weight: 700; color: var(--faint); line-height: 1; }
+
+  /* dep rows — bare emoji + label, spaced out, empty by default */
+  .dep-item { display: flex; align-items: center; gap: 14px; }
+  .dep-item .dep-emoji { font-size: 28px; line-height: 1; width: 40px; text-align: center;
+    cursor: pointer; color: var(--faint); }
+  .dep-item .dep-emoji.empty { opacity: 0.4; }
   .dep-item .dep-label { flex: 1; border: none; border-bottom: 1px solid var(--line);
     background: transparent; font: inherit; font-size: 14px; color: var(--ink);
-    padding: 6px 2px; outline: none; transition: border-color 150ms ease-out; }
+    padding: 7px 2px; outline: none; transition: border-color 150ms ease-out; }
   .dep-item .dep-label:focus { border-bottom-color: var(--accent); }
   .dep-item .dep-label::placeholder { color: var(--faint); }
 
   /* add-dep row */
-  .dep-add-row { display: flex; align-items: center; gap: 12px; cursor: pointer;
-    color: var(--accent); padding: 4px 0; transition: opacity 120ms ease-out; }
+  .dep-add-row { display: flex; align-items: center; gap: 14px; cursor: pointer;
+    color: var(--accent); padding: 2px 0; transition: opacity 120ms ease-out; }
   .dep-add-row:active { opacity: 0.6; }
-  .dep-add-row .add-circle { width: 40px; height: 40px; display: flex; align-items: center;
-    justify-content: center; }
+  .dep-add-row .add-slot { width: 40px; text-align: center; }
   .dep-add-row svg { width: 22px; height: 22px; }
 
   /* ============================================================
-     SETTINGS PANEL — FLAT. thin top line, 1px row separators.
-     icon-led rows, no noun headers.
+     SETTINGS PANEL — rounded card
      ============================================================ */
-  .panel { margin: 28px 22px 0; background: var(--surface);
-    border-top: 1px solid var(--line); }
+  .panel { margin: 0 16px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
   .row { display: flex; align-items: center; gap: 14px; padding: 15px 4px;
     cursor: pointer; transition: opacity 120ms ease-out; position: relative; }
   .row + .row::before { content: ''; position: absolute; top: 0; left: 0; right: 0;
@@ -268,6 +292,12 @@
     transition: all 150ms ease-out; }
   .done:hover { background: var(--accent-dk); }
   .done:active { transform: scale(0.99); }
+
+  /* emoji picker grid */
+  .es-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 16px; }
+  .es-grid button { font-size: 26px; aspect-ratio: 1; border: none; background: none; cursor: pointer;
+    border-radius: 10px; transition: background 120ms ease-out; line-height: 1; }
+  .es-grid button:hover { background: var(--accent-soft); }
 </style>
 </head>
 <body>
@@ -281,36 +311,45 @@
   </div>
 
   <div class="scroll">
-    <!-- ===== equation: main emoji ABOVE =, deps BELOW on the left ===== -->
+    <!-- ===== SPARK (main emoji + shape) ===== -->
+    <div class="sec-label">Spark</div>
+    <div class="divider"></div>
     <div class="equation">
-      <div class="hero-wrap" id="heroWrap">
-        <div class="spark hero lit shaped" id="hero">
+      <div class="main-row">
+        <div class="main-spark" id="mainSpark" onclick="pickMainEmoji()">
           <div class="aura"></div>
-          <div class="body">
-            <span class="sparkle s1">✦</span>
-            <span class="sparkle s2">✦</span>
-            <span class="e" id="heroE">💪</span>
-          </div>
+          <div class="body"><span class="placeholder-q" id="mainQ">?</span></div>
         </div>
-      </div>
-      <span class="equals">=</span>
-      <div class="deps-list">
-        <div class="dep-item">
-          <span class="dep-emoji">🏃</span>
-          <input type="text" class="dep-label" placeholder="label" value="run" data-i="0">
-        </div>
-        <div class="dep-item">
-          <span class="dep-emoji">💧</span>
-          <input type="text" class="dep-label" placeholder="label" value="water" data-i="1">
-        </div>
-        <div class="dep-add-row" id="addDep">
-          <span class="add-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
-          <span style="font-size:14px;font-weight:600;">Add</span>
-        </div>
+        <input type="text" class="main-label" id="mainLabel" placeholder="name">
       </div>
     </div>
 
-    <!-- ===== settings: flat panel, icon-led rows, no noun headers ===== -->
+    <div class="divider"></div>
+
+    <!-- ===== INGREDIENTS (deps) ===== -->
+    <div class="sec-label">Ingredients</div>
+    <div class="divider"></div>
+    <div class="equation" id="depsList">
+      <div class="equals-row"><span class="equals">=</span></div>
+      <div class="dep-item">
+        <span class="dep-emoji empty" id="dep0" onclick="pickDepEmoji(0)">+</span>
+        <input type="text" class="dep-label" id="deplabel0" placeholder="label">
+      </div>
+      <div class="dep-item">
+        <span class="dep-emoji empty" id="dep1" onclick="pickDepEmoji(1)">+</span>
+        <input type="text" class="dep-label" id="deplabel1" placeholder="label">
+      </div>
+      <div class="dep-item">
+        <span class="dep-emoji empty" id="dep2" onclick="pickDepEmoji(2)">+</span>
+        <input type="text" class="dep-label" id="deplabel2" placeholder="label">
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ===== settings: rounded panel, icon-led rows ===== -->
+    <div class="sec-label">Repeat</div>
+    <div class="divider"></div>
     <div class="panel">
       <!-- Row 1: Shape — skewed swatch icon, value, chevron -->
       <div class="row" id="shapeRow">
@@ -328,7 +367,7 @@
       <div class="row" id="streakRow">
         <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
         <span class="val" style="flex:1;">Break if streak lost</span>
-        <span class="right"><span class="toggle" id="streakToggle"></span></span>
+        <span class="right"><span class="toggle off" id="streakToggle"></span></span>
       </div>
       <!-- Row 4: Share — user-plus icon, "Share with friends", chevron -->
       <div class="row">
@@ -372,11 +411,26 @@
 
     <button class="done" id="doneBtn">Done</button>
   </div>
+
+  <!-- ===== emoji picker sheet ===== -->
+  <div class="scrim" id="emojiScrim"></div>
+  <div class="sheet" id="emojiSheet" style="padding-bottom:28px;">
+    <div class="grabber"></div>
+    <div class="es-grid" id="emojiGrid"></div>
+    <button class="done" id="emojiDone">Done</button>
+  </div>
 </div>
 
 <script>
-  // ===== shape presets: per-corner radius (the spark's OWN silhouette) =====
-  // The fixed skewX parallelogram lean coexists with this radius.
+  // ===== EMOJI POOL for the picker =====
+  const EMOJI_POOL = ['💪','🏃','💧','🧘','📚','🥗','😴','🚭','✍️','🎸','🏋️','🚶','🧹','💊','☀️','🌙','🫧','🔥','⏰','🎯','📖','🧠','❤️','🩹'];
+
+  // ===== STATE =====
+  let mainEmoji = null;            // null = empty
+  let depEmojis = [null, null, null]; // 3 slots, null = empty
+  let emojiPickTarget = null;      // 'main' | 0|1|2 (which slot we're picking for)
+
+  // ===== SHAPE PRESETS =====
   const PRESETS = {
     rhomboid: { tl:40, tr:12, br:40, bl:12, name:'Rhomboid' },
     soft:     { tl:44, tr:22, br:44, bl:22, name:'Soft' },
@@ -388,8 +442,7 @@
   let shape = { ...PRESETS.rhomboid };
   const radiusStr = s => `${s.tl}px ${s.tr}px ${s.br}px ${s.bl}px`;
 
-  function render() {
-    // one CSS var reshapes the hero body, the row swatch, and the picker preview live.
+  function renderShape() {
     document.documentElement.style.setProperty('--shape-radius', radiusStr(shape));
     IDS.forEach(k => {
       document.getElementById('s-'+k).value = shape[k];
@@ -403,44 +456,82 @@
     document.getElementById('shapeName').textContent = matched ? matched.name : 'Custom';
   }
 
-  // ===== sheet open/close (scrim tap closes) =====
+  function refreshCreate() {
+    document.getElementById('createBtn').disabled = !mainEmoji;
+  }
+
+  // ===== MAIN EMOJI rendering =====
+  function renderMainEmoji() {
+    const spark = document.getElementById('mainSpark');
+    const body = spark.querySelector('.body');
+    if (mainEmoji) {
+      spark.classList.add('has-emoji');
+      body.innerHTML = `<span class="e">${mainEmoji}</span>`;
+    } else {
+      spark.classList.remove('has-emoji');
+      body.innerHTML = `<span class="placeholder-q">?</span>`;
+    }
+    refreshCreate();
+  }
+
+  // ===== DEP EMOJI rendering =====
+  function renderDepEmoji(i) {
+    const el = document.getElementById('dep'+i);
+    if (depEmojis[i]) {
+      el.textContent = depEmojis[i];
+      el.classList.remove('empty');
+    } else {
+      el.textContent = '+';
+      el.classList.add('empty');
+    }
+  }
+
+  function pickMainEmoji() { emojiPickTarget = 'main'; openEmojiSheet(); }
+  function pickDepEmoji(i) { emojiPickTarget = i; openEmojiSheet(); }
+
+  // ===== EMOJI SHEET =====
+  const emojiScrim = document.getElementById('emojiScrim');
+  const emojiSheet = document.getElementById('emojiSheet');
+  function openEmojiSheet() {
+    const grid = document.getElementById('emojiGrid');
+    grid.innerHTML = EMOJI_POOL.map(e => `<button onclick="chooseEmoji('${e}')">${e}</button>`).join('');
+    emojiScrim.classList.add('open'); emojiSheet.classList.add('open');
+  }
+  function closeEmojiSheet() { emojiScrim.classList.remove('open'); emojiSheet.classList.remove('open'); }
+  function chooseEmoji(e) {
+    if (emojiPickTarget === 'main') { mainEmoji = e; renderMainEmoji(); }
+    else { depEmojis[emojiPickTarget] = e; renderDepEmoji(emojiPickTarget); }
+    closeEmojiSheet();
+  }
+  document.getElementById('emojiScrim').addEventListener('click', closeEmojiSheet);
+  document.getElementById('emojiDone').addEventListener('click', closeEmojiSheet);
+
+  // ===== SHAPE SHEET =====
   const scrim = document.getElementById('scrim');
   const sheet = document.getElementById('sheet');
-  const open  = () => { scrim.classList.add('open'); sheet.classList.add('open'); };
-  const close = () => { scrim.classList.remove('open'); sheet.classList.remove('open'); };
-  document.getElementById('shapeRow').addEventListener('click', open);
-  document.getElementById('doneBtn').addEventListener('click', close);
-  scrim.addEventListener('click', close);
+  const openShape  = () => { scrim.classList.add('open'); sheet.classList.add('open'); };
+  const closeShape = () => { scrim.classList.remove('open'); sheet.classList.remove('open'); };
+  document.getElementById('shapeRow').addEventListener('click', openShape);
+  document.getElementById('doneBtn').addEventListener('click', closeShape);
+  scrim.addEventListener('click', closeShape);
 
-  // ===== sliders + chips drive the live silhouette =====
   IDS.forEach(k => document.getElementById('s-'+k)
-    .addEventListener('input', e => { shape[k] = +e.target.value; render(); }));
+    .addEventListener('input', e => { shape[k] = +e.target.value; renderShape(); }));
   document.querySelectorAll('.chip').forEach(c => c
-    .addEventListener('click', () => { shape = { ...PRESETS[c.dataset.p] }; render(); }));
+    .addEventListener('click', () => { shape = { ...PRESETS[c.dataset.p] }; renderShape(); }));
 
-  // ===== streak toggle (square, accent on / line off) =====
+  // ===== STREAK TOGGLE (default OFF) =====
   const tg = document.getElementById('streakToggle');
   document.getElementById('streakRow').addEventListener('click', e => {
-    if (e.target === tg || tg.contains(e.target)) return; // toggle self-handles
+    if (e.target === tg || tg.contains(e.target)) return;
     tg.classList.toggle('off');
   });
   tg.addEventListener('click', e => { e.stopPropagation(); tg.classList.toggle('off'); });
 
-  // ===== Create enable/disable: enabled when hero emoji present =====
-  const heroE = document.getElementById('heroE');
-  const createBtn = document.getElementById('createBtn');
-  let heroHasEmoji = true;
-  function refreshCreate() { createBtn.disabled = !heroHasEmoji; }
-
-  // demo: tap hero to toggle between 💪 and empty (?) state
-  document.getElementById('heroWrap').addEventListener('click', () => {
-    heroHasEmoji = !heroHasEmoji;
-    heroE.textContent = heroHasEmoji ? '💪' : '?';
-    heroE.style.opacity = heroHasEmoji ? '' : '0.3';
-    refreshCreate();
-  });
-
-  render();
+  // ===== INIT =====
+  renderMainEmoji();
+  for (let i = 0; i < 3; i++) renderDepEmoji(i);
+  renderShape();
   refreshCreate();
 </script>
 </body>
