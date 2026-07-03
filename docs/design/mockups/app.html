@@ -84,6 +84,18 @@
   .rank-num{width:24px;text-align:center;font-size:13px;font-weight:800;color:var(--faint);}
   .rank-row.top .rank-num{color:var(--accent);}
   .rank-streak{margin-left:auto;font-size:15px;font-weight:800;color:var(--accent);}
+  /* league left-justified header */
+  .league-hero{display:flex;align-items:center;gap:18px;padding:24px 22px 20px;}
+  .league-emoji{background:none;border:none;cursor:pointer;padding:0;transition:transform 150ms ease-out;}
+  .league-emoji:hover{transform:scale(1.04);}
+  .league-emoji:active{transform:scale(0.96);}
+  .league-title{display:flex;flex-direction:column;gap:2px;}
+  .league-name{font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;}
+  .league-sub{font-size:12px;font-weight:600;color:var(--faint);}
+  /* chat list rows — full-width horizontal dividers, no box */
+  .chat-row{display:flex;align-items:center;gap:14px;padding:13px 22px;cursor:pointer;transition:background 150ms ease-out;}
+  .chat-row:hover{background:#F8FAFC;}
+  .chat-row .spark{flex-shrink:0;}
 
   /* ===== SHARED CHROME ===== */
   .topbar{display:flex;align-items:center;padding:44px 14px 8px;gap:6px;}
@@ -459,10 +471,16 @@
       <span style="flex:1;"></span><span class="tb-spacer"></span>
     </div>
     <div class="scroll" style="padding:0 0 24px;">
-      <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 0 8px;">
-        <div class="spark sz-dep uncomp" id="leagueSpark"><div class="aura"></div><div class="body"><span class="e">💪</span></div></div>
+      <!-- left-justified league hero -->
+      <div class="league-hero">
+        <button class="league-emoji" id="leagueEmojiBtn" onclick="openSheet('leagueEmojiSheet')">
+          <div class="spark sz-hero uncomp" id="leagueSpark"><div class="aura"></div><div class="body"><span class="e">💪</span></div></div>
+        </button>
+        <div class="league-title">
+          <div class="league-name">League</div>
+          <div class="league-sub">tap emoji to switch</div>
+        </div>
       </div>
-      <div class="sec-label" style="text-align:center;padding-top:4px;">League</div>
       <div class="divider"></div>
       <div id="leagueList" style="padding:0 22px;"></div>
     </div>
@@ -654,6 +672,12 @@
     <div class="grabber"></div><div class="sheet-title">Add friend</div>
     <input type="text" class="search" placeholder="@username or phone" oninput="renderAddFriendResults(this.value)">
     <div id="addFriendResults" style="margin-top:4px;"></div>
+  </div>
+
+  <!-- LEAGUE EMOJI picker sheet -->
+  <div class="sheet" id="leagueEmojiSheet">
+    <div class="grabber"></div><div class="sheet-title">League</div>
+    <div class="es-grid" id="leagueEmojiGrid"></div>
   </div>
 
 </div>
@@ -1010,42 +1034,54 @@
 
   // ===== CHAT LIST =====
   function renderChats(){
-    const rows = SPARKS.slice().sort((a,b)=>{
+    const sorted = SPARKS.slice().sort((a,b)=>{
       const ta = a.msgs.length ? a.msgs[a.msgs.length-1].id : 0;
       const tb = b.msgs.length ? b.msgs[b.msgs.length-1].id : 0;
       return tb-ta;
-    }).map(s => {
+    });
+    const rows = sorted.map((s,i) => {
       const last = s.msgs.length ? s.msgs[s.msgs.length-1] : null;
       const preview = last ? (last.big || last.text || '—') : 'no messages';
       const sender = last && last.sender!=='You' ? last.sender+': ' : '';
-      return `<div class="row" style="justify-content:flex-start;gap:12px;padding:13px 16px;" onclick="openSpark(${s.id})">
+      const border = i===0 ? '' : 'border-top:1px solid var(--line);';
+      return `<div class="chat-row" style="${border}" onclick="openSpark(${s.id})">
         ${sparkEl(s.hero, s.lit, 'sz-rc')}
         <div style="flex:1;min-width:0;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-            <span class="val" style="font-weight:700;">${s.hero}</span>
-            <span style="font-size:11px;color:var(--faint);font-weight:600;">${s.lit?'lit':'dull'}</span>
-          </div>
+          <div class="val" style="font-weight:700;">${s.hero}</div>
           <div style="font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;">${sender}${preview}</div>
         </div>
-        ${s.streak>=2?`<span style="font-size:11px;font-weight:800;color:var(--accent);background:var(--accent-soft);padding:3px 7px;border-radius:10px;">${s.streak}</span>`:''}
       </div>`;
     }).join('');
-    $('chatsList').innerHTML = `<div class="panel">${rows}</div>`;
+    $('chatsList').innerHTML = rows;
   }
 
   // ===== LEAGUE =====
-  const LEAGUE_DATA = [
-    { name:'Sam',  avatar:'🧑‍🦰', streak:24, hero:'💪' },
-    { name:'You',  avatar:'🧑',    streak:18, hero:'💪' },
-    { name:'Lia',  avatar:'👩',    streak:15, hero:'💪' },
-    { name:'Mia',  avatar:'🧑‍🦱', streak:11, hero:'💪' },
-    { name:'Tom',  avatar:'👨',    streak:6,  hero:'💪' },
+  let currentLeagueEmoji = '💪';
+  const LEAGUE_DB = [
+    { name:'Sam',  avatar:'🧑‍🦰', streak:24, emoji:'💪' },
+    { name:'You',  avatar:'🧑',    streak:18, emoji:'💪' },
+    { name:'Lia',  avatar:'👩',    streak:15, emoji:'💪' },
+    { name:'Mia',  avatar:'🧑‍🦱', streak:11, emoji:'💪' },
+    { name:'Tom',  avatar:'👨',    streak:6,  emoji:'💪' },
+    { name:'You',  avatar:'🧑',    streak:14, emoji:'🏃' },
+    { name:'Sam',  avatar:'🧑‍🦰', streak:9,  emoji:'🏃' },
+    { name:'Lia',  avatar:'👩',    streak:7,  emoji:'🏃' },
+    { name:'You',  avatar:'🧑',    streak:32, emoji:'🧘' },
+    { name:'Lia',  avatar:'👩',    streak:28, emoji:'🧘' },
   ];
+  const LEAGUE_EMOJIS = ['💪','🏃','🧘','💧','📚'];
+  function pickLeagueEmoji(e){ currentLeagueEmoji=e; closeAllSheets(); renderLeague(); }
   function renderLeague(){
-    const list = LEAGUE_DATA.slice().sort((a,b)=>b.streak-a.streak).map((p,i) =>
-      `<div class="rank-row ${i===0?'top':''}"><div class="rank-num">${i+1}</div><div class="mbr-avatar">${p.avatar}</div><div class="mbr-info"><div class="mbr-name">${p.name}</div></div><div class="rank-streak">${p.streak}</div></div>`
+    // hero spark reflects selected emoji
+    $('leagueSpark').outerHTML = `<div class="spark sz-hero uncomp" id="leagueSpark"><div class="aura"></div><div class="body"><span class="e">${currentLeagueEmoji}</span></div></div>`;
+    // picker grid highlight current
+    $('leagueEmojiGrid').innerHTML = LEAGUE_EMOJIS.map(e=>
+      `<button class="${e===currentLeagueEmoji?'needed':''}" onclick="pickLeagueEmoji('${e}')">${e}</button>`
     ).join('');
-    $('leagueList').innerHTML = list;
+    const rows = LEAGUE_DB.filter(p=>p.emoji===currentLeagueEmoji).slice().sort((a,b)=>b.streak-a.streak).map((p,i) =>
+      `<div class="rank-row ${i===0?'top':''}"><div class="rank-num">${i+1}</div><div class="mbr-avatar">${p.avatar}</div><div class="mbr-info"><div class="mbr-name">${p.name}</div></div><div class="rank-streak">${p.streak}</div></div>`
+    ).join('') || '<div style="padding:18px 0;text-align:center;color:var(--faint);font-size:13px;">no players yet</div>';
+    $('leagueList').innerHTML = rows;
   }
 
   // ===== INIT =====
