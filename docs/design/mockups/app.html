@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goal Isle — App (all screens)</title>
+<style>
+  /* ============================================================
+     GOAL ISLE · connected app shell
+     All 4 screens in one navigable HTML. Phone frame, route-based.
+     Spark shape FIXED (chosen at create). State = color/glow only.
+     Chrome = straight lines, flat, minimal. No UI sentences except
+     the create-screen row labels the user explicitly requested.
+     ============================================================ */
+  :root {
+    --bg:        #EEF2F5;
+    --water-top: #EEF2F5;
+    --water-bot: #E6ECF1;
+    --surface:   #FFFFFF;
+    --ink:       #1F2937;
+    --muted:     #64748B;
+    --faint:     #94A3B8;
+    --line:      #ECEFF2;
+    --accent:    #3B82F6;
+    --accent-dk: #2563EB;
+    --accent-soft: rgba(59,130,246,0.14);
+    --sparkle:   #FBBF24;
+    --dull:      #F4F6F8;
+    --frame:     #0F172A;
+    --grey:      #CBD5E1;
+    --spark-r:   40% 12% 40% 12%;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Roboto, sans-serif;
+    background: radial-gradient(130% 90% at 50% 0%, #F1F5F9 0%, #E6ECF1 55%, #DCE3EA 100%);
+    color: var(--ink); min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 30px 20px 60px; -webkit-font-smoothing: antialiased;
+  }
+  .app-title { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 6px; }
+  .app-title::before { content: ''; display: inline-block; width: 18px; height: 2px;
+    background: var(--accent); vertical-align: middle; margin-right: 8px; }
+  .app-sub { font-size: 12px; color: var(--faint); margin-bottom: 22px; }
+
+  /* ===== PHONE ===== */
+  .phone {
+    width: 332px; height: 700px; border-radius: 46px; border: 10px solid var(--frame);
+    background: linear-gradient(180deg, var(--water-top) 0%, var(--water-bot) 100%);
+    box-shadow: 0 30px 60px rgba(15,23,42,0.22), 0 6px 14px rgba(15,23,42,0.08);
+    position: relative; overflow: hidden;
+  }
+  .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 104px; height: 24px; background: var(--frame); border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px; z-index: 50; }
+
+  /* route screens */
+  .screen { position: absolute; inset: 0; display: none; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ============================================================
+     SPARK (locked, fixed shape)
+     ============================================================ */
+  .spark { position: relative; display: flex; align-items: center; justify-content: center; }
+  .aura { position: absolute; transform: skewX(-14deg); border-radius: var(--spark-r);
+    transition: all 550ms ease-out; z-index: 0; }
+  .body { position: relative; transform: skewX(-14deg); border-radius: var(--spark-r);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 400ms ease-out, box-shadow 400ms ease-out; z-index: 2; }
+  .e { line-height: 1; user-select: none; transform: skewX(14deg);
+    transition: filter 400ms ease-out; z-index: 3; position: relative; }
+  .sparkle { position: absolute; color: var(--sparkle); line-height: 1; pointer-events: none;
+    z-index: 4; opacity: 0; transition: opacity 400ms ease-out 150ms; transform: skewX(14deg); }
+  .spark.uncomp .body { background: var(--dull); box-shadow: inset 0 0 0 1px rgba(31,41,55,0.06); }
+  .spark.uncomp .aura { background: radial-gradient(ellipse, rgba(100,116,139,0.10), transparent 70%); filter: blur(10px); }
+  .spark.uncomp .e { filter: saturate(0.3) opacity(0.5); }
+  .spark.lit .body { background: linear-gradient(135deg, var(--surface), var(--accent-soft));
+    box-shadow: 0 0 0 1.5px var(--accent), 0 6px 22px rgba(59,130,246,0.22); }
+  .spark.lit .aura { background: radial-gradient(ellipse, rgba(59,130,246,0.35), rgba(59,130,246,0.06) 55%, transparent 75%); filter: blur(7px); }
+  .spark.lit .e { filter: saturate(1.15); }
+  .spark.lit .sparkle { opacity: 0.65; }
+  .badge { position: absolute; top: 2px; right: 2px; z-index: 5; background: var(--accent); color: #fff;
+    font-size: 11px; font-weight: 800; min-width: 20px; height: 20px; padding: 0 5px;
+    display: flex; align-items: center; justify-content: center; transform: skewX(-14deg);
+    box-shadow: 0 1px 3px rgba(59,130,246,0.4); }
+  .badge span { transform: skewX(14deg); display: block; }
+  /* sizes */
+  .spark.sz-home { width: 64px; height: 64px; }
+  .spark.sz-home .aura, .spark.sz-home .body { width: 48px; height: 48px; }
+  .spark.sz-home .e { font-size: 30px; }
+  .spark.sz-home .badge { font-size: 9px; min-width: 16px; height: 16px; top: -2px; right: -2px; }
+  .spark.sz-hero { width: 116px; height: 116px; }
+  .spark.sz-hero .aura, .spark.sz-hero .body { width: 88px; height: 88px; }
+  .spark.sz-hero .e { font-size: 46px; }
+  .spark.sz-dep { width: 48px; height: 48px; }
+  .spark.sz-dep .aura, .spark.sz-dep .body { width: 36px; height: 36px; }
+  .spark.sz-dep .e { font-size: 19px; }
+  .spark.sz-mini { width: 32px; height: 32px; }
+  .spark.sz-mini .aura, .spark.sz-mini .body { width: 24px; height: 24px; }
+  .spark.sz-mini .e { font-size: 13px; }
+  .spark.sz-mini .badge { font-size: 8px; min-width: 12px; height: 12px; top: -2px; right: -2px; }
+
+  /* ============================================================
+     SHARED CHROME
+     ============================================================ */
+  .topbar { display: flex; align-items: center; padding: 44px 14px 8px; gap: 6px; }
+  .tb-btn { background: none; border: none; cursor: pointer; color: var(--accent);
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+  .tb-btn svg { width: 22px; height: 22px; }
+  .tb-spacer { width: 32px; flex-shrink: 0; }
+  .tb-word { font: inherit; font-size: 15px; font-weight: 600; background: none; border: none;
+    cursor: pointer; color: var(--accent); }
+  .tb-word.muted { color: var(--faint); }
+  .tb-word.solid { color: #fff; background: var(--accent); padding: 7px 16px; border-radius: 10px; font-weight: 700; }
+  .tb-word.solid:disabled { background: transparent; color: var(--grey); cursor: not-allowed; }
+  .title { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+    cursor: pointer; padding: 2px 6px; }
+  .title .chev { width: 13px; height: 13px; color: var(--faint); transition: transform 220ms ease-out; }
+  .title.open .chev { transform: rotate(180deg); }
+
+  /* rows (flat, line-divided) */
+  .panel { background: var(--surface); border-radius: 16px; border: 1px solid var(--line); overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 14px; padding: 15px 18px; cursor: pointer;
+    transition: background 150ms ease-out; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row:hover { background: #FAFBFC; }
+  .row.cta { background: var(--accent-soft); }
+  .row.cta:hover { background: rgba(59,130,246,0.20); }
+  .row .ic { width: 20px; height: 20px; color: var(--muted); flex-shrink: 0; }
+  .row.cta .ic { color: var(--accent); }
+  .row .ic svg { width: 20px; height: 20px; }
+  .row .val { font-size: 14px; color: var(--ink); font-weight: 500; flex: 1; }
+  .row.cta .val { color: var(--accent-dk); font-weight: 700; }
+  .row .val.placeholder { color: var(--faint); font-weight: 400; }
+  .row .chev { color: var(--faint); }
+  .row .chev svg { width: 16px; height: 16px; }
+
+  /* ============================================================
+     HOME SCREEN
+     ============================================================ */
+  .home-canvas { flex: 1; position: relative; overflow: hidden; }
+  .floating { position: absolute; cursor: pointer; animation: bob 6s ease-in-out infinite;
+    transition: transform 150ms ease-out; }
+  .floating:active { transform: scale(0.95); }
+  @keyframes bob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+  .create-btn { position: absolute; bottom: 24px; right: 22px; width: 58px; height: 58px;
+    border: 2px dashed var(--faint); border-radius: var(--spark-r); transform: skewX(-14deg);
+    background: transparent; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 150ms ease-out; }
+  .create-btn span { transform: skewX(14deg); font-size: 26px; font-weight: 700; color: var(--faint); }
+  .create-btn:hover { border-color: var(--muted); }
+  .create-btn:hover span { color: var(--muted); }
+
+  /* ============================================================
+     NEW SPARK SCREEN
+     ============================================================ */
+  .scroll { flex: 1; overflow-y: auto; padding: 4px 0 20px; }
+  .equation { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 14px 0 6px; }
+  .equals { font-size: 24px; font-weight: 700; color: var(--faint); line-height: 1; }
+  .hero-wrap { cursor: pointer; transition: transform 150ms ease-out; }
+  .hero-wrap:active { transform: scale(0.98); }
+  .deps-list { display: flex; flex-direction: column; gap: 10px; align-self: stretch; padding: 0 22px; }
+  .dep-item { display: flex; align-items: center; gap: 12px; }
+  .dep-item .dep-emoji { font-size: 26px; line-height: 1; width: 38px; text-align: center; }
+  .dep-item .dep-label { flex: 1; border: none; border-bottom: 1px solid var(--line);
+    background: transparent; font: inherit; font-size: 14px; color: var(--ink);
+    padding: 5px 2px; outline: none; transition: border-color 150ms ease-out; }
+  .dep-item .dep-label:focus { border-bottom-color: var(--accent); }
+  .dep-item .dep-label::placeholder { color: var(--faint); }
+  .dep-add-row { display: flex; align-items: center; gap: 12px; cursor: pointer; color: var(--accent); padding: 2px 0; }
+  .dep-add-row svg { width: 20px; height: 20px; }
+  .ns-panel { margin: 22px 16px 0; }
+
+  /* toggle */
+  .toggle { width: 42px; height: 25px; border-radius: 6px; background: var(--accent); position: relative;
+    flex-shrink: 0; transition: background 200ms ease; box-shadow: 0 1px 3px rgba(59,130,246,0.30); cursor: pointer; }
+  .toggle::after { content: ''; position: absolute; top: 3px; right: 3px; width: 19px; height: 19px;
+    border-radius: 4px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: all 200ms ease; }
+  .toggle.off { background: var(--line); box-shadow: inset 0 0 0 1px var(--line); }
+  .toggle.off::after { right: auto; left: 3px; }
+
+  /* ============================================================
+     SPARK DETAILS SCREEN
+     ============================================================ */
+  .card-wrap { padding: 0 16px; }
+  .card { background: var(--surface); border: 1px solid var(--line);
+    box-shadow: 0 4px 14px rgba(31,41,55,0.06); overflow: hidden; border-radius: 16px; }
+  .card-top { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 22px 20px 18px; cursor: pointer; }
+  .meta-row { display: flex; align-items: center; gap: 12px; color: var(--faint); }
+  .meta-row .g { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .meta-row .g svg { width: 13px; height: 13px; }
+  .meta-row .sep { color: var(--line); }
+  .card-expand { max-height: 0; overflow: hidden; transition: max-height 320ms ease-out; }
+  .card.open .card-expand { max-height: 320px; }
+  .recipe { padding: 4px 20px 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;
+    border-top: 1px solid var(--line); margin-top: 4px; }
+  .rc-deps { display: flex; gap: 16px; justify-content: center; padding-top: 12px; }
+  .rc-eq { font-size: 18px; font-weight: 800; color: var(--faint); line-height: 1; }
+  .sd-actions { margin: 14px 16px 0; }
+
+  /* ============================================================
+     CHAT SCREEN
+     ============================================================ */
+  .members { display: flex; align-items: center; gap: 3px; color: var(--faint); }
+  .members svg { width: 13px; height: 13px; }
+  .members b { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .recipe-card { margin: 0 14px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; filter: drop-shadow(0 6px 14px rgba(31,41,55,0.10));
+    padding: 14px; display: none; }
+  .recipe-card.open { display: block; animation: drop 220ms ease-out; }
+  @keyframes drop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .rc-deps-chat { display: flex; gap: 14px; justify-content: center; }
+  .rc-count { font-size: 11px; font-weight: 800; color: var(--accent-dk);
+    background: var(--accent-soft); padding: 2px 9px; text-align: center; border-radius: 8px; }
+  .msglist { flex: 1; overflow-y: auto; padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 12px; }
+  .msg { display: flex; flex-direction: column; max-width: 78%; position: relative; cursor: pointer; }
+  .msg.me { align-self: flex-end; align-items: flex-end; }
+  .msg.them { align-self: flex-start; }
+  .sender { font-size: 10px; color: var(--faint); margin: 0 4px 3px; font-weight: 700; }
+  .bubble { padding: 9px 14px; font-size: 14px; line-height: 1.35; word-break: break-word; border-radius: 4px; }
+  .msg.me .bubble { background: var(--accent); color: #fff; }
+  .msg.them .bubble { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+  .bubble .big { font-size: 32px; line-height: 1.1; display: block; }
+  .time { font-size: 9px; color: var(--faint); margin: 3px 4px 0; }
+  .reax { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
+  .msg.me .reax { justify-content: flex-end; }
+  .react-chip { font-size: 13px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 2px 8px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+  .react-chip.mine { background: var(--accent-soft); border-color: rgba(59,130,246,0.3); }
+  .react-chip b { font-size: 10px; color: var(--muted); font-weight: 700; }
+  .composer { border-top: 1px solid var(--line); background: var(--surface); padding: 10px 12px 16px; }
+  .input-row { display: flex; align-items: center; gap: 8px; }
+  .emoji-btn, .send-btn { width: 40px; height: 40px; flex-shrink: 0; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; border-radius: 20px; transition: all 150ms ease-out; }
+  .emoji-btn { background: var(--dull); color: var(--muted); }
+  .emoji-btn:hover { background: var(--line); }
+  .emoji-btn.need { background: var(--accent-soft); color: var(--accent); }
+  .send-btn { background: var(--accent); color: #fff; }
+  .send-btn:hover:not(:disabled) { background: var(--accent-dk); }
+  .send-btn:disabled { background: var(--grey); color: var(--faint); cursor: not-allowed; }
+  .send-btn svg, .emoji-btn svg { width: 20px; height: 20px; }
+  input.field { flex: 1; height: 40px; border: 1px solid var(--line); border-radius: 20px;
+    background: var(--surface); padding: 0 16px; font: inherit; font-size: 14px; color: var(--ink);
+    outline: none; min-width: 0; }
+  input.field:focus { border-color: rgba(59,130,246,0.5); }
+  /* sheets */
+  .scrim { position: absolute; inset: 0; background: rgba(15,23,42,0.35); z-index: 55;
+    opacity: 0; pointer-events: none; transition: opacity 200ms ease-out; }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .sheet-up { position: absolute; left: 0; right: 0; bottom: 0; background: var(--surface);
+    border-radius: 20px 20px 0 0; padding: 10px 16px 22px; z-index: 60;
+    transform: translateY(101%); transition: transform 280ms cubic-bezier(0.22,1,0.36,1);
+    box-shadow: 0 -10px 28px rgba(15,23,42,0.16); max-height: 60%; overflow-y: auto; }
+  .sheet-up.open { transform: translateY(0); }
+  .grabber { width: 38px; height: 4px; border-radius: 3px; background: #E2E8F0; margin: 4px auto 12px; }
+  .es-mini-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint);
+    font-weight: 700; margin: 4px 4px 8px; }
+  .es-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; }
+  .es-grid button { font-size: 20px; aspect-ratio: 1; border: none; background: none; cursor: pointer;
+    border-radius: 8px; transition: background 120ms ease-out; line-height: 1; }
+  .es-grid button:hover { background: #F1F5F9; }
+  .es-grid button.needed { background: var(--accent-soft); }
+  .es-grid button.satisfied { opacity: 0.4; }
+  /* lighting overlay */
+  .sweep { position: absolute; inset: 0; pointer-events: none; z-index: 40; opacity: 0;
+    background: radial-gradient(circle at 50% 30%, rgba(59,130,246,0.10), transparent 60%); }
+  .sweep.fire { animation: sweep 1.1s ease-out; }
+  @keyframes sweep { 0%{opacity:0;} 25%{opacity:1;} 100%{opacity:0;} }
+  .lit-banner { position: absolute; top: 38%; left: 50%; transform: translate(-50%,-50%);
+    background: rgba(255,255,255,0.96); border: 1px solid rgba(59,130,246,0.25); border-radius: 14px;
+    padding: 12px 20px; box-shadow: 0 10px 30px rgba(59,130,246,0.22); display: flex; align-items: center;
+    gap: 12px; z-index: 45; opacity: 0; pointer-events: none; }
+  .lit-banner.fire { animation: banner 1.8s ease-out; }
+  @keyframes banner { 0%{opacity:0;transform:translate(-50%,-40%) scale(0.9);} 15%{opacity:1;transform:translate(-50%,-50%) scale(1);} 80%{opacity:1;} 100%{opacity:0;transform:translate(-50%,-55%) scale(0.98);} }
+  .lit-banner .b-spark { width: 38px; height: 38px; position: relative; display: flex; align-items: center; justify-content: center; }
+  .lit-banner .b-spark .ba { position: absolute; width: 30px; height: 30px; transform: skewX(-14deg); border-radius: var(--spark-r);
+    background: linear-gradient(135deg, var(--surface), var(--accent-soft)); box-shadow: 0 0 0 1.5px var(--accent); }
+  .lit-banner .b-spark .be { position: relative; font-size: 18px; transform: skewX(14deg); z-index: 2; }
+  .lit-banner .b-sub { font-size: 11px; color: var(--muted); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app-title">Goal Isle</div>
+<div class="app-sub">all screens · tap sparks & buttons to navigate</div>
+
+<div class="phone">
+  <div class="notch"></div>
+
+  <!-- ====================================================
+       SCREEN: HOME
+       ==================================================== -->
+  <div class="screen active" id="screen-home">
+    <div class="home-canvas">
+      <div class="floating" style="top:54px;left:46px;animation-delay:0s;" onclick="go('details')">
+        <div class="spark sz-home lit"><div class="aura"></div><div class="body">
+          <span class="sparkle" style="top:5px;right:9px;font-size:9px;">✦</span><span class="e">💪</span>
+        </div></div>
+      </div>
+      <div class="floating" style="top:84px;left:168px;animation-delay:1.1s;" onclick="go('details')">
+        <div class="spark sz-home lit"><div class="aura"></div><div class="body">
+          <div class="badge"><span>8</span></div>
+          <span class="sparkle" style="top:4px;right:7px;font-size:7px;">✦</span><span class="e">🏃</span>
+        </div></div>
+      </div>
+      <div class="floating" style="top:160px;left:96px;animation-delay:0.5s;" onclick="go('details')">
+        <div class="spark sz-home uncomp"><div class="aura"></div><div class="body"><span class="e">📚</span></div></div>
+      </div>
+      <div class="floating" style="top:140px;right:64px;animation-delay:1.8s;" onclick="go('details')">
+        <div class="spark sz-home lit"><div class="aura"></div><div class="body">
+          <span class="sparkle" style="top:4px;right:7px;font-size:7px;">✦</span><span class="e">🧘</span>
+        </div></div>
+      </div>
+      <div class="floating" style="top:240px;right:130px;animation-delay:1.5s;" onclick="go('details')">
+        <div class="spark sz-home uncomp"><div class="aura"></div><div class="body"><span class="e">💧</span></div></div>
+      </div>
+      <button class="create-btn" onclick="go('create')"><span>?</span></button>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: NEW SPARK (CREATE)
+       ==================================================== -->
+  <div class="screen" id="screen-create">
+    <div class="topbar">
+      <button class="tb-word muted" onclick="go('home')">Cancel</button>
+      <span style="flex:1;"></span>
+      <button class="tb-word solid" onclick="go('details')">Create</button>
+    </div>
+    <div class="scroll">
+      <div class="equation">
+        <div class="hero-wrap" id="createHero">
+          <div class="spark sz-hero lit"><div class="aura"></div><div class="body">
+            <span class="sparkle" style="top:10px;right:14px;font-size:14px;">✦</span>
+            <span class="sparkle" style="bottom:12px;left:12px;font-size:10px;">✦</span>
+            <span class="e">💪</span>
+          </div></div>
+        </div>
+        <span class="equals">=</span>
+        <div class="deps-list">
+          <div class="dep-item"><span class="dep-emoji">🏃</span>
+            <input type="text" class="dep-label" value="run"></div>
+          <div class="dep-item"><span class="dep-emoji">💧</span>
+            <input type="text" class="dep-label" value="water"></div>
+          <div class="dep-add-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span style="font-size:14px;font-weight:600;">Add</span></div>
+        </div>
+      </div>
+      <div class="panel ns-panel">
+        <div class="row"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="val">Daily</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        <div class="row" id="streakRowCreate"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span><span class="val">Break if streak lost</span><span class="toggle" id="streakToggleCreate"></span></div>
+        <div class="row"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span><span class="val placeholder">Share with friends</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: SPARK DETAILS
+       ==================================================== -->
+  <div class="screen" id="screen-details">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title" id="detailsTitle" onclick="toggleDetailsCard()">
+        <div class="spark sz-mini uncomp" id="detailsTitleSpark"><div class="aura"></div><div class="body"><span class="e">💪</span></div></div>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <span class="tb-spacer"></span>
+    </div>
+    <div class="card-wrap">
+      <div class="card" id="detailsCard">
+        <div class="card-top" onclick="toggleDetailsCard()">
+          <div class="spark sz-hero uncomp" id="detailsHero"><div class="aura"></div><div class="body">
+            <span class="sparkle" style="top:10px;right:14px;font-size:14px;">✦</span>
+            <span class="e">💪</span>
+          </div></div>
+          <div class="meta-row">
+            <span class="g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>2/3</span></span>
+            <span class="sep">·</span>
+            <span class="g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg><span>3</span></span>
+          </div>
+        </div>
+        <div class="card-expand">
+          <div class="recipe">
+            <div class="rc-deps">
+              <div class="spark sz-dep lit"><div class="aura"></div><div class="body"><span class="e">🏃</span></div></div>
+              <div class="spark sz-dep lit"><div class="aura"></div><div class="body"><span class="e">💧</span></div></div>
+              <div class="spark sz-dep uncomp"><div class="aura"></div><div class="body"><span class="e">🧘</span></div></div>
+            </div>
+            <div class="rc-eq">=</div>
+            <div class="spark sz-dep uncomp"><div class="aura"></div><div class="body"><span class="e">💪</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel sd-actions">
+      <div class="row"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.1"/><path d="M17.5 14.3a5.5 5.5 0 0 1 3 4.9"/></svg></span><span class="val">3</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+      <div class="row cta" onclick="go('chat')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="val">Light</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+      <div class="row"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="val">Edit</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: CHAT
+       ==================================================== -->
+  <div class="screen" id="screen-chat">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('details')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title" id="chatTitle" onclick="toggleChatRecipe()">
+        <div class="spark sz-mini uncomp" id="chatMiniSpark"><div class="aura"></div><div class="body"><span class="e">💪</span></div></div>
+        <span class="members"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.1"/></svg><b>3</b></span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <span class="tb-spacer"></span>
+    </div>
+    <div class="recipe-card" id="chatRecipeCard">
+      <div class="rc-deps-chat" id="chatRecipeDeps"></div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;">
+        <span class="rc-eq">=</span><span class="rc-count" id="chatRcCount">1/3</span>
+      </div>
+    </div>
+    <div class="msglist" id="msgList"></div>
+    <div class="composer">
+      <div class="input-row">
+        <button class="emoji-btn need" id="emojiBtn" onclick="toggleEmojiSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>
+        <input type="text" class="field" id="chatInput" oninput="updateSend()" onkeydown="if(event.key==='Enter'&&this.value.trim())sendChat()">
+        <button class="send-btn" id="sendBtn" disabled onclick="sendChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+      </div>
+    </div>
+    <!-- emoji sheet -->
+    <div class="scrim" id="emojiScrim" onclick="closeEmojiSheet()"></div>
+    <div class="sheet-up" id="emojiSheet">
+      <div class="grabber"></div>
+      <div class="es-mini-label">Ingredients</div>
+      <div class="es-grid" id="esIng"></div>
+      <div class="es-mini-label" style="margin-top:12px;">Emoji</div>
+      <div class="es-grid" id="esStd"></div>
+    </div>
+    <!-- lighting overlay -->
+    <div class="sweep" id="chatSweep"></div>
+    <div class="lit-banner" id="chatBanner">
+      <div class="b-spark"><div class="ba"></div><div class="be">💪</div></div>
+      <div><div class="b-sub" id="chatBannerSub">streak +1</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ===== ROUTER =====
+  function go(screen) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + screen).classList.add('active');
+  }
+
+  // ===== DETAILS card toggle =====
+  function toggleDetailsCard() {
+    const c = document.getElementById('detailsCard');
+    const t = document.getElementById('detailsTitle');
+    c.classList.toggle('open');
+    t.classList.toggle('open', c.classList.contains('open'));
+  }
+
+  // ===== CREATE streak toggle =====
+  document.getElementById('streakRowCreate').addEventListener('click', function(e) {
+    if (e.target.id === 'streakToggleCreate') return;
+    document.getElementById('streakToggleCreate').classList.toggle('off');
+  });
+
+  // ===== CHAT =====
+  const CHAT_DEPS = [{emoji:'🏃'},{emoji:'💧'},{emoji:'🧘'}];
+  const CHAT_HERO = '💪';
+  const STD_EMOJIS = ['😀','😂','😍','👍','👏','🔥','✨','🎉','❤️','💯','🌟','☕','🏃','🧘','💧','💪'];
+  let chatSat = { '🏃': true };  // Sam seeded a run
+  let chatStreak = 3;
+  let chatLitOnce = false;
+  let chatMsgs = [
+    { sender:'Sam', text:'morning', big:null, reactions:{} },
+    { sender:'Sam', text:null, big:'🏃', reactions:{} },
+  ];
+  let chatId = 100;
+
+  const chatAllMet = () => CHAT_DEPS.every(d => chatSat[d.emoji]);
+
+  function renderChat() {
+    const list = document.getElementById('msgList');
+    list.innerHTML = chatMsgs.map(m => {
+      const me = m.sender === 'You';
+      const reax = Object.entries(m.reactions||{});
+      const reaxHTML = reax.length ? `<div class="reax">${reax.map(([e,w])=>`<span class="react-chip ${w.includes('You')?'mine':''}">${e}<b>${w.length}</b></span>`).join('')}</div>` : '';
+      const content = m.big ? `<span class="big">${m.big}</span>` : escapeHtml(m.text);
+      return `<div class="msg ${me?'me':'them'}" onclick="openReactSheet(${m.id})">
+        ${!me?`<div class="sender">${m.sender}</div>`:''}
+        <div class="bubble">${content}</div>${reaxHTML}</div>`;
+    }).join('');
+    list.scrollTop = list.scrollHeight;
+    // mini spark
+    const lit = chatAllMet();
+    document.getElementById('chatMiniSpark').className = 'spark sz-mini ' + (lit?'lit':'uncomp');
+    // recipe card deps
+    document.getElementById('chatRecipeDeps').innerHTML = CHAT_DEPS.map(d =>
+      `<div class="spark sz-dep ${chatSat[d.emoji]?'lit':'uncomp'}"><div class="aura"></div><div class="body"><span class="e">${d.emoji}</span></div></div>`
+    ).join('');
+    const met = CHAT_DEPS.filter(d => chatSat[d.emoji]).length;
+    document.getElementById('chatRcCount').textContent = met + '/' + CHAT_DEPS.length;
+    // emoji button need state
+    const need = CHAT_DEPS.some(d => !chatSat[d.emoji]);
+    document.getElementById('emojiBtn').classList.toggle('need', need);
+    renderEmojiSheet();
+  }
+
+  function renderEmojiSheet() {
+    const ing = document.getElementById('esIng');
+    ing.innerHTML = CHAT_DEPS.map(d => {
+      const need = !chatSat[d.emoji];
+      const done = chatSat[d.emoji];
+      return `<button class="${need?'needed':(done?'satisfied':'')}" onclick="insertEmoji('${d.emoji}')">${d.emoji}</button>`;
+    }).join('');
+    document.getElementById('esStd').innerHTML = STD_EMOJIS.map(e => `<button onclick="insertEmoji('${e}')">${e}</button>`).join('');
+  }
+
+  function insertEmoji(e) {
+    document.getElementById('chatInput').value += e;
+    document.getElementById('chatInput').focus();
+    updateSend();
+  }
+
+  function updateSend() {
+    document.getElementById('sendBtn').disabled = document.getElementById('chatInput').value.trim().length === 0;
+  }
+
+  function sendChat() {
+    const inp = document.getElementById('chatInput');
+    const v = inp.value.trim();
+    if (!v) return;
+    inp.value = '';
+    updateSend();
+    const big = CHAT_DEPS.find(d => d.emoji === v) ? v : null;
+    chatMsgs.push({ id: chatId++, sender:'You', text: big?null:v, big, reactions:{} });
+    if (big) chatSat[big] = true;
+    renderChat();
+    checkChatLight();
+  }
+
+  let reactTarget = null;
+  function openReactSheet(id) {
+    // simple: react with each dep in turn via prompt-free inline — here we just toggle first unsat dep
+    const m = chatMsgs.find(x => x.id === id);
+    if (!m) return;
+    const unsat = CHAT_DEPS.find(d => !chatSat[d.emoji]);
+    const emoji = unsat ? unsat.emoji : '🔥';
+    if (!m.reactions[emoji]) m.reactions[emoji] = [];
+    if (m.reactions[emoji].includes('You')) {
+      m.reactions[emoji] = m.reactions[emoji].filter(w => w !== 'You');
+      if (m.reactions[emoji].length === 0) delete m.reactions[emoji];
+    } else {
+      m.reactions[emoji].push('You');
+    }
+    if (unsat) chatSat[unsat.emoji] = true;
+    renderChat();
+    checkChatLight();
+  }
+
+  function checkChatLight() {
+    if (chatAllMet() && !chatLitOnce) {
+      chatLitOnce = true;
+      chatStreak++;
+      const sweep = document.getElementById('chatSweep');
+      const banner = document.getElementById('chatBanner');
+      document.getElementById('chatBannerSub').textContent = 'streak ' + chatStreak;
+      sweep.classList.remove('fire'); void sweep.offsetWidth; sweep.classList.add('fire');
+      banner.classList.remove('fire'); void banner.offsetWidth; banner.classList.add('fire');
+    }
+  }
+
+  function toggleChatRecipe() {
+    const c = document.getElementById('chatRecipeCard');
+    const t = document.getElementById('chatTitle');
+    c.classList.toggle('open');
+    t.classList.toggle('open', c.classList.contains('open'));
+  }
+
+  function toggleEmojiSheet() {
+    const s = document.getElementById('emojiSheet');
+    const sc = document.getElementById('emojiScrim');
+    const open = s.classList.toggle('open');
+    sc.classList.toggle('open', open);
+  }
+  function closeEmojiSheet() {
+    document.getElementById('emojiSheet').classList.remove('open');
+    document.getElementById('emojiScrim').classList.remove('open');
+  }
+
+  function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+  // init
+  renderChat();
+</script>
+</body>
+</html>

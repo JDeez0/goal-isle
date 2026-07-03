@@ -162,27 +162,36 @@
   .scroll { flex: 1; overflow-y: auto; padding: 4px 0 28px; }
 
   /* ============================================================
-     THE EQUATION (HERO): deps ABOVE "=" , hero main-emoji BELOW
-     reads top→down: ingredients = result
+     THE EQUATION (HERO): main emoji ABOVE "=" , deps BELOW on the left
+     reads top→down: result = ingredients
+     Main emoji inside a rhomboid spark; deps are bare emoji + word labels.
      ============================================================ */
   .equation { display: flex; flex-direction: column; align-items: center;
-    gap: 16px; padding: 18px 0 8px; }
-  .deps { display: flex; gap: 14px; align-items: center; }
+    gap: 14px; padding: 18px 0 8px; }
   .equals { font-size: 26px; font-weight: 700; color: var(--faint); line-height: 1; }
-
-  /* add-dep chip — the ONE skewed parallelogram in chrome (it spawns a spark) */
-  .dep-add { width: 46px; height: 46px; background: transparent; border: none; cursor: pointer;
-    box-shadow: inset 0 0 0 1.5px rgba(59,130,246,0.45);
-    transform: skewX(-14deg); border-radius: 10px;
-    color: var(--accent); display: flex; align-items: center; justify-content: center;
-    transition: all 150ms ease-out; }
-  .dep-add:hover { background: var(--accent-soft); }
-  .dep-add span { transform: skewX(14deg); display: block; }
-  .dep-add svg { width: 18px; height: 18px; }
 
   /* hero tap affordance */
   .hero-wrap { cursor: pointer; transition: transform 150ms ease-out; }
   .hero-wrap:active { transform: scale(0.98); }
+
+  /* deps list — vertical, on the left, each = bare emoji + word label */
+  .deps-list { display: flex; flex-direction: column; gap: 12px; align-self: stretch;
+    padding: 0 22px; }
+  .dep-item { display: flex; align-items: center; gap: 12px; }
+  .dep-item .dep-emoji { font-size: 28px; line-height: 1; width: 40px; text-align: center; }
+  .dep-item .dep-label { flex: 1; border: none; border-bottom: 1px solid var(--line);
+    background: transparent; font: inherit; font-size: 14px; color: var(--ink);
+    padding: 6px 2px; outline: none; transition: border-color 150ms ease-out; }
+  .dep-item .dep-label:focus { border-bottom-color: var(--accent); }
+  .dep-item .dep-label::placeholder { color: var(--faint); }
+
+  /* add-dep row */
+  .dep-add-row { display: flex; align-items: center; gap: 12px; cursor: pointer;
+    color: var(--accent); padding: 4px 0; transition: opacity 120ms ease-out; }
+  .dep-add-row:active { opacity: 0.6; }
+  .dep-add-row .add-circle { width: 40px; height: 40px; display: flex; align-items: center;
+    justify-content: center; }
+  .dep-add-row svg { width: 22px; height: 22px; }
 
   /* ============================================================
      SETTINGS PANEL — FLAT. thin top line, 1px row separators.
@@ -272,16 +281,8 @@
   </div>
 
   <div class="scroll">
-    <!-- ===== equation: deps above, = , hero main-emoji spark below ===== -->
+    <!-- ===== equation: main emoji ABOVE =, deps BELOW on the left ===== -->
     <div class="equation">
-      <div class="deps">
-        <div class="spark dep lit"><div class="aura"></div><div class="body"><span class="e">🏃</span></div></div>
-        <div class="spark dep lit"><div class="aura"></div><div class="body"><span class="e">💧</span></div></div>
-        <button class="dep-add" aria-label="add dependency">
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
-        </button>
-      </div>
-      <span class="equals">=</span>
       <div class="hero-wrap" id="heroWrap">
         <div class="spark hero lit shaped" id="hero">
           <div class="aura"></div>
@@ -290,6 +291,21 @@
             <span class="sparkle s2">✦</span>
             <span class="e" id="heroE">💪</span>
           </div>
+        </div>
+      </div>
+      <span class="equals">=</span>
+      <div class="deps-list">
+        <div class="dep-item">
+          <span class="dep-emoji">🏃</span>
+          <input type="text" class="dep-label" placeholder="label" value="run" data-i="0">
+        </div>
+        <div class="dep-item">
+          <span class="dep-emoji">💧</span>
+          <input type="text" class="dep-label" placeholder="label" value="water" data-i="1">
+        </div>
+        <div class="dep-add-row" id="addDep">
+          <span class="add-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+          <span style="font-size:14px;font-weight:600;">Add</span>
         </div>
       </div>
     </div>
@@ -308,15 +324,16 @@
         <span class="val">Daily</span>
         <span class="right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
       </div>
-      <!-- Row 3: Streak — flame icon, flat square toggle -->
+      <!-- Row 3: Streak — flame icon, "Break if streak lost", toggle -->
       <div class="row" id="streakRow">
         <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
+        <span class="val" style="flex:1;">Break if streak lost</span>
         <span class="right"><span class="toggle" id="streakToggle"></span></span>
       </div>
-      <!-- Row 4: Share — user-plus icon, faint placeholder, chevron -->
+      <!-- Row 4: Share — user-plus icon, "Share with friends", chevron -->
       <div class="row">
         <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span>
-        <span class="val placeholder">—</span>
+        <span class="val placeholder" style="flex:1;">Share with friends</span>
         <span class="right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
       </div>
     </div>
