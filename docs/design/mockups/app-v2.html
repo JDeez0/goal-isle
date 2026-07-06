@@ -566,9 +566,21 @@
     <div class="topbar">
       <button class="tb-btn" onclick="go('isle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
       <div class="title" id="sparkTitle">Spark</div>
-      <span class="tb-spacer"></span>
+      <button class="tb-btn" onclick="go('sparksettings')" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
     <div class="scroll" id="sparkScroll"></div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: SPARK SETTINGS (rename + shape + delete)
+       ==================================================== -->
+  <div class="screen padbot" id="screen-sparksettings">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('spark')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title">Settings</div>
+      <span class="tb-spacer"></span>
+    </div>
+    <div class="scroll" id="sparkSettingsScroll"></div>
   </div>
 
   <!-- ====================================================
@@ -596,6 +608,18 @@
   </div>
 
   <!-- ====================================================
+       SCREEN: SPARK THREAD (per-spark, separate from Isle chat)
+       ==================================================== -->
+  <div class="screen" id="screen-sparkthread">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('spark')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title" id="sparkThreadTitle">Thread</div>
+      <span class="tb-spacer"></span>
+    </div>
+    <div class="msglist" id="sparkThreadList"></div>
+  </div>
+
+  <!-- ====================================================
        SCREEN: NEW SPARK
        ==================================================== -->
   <div class="screen padbot" id="screen-create">
@@ -611,13 +635,25 @@
           <div class="main-spark" id="mainSpark" onclick="pickMainEmoji()"><div class="aura"></div><div class="body"><span class="placeholder-q">?</span></div></div>
           <input type="text" class="main-label" id="mainLabel" placeholder="Name (optional)">
         </div>
-        <div class="dep-item"><span class="dep-emoji empty" id="dep0" onclick="pickDepEmoji(0)">+</span><input type="text" class="dep-label" placeholder="label (optional)"></div>
-        <div class="dep-item"><span class="dep-emoji empty" id="dep1" onclick="pickDepEmoji(1)">+</span><input type="text" class="dep-label" placeholder="label (optional)"></div>
+        <div id="depsContainer">
+          <div class="dep-item"><span class="dep-emoji empty" id="dep0" onclick="pickDepEmoji(0)">+</span><input type="text" class="dep-label" placeholder="label (optional)"></div>
+          <div class="dep-item"><span class="dep-emoji empty" id="dep1" onclick="pickDepEmoji(1)">+</span><input type="text" class="dep-label" placeholder="label (optional)"></div>
+        </div>
       </div>
 
       <div class="divider" style="margin-top:8px;"></div>
       <div class="sec-label">Kind</div>
       <div class="type-grid" id="typeGrid"></div>
+      <div id="metricFields" style="display:none;padding:0 22px 4px;">
+        <div class="dep-item" style="margin-top:8px;">
+          <span class="dep-emoji" style="opacity:0.4;">🎯</span>
+          <input type="number" class="dep-label" id="metricTargetInput" placeholder="Target (optional)" style="font-size:14px;" oninput="createMetricTarget=this.value">
+        </div>
+        <div class="dep-item" style="margin-top:8px;">
+          <span class="dep-emoji" style="opacity:0.4;">📏</span>
+          <input type="text" class="dep-label" id="metricUnitInput" placeholder="Unit (optional)" style="font-size:14px;" oninput="createMetricUnit=this.value">
+        </div>
+      </div>
 
       <div class="divider" style="margin-top:8px;"></div>
       <div class="panel" style="margin:0 16px;">
@@ -803,6 +839,11 @@
       <span class="tb-spacer"></span>
     </div>
     <div class="scroll">
+      <div class="sec-label">Display</div><div class="divider"></div>
+      <div class="panel" style="margin:0 16px;">
+        <div class="row" id="themeRow" onclick="cycleTheme()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg></span><span class="val">Theme</span><span class="val" style="flex:0;font-weight:600;color:var(--muted);" id="themeVal">Light</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+      </div>
+      <div class="divider" style="margin-top:16px;"></div>
       <div class="sec-label">Notifications</div><div class="divider"></div>
       <div class="panel" style="margin:0 16px;">
         <div class="row" id="notifRow"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span class="val">Push</span><span class="toggle" id="notifToggle"></span></div>
@@ -1006,6 +1047,14 @@
     { name:'Logic Games Gang', emoji:'🧩', color:'--isle-green', members:54, sub:'LG drilling' },
   ];
 
+  // ISLE_MEMBERS — keyed by isle id. Creator is always index 0.
+  const ISLE_MEMBERS = {
+    0:[{name:'You',role:'creator',avatar:'🧑'},{name:'Sam',role:'member',avatar:'🧑‍🦰'},{name:'Priya',role:'member',avatar:'👩'},{name:'Diego',role:'member',avatar:'🧑‍🦱'},{name:'Mia',role:'member',avatar:'🧑‍🦲'},{name:'Lia',role:'member',avatar:'👩'}],
+    1:[{name:'You',role:'creator',avatar:'🧑'},{name:'Lia',role:'member',avatar:'👩'},{name:'Sam',role:'member',avatar:'🧑‍🦰'},{name:'Diego',role:'member',avatar:'🧑‍🦱'}],
+    2:[{name:'You',role:'creator',avatar:'🧑'},{name:'Alex',role:'member',avatar:'🧑'},{name:'Jordan',role:'member',avatar:'👩'}],
+    3:[{name:'You',role:'creator',avatar:'🧑'},{name:'Lia',role:'member',avatar:'👩'},{name:'Mia',role:'member',avatar:'🧑‍🦱'},{name:'Tom',role:'member',avatar:'👨'},{name:'Priya',role:'member',avatar:'👩'}],
+  };
+
   const FRIENDS = [
     { name:'Sam', avatar:'🧑‍🦰', status:'accepted' },
     { name:'Lia', avatar:'👩', status:'accepted' },
@@ -1047,6 +1096,8 @@
     if(screen==='isle') renderIsle();
     if(screen==='spark') renderSpark();
     if(screen==='chat') renderChat();
+    if(screen==='sparkthread') renderSparkThread();
+    if(screen==='sparksettings') renderSparkSettings();
     if(screen==='isles') renderIslesIndex();
     if(screen==='notes') renderNotes();
     if(screen==='league') renderLeague();
@@ -1065,6 +1116,7 @@
   function openIsle(id){ activeIsle=id; go('isle'); }
   function openSpark(isleId, sparkId){ activeIsle=isleId; activeSpark=sparkId; go('spark'); }
   function openChat(isleId){ activeIsle=isleId; go('chat'); }
+  function openSparkThread(){ go('sparkthread'); }
 
   // ============================================================
   // SHEETS
@@ -1251,7 +1303,7 @@
     }
     // secondary actions
     const secondaryHTML = `
-      <div class="sd-btn" onclick="openChat(${activeIsle})"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span> Thread <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+      <div class="sd-btn" onclick="openSparkThread()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span> Thread <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
       <div class="sd-btn" onclick="openSheet('memberListSheet');renderMemberList()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span> Members <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
     `;
     $('sparkScroll').innerHTML = `
@@ -1280,6 +1332,67 @@
     if(s.mode==='metric') $('sparkCard').classList.add('open');
   }
   function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+  function renderSparkThread(){
+    const s = ISLES[activeIsle].sparks.find(x=>x.id===activeSpark) || ISLES[activeIsle].sparks[0];
+    $('sparkThreadTitle').textContent = s.title;
+    const thread = s.thread || [];
+    $('sparkThreadList').innerHTML = thread.length ? thread.map(m=>{
+      const me = m.sender==='You';
+      const content = m.big ? `<span class="big">${m.big}</span>` : escapeHtml(m.text);
+      return `<div class="msg ${me?'me':'them'}">${!me?`<div class="sender">${m.sender}</div>`:''}<div class="bubble">${content}</div></div>`;
+    }).join('') : '<div class="empty-state" style="margin-top:40px;">no logs yet</div>';
+    $('sparkThreadList').scrollTop = $('sparkThreadList').scrollHeight;
+  }
+  function renderSparkSettings(){
+    const s = ISLES[activeIsle].sparks.find(x=>x.id===activeSpark) || ISLES[activeIsle].sparks[0];
+    const shapeR = s.shape ? `${s.shape.tl*100}% ${s.shape.tr*100}% ${s.shape.br*100}% ${s.shape.bl*100}%` : '40% 22% 40% 22%';
+    $('sparkSettingsScroll').innerHTML = `
+      <div class="sec-label" style="padding-top:14px;">Name</div><div class="divider"></div>
+      <div style="padding:14px 22px;">
+        <input type="text" id="sparkRenameInput" value="${escapeHtml(s.title)}" style="border:none;border-bottom:1px solid var(--line);width:100%;font:inherit;font-size:15px;padding:8px 2px;outline:none;color:var(--ink);background:transparent;">
+      </div>
+      <div class="divider"></div>
+      <div class="sec-label">Shape</div><div class="divider"></div>
+      <div style="padding:16px 22px;display:flex;align-items:center;gap:14px;">
+        <div style="width:48px;height:48px;background:var(--dull);border-radius:${shapeR};transform:skewX(-14deg);display:flex;align-items:center;justify-content:center;"><span style="font-size:22px;transform:skewX(14deg);">${s.emoji}</span></div>
+        <div id="sparkShapeSliders" style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;">
+          ${[['tl','TL'],['tr','TR'],['br','BR'],['bl','BL']].map(([k,lbl])=>{
+            const v = s.shape ? Math.round(s.shape[k]*100) : (k==='tl'||k==='br'?40:22);
+            return `<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">${lbl} <b style="color:var(--ink);"><span id="ss${k}v">${v}</span></b></div><input type="range" min="0" max="50" value="${v}" id="ss${k}" oninput="updateSparkShape('${k}',this.value)" style="width:100%;accent-color:var(--accent);"></div>`;
+          }).join('')}
+        </div>
+      </div>
+      <div class="divider" style="margin-top:16px;"></div>
+      <div class="sec-label">Danger zone</div><div class="divider"></div>
+      <div class="panel" style="margin:0 16px;">
+        <div class="row danger" onclick="deleteSpark()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span><span class="val">Delete spark</span></div>
+      </div>
+      <div style="padding:18px 22px;">
+        <button class="tb-word solid" style="border-radius:12px;padding:14px;width:100%;text-align:center;" onclick="saveSparkSettings()">Done</button>
+      </div>
+    `;
+  }
+  function updateSparkShape(k,v){
+    const s = ISLES[activeIsle].sparks.find(x=>x.id===activeSpark);
+    if(!s.shape) s.shape = {tl:0.4,tr:0.22,br:0.4,bl:0.22};
+    s.shape[k] = (+v)/100;
+    $('ss'+k+'v').textContent = v;
+    renderSparkSettings();
+  }
+  function saveSparkSettings(){
+    const s = ISLES[activeIsle].sparks.find(x=>x.id===activeSpark);
+    s.title = $('sparkRenameInput').value.trim() || s.title;
+    renderIsle(); renderHome(); go('spark');
+  }
+  function deleteSpark(){
+    openDeleteSheet('spark');
+    $('deleteConfirmBtn').onclick = function(){
+      const isle = ISLES[activeIsle];
+      const i = isle.sparks.findIndex(x=>x.id===activeSpark);
+      if(i>=0) isle.sparks.splice(i,1);
+      closeAllSheets(); renderIsle(); renderHome(); go('isle');
+    };
+  }
 
   function markDone(){
     const isle = ISLES[activeIsle];
@@ -1303,11 +1416,31 @@
   function submitLog(){
     const isle = ISLES[activeIsle];
     const s = isle.sparks.find(x=>x.id===activeSpark);
-    const v = parseInt($('logInput').value);
+    const v = parseFloat($('logInput').value);
     if(isNaN(v)){ closeAllSheets(); return; }
-    if(s.metric){ s.metric.prev=s.metric.value; s.metric.value=v; s.metric.trend=v>s.metric.prev?'up':'flat'; }
+    const wasLit = s.state==='lit';
+    if(s.metric){
+      s.metric.prev = s.metric.value;
+      s.metric.value = v;
+      s.metric.trend = v > s.metric.prev ? 'up' : (v < s.metric.prev ? 'down' : 'flat');
+    }
+    // push to the per-spark thread
+    if(!s.thread) s.thread = [];
+    s.thread.push({ sender:'You', text:String(v) + (s.metric&&s.metric.unit?(' '+s.metric.unit):''), big:null, time:'just now' });
+    // metric lighting: hit target (or improved on prev) → lit
+    const hitTarget = s.metric && s.metric.target ? v >= s.metric.target : (s.metric && v > s.metric.prev);
+    if(hitTarget && !wasLit){
+      s.state = 'lit';
+      s.streak += 1;
+      s.lastCompletedAt = Date.now();
+      fireBanner(s.emoji, s.streak);
+    } else if (hitTarget && wasLit) {
+      // already lit this cycle — keep streak, no banner
+      s.lastCompletedAt = Date.now();
+    }
     closeAllSheets();
     renderSpark();
+    renderHome();
   }
 
   function fireBanner(emoji, streak){
@@ -1367,8 +1500,10 @@
   const TYPES = [
     { id:'solo', emoji:'🙋', title:'Just you', sub:'your own streak' },
     { id:'together', emoji:'🤝', title:'Add people', sub:'done together' },
+    { id:'metric', emoji:'📈', title:'Track a number', sub:'log a score' },
   ];
   let createMain=null, createDeps=[null,null], pickTarget=null, createType=null;
+  let createMetricTarget='', createMetricUnit='';
   let repeatIdx=1;
   const REPEATS=['Instant','Daily','Weekly','Monthly'];
 
@@ -1397,7 +1532,13 @@
         <div class="tc-sub">${t.sub}</div>
       </div>`).join('');
   }
-  function selectType(id){ createType=id; renderTypeGrid(); }
+  function selectType(id){
+    createType=id; renderTypeGrid();
+    // metric mode: show target/unit fields, hide deps. ritual mode: vice versa.
+    const isMetric = id==='metric';
+    $('metricFields').style.display = isMetric ? 'block' : 'none';
+    $('depsContainer').style.display = isMetric ? 'none' : 'block';
+  }
   function pickMainEmoji(){pickTarget='main';openCreateEmoji();}
   function pickDepEmoji(i){pickTarget=i;openCreateEmoji();}
   function openCreateEmoji(){
@@ -1412,19 +1553,35 @@
   function finishCreate(){
     if(!createMain) return;
     const isle = ISLES[activeIsle];
+    const isMetric = createType==='metric';
     const isTogether = createType==='together';
     const newId = isle.sparks.length ? Math.max(...isle.sparks.map(s=>s.id))+1 : 0;
-    const newSpark = {
+    const baseSpark = {
       id:newId, emoji:createMain, title:$('mainLabel').value||createMain,
-      mode:'ritual', scope: isTogether?'shared':'personal',
+      scope: isTogether?'shared':'personal',
       state:'uncomp', streak:0, window:REPEATS[repeatIdx].toLowerCase(),
-      deps:[], sat:{},
     };
-    createDeps.forEach((d,i)=>{ if(d) newSpark.deps.push({emoji:d,sat:false}); newSpark.sat[d]=false; });
+    let newSpark;
+    if(isMetric){
+      const target = createMetricTarget ? parseFloat(createMetricTarget) : 0;
+      const unit = createMetricUnit.trim();
+      newSpark = Object.assign({}, baseSpark, {
+        mode:'metric',
+        metric:{ value:0, prev:0, target, unit, trend:'flat' },
+        thread:[],
+      });
+    } else {
+      newSpark = Object.assign({}, baseSpark, {
+        mode:'ritual', deps:[], sat:{},
+      });
+      createDeps.forEach((d,i)=>{ if(d) newSpark.deps.push({emoji:d,sat:false}); newSpark.sat[d]=false; });
+    }
     isle.sparks.push(newSpark);
     // reset
-    createMain=null; createDeps=[null,null]; createType=null; $('mainLabel').value='';
-    renderMain(); for(let i=0;i<2;i++)renderDep(i); renderTypeGrid();
+    createMain=null; createDeps=[null,null]; createType=null; createMetricTarget=''; createMetricUnit='';
+    $('mainLabel').value=''; $('metricTargetInput').value=''; $('metricUnitInput').value='';
+    renderMain(); for(let i=0;i<2;i++)renderDep(i); renderTypeGrid(); selectType(null);
+    $('metricFields').style.display='none'; $('depsContainer').style.display='block';
     go('isle');
   }
 
@@ -1478,6 +1635,7 @@
       purpose:$('islePurposeInput').value.trim(), visibility:newIsleVis, memberCount:1,
       sparks:[], posts:[], msgs:[]
     });
+    ISLE_MEMBERS[newId] = [{name:USER.name, role:'creator', avatar:USER.avatar}];
     activeIsle=newId;
     go('isle');
   }
@@ -1652,7 +1810,7 @@
       <div class="panel" style="margin:0 16px;">
         <div class="row" onclick="openSheet('memberListSheet');renderMemberList()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span><span class="val">Manage members</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
         <div class="row" onclick="openSheet('colorSheet');renderSwatches()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg></span><span class="val">Color</span><span class="val" style="flex:0;width:18px;height:18px;border-radius:5px;background:rgb(var(${isle.color}));"></span></div>
-        <div class="row"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg></span><span class="val">Visibility</span><span class="val" style="flex:0;font-weight:600;color:var(--muted);text-transform:capitalize;">${isle.visibility}</span></div>
+        <div class="row" onclick="toggleIsleVis()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg></span><span class="val">Visibility</span><span class="val" style="flex:0;font-weight:600;color:var(--muted);text-transform:capitalize;">${isle.visibility}</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
       </div>
       <div class="sec-label">Danger zone</div>
       <div class="panel" style="margin:0 16px;">
@@ -1673,21 +1831,30 @@
     $('swatchRow').innerHTML = SWATCHES.map(c=>`<div class="swatch ${isle.color===c?'sel':''}" style="background:rgb(var(${c}));" onclick="setIsleColor('${c}')"></div>`).join('');
   }
   function setIsleColor(c){ ISLES[activeIsle].color=c; closeAllSheets(); renderIsleSettings(); renderHome(); }
+  function toggleIsleVis(){
+    const isle = ISLES[activeIsle];
+    isle.visibility = isle.visibility==='private' ? 'public' : 'private';
+    renderIsleSettings(); renderHome();
+  }
 
   // ============================================================
   // MEMBER LIST
   // ============================================================
   function renderMemberList(){
     const isle = ISLES[activeIsle];
-    const members = [
-      {name:'You', role:'creator', avatar:'🧑'},
-      {name:'Sam', role:'member', avatar:'🧑‍🦰'},
-      {name:'Priya', role:'member', avatar:'👩'},
-    ];
-    $('memberListTitle').textContent = `Members · ${isle.memberCount}`;
-    $('memberListBody').innerHTML = members.map(m=>
-      `<div class="mbr"><div class="mbr-avatar">${m.avatar}</div><div class="mbr-info"><div class="mbr-name">${m.name}</div><div class="mbr-role">${m.role}</div></div>${m.role!=='creator'?`<button class="mbr-remove">Remove</button>`:''}</div>`
+    const members = ISLE_MEMBERS[activeIsle] || [{name:'You',role:'creator',avatar:USER.avatar}];
+    $('memberListTitle').textContent = `Members · ${members.length}`;
+    $('memberListBody').innerHTML = members.map((m,i)=>
+      `<div class="mbr"><div class="mbr-avatar">${m.avatar}</div><div class="mbr-info"><div class="mbr-name">${m.name}</div><div class="mbr-role">${m.role}</div></div>${m.role!=='creator'?`<button class="mbr-remove" onclick="removeMember(${i})">Remove</button>`:''}</div>`
     ).join('');
+  }
+  function removeMember(i){
+    const members = ISLE_MEMBERS[activeIsle];
+    if(members && members[i] && members[i].role!=='creator'){
+      members.splice(i,1);
+      ISLES[activeIsle].memberCount = members.length;
+      renderMemberList(); renderIsleSettings(); renderIsle(); renderHome();
+    }
   }
 
   // ============================================================
@@ -1731,19 +1898,27 @@
   function renderFriends(){
     const accepted = FRIENDS.filter(f=>f.status==='accepted');
     const pendingIn = FRIENDS.filter(f=>f.status==='pending_in');
+    const pendingOut = FRIENDS.filter(f=>f.status==='pending_out');
     let html = '';
     if(pendingIn.length){
       html += `<div class="sec-label">Requests</div><div class="divider"></div><div style="padding:0 22px;">`;
-      pendingIn.forEach(f=>{ html += `<div class="mbr"><div class="mbr-avatar">${f.avatar}</div><div class="mbr-info"><div class="mbr-name">${f.name}</div><div class="mbr-role">wants to be friends</div></div><button class="tb-word" style="font-size:13px;font-weight:700;" onclick="acceptFriend('${f.name}')">Accept</button></div>`; });
+      pendingIn.forEach(f=>{ html += `<div class="mbr"><div class="mbr-avatar">${f.avatar}</div><div class="mbr-info"><div class="mbr-name">${f.name}</div><div class="mbr-role">wants to be friends</div></div><button class="tb-word" style="font-size:13px;font-weight:700;" onclick="acceptFriend('${f.name}')">Accept</button><button class="mbr-remove" onclick="declineFriend('${f.name}')">Decline</button></div>`; });
       html += `</div><div class="divider" style="margin-top:10px;"></div>`;
     }
     html += `<div class="sec-label">Friends · ${accepted.length}</div><div class="divider"></div><div style="padding:0 22px;">`;
     if(accepted.length===0) html += `<div class="empty-state">no friends yet</div>`;
-    accepted.forEach(f=>{ html += `<div class="mbr"><div class="mbr-avatar">${f.avatar}</div><div class="mbr-info"><div class="mbr-name">${f.name}</div><div class="mbr-role">friend</div></div></div>`; });
+    accepted.forEach(f=>{ html += `<div class="mbr"><div class="mbr-avatar">${f.avatar}</div><div class="mbr-info"><div class="mbr-name">${f.name}</div><div class="mbr-role">friend</div></div><button class="mbr-remove" onclick="unfriend('${f.name}')">Remove</button></div>`; });
     html += `</div>`;
+    if(pendingOut.length){
+      html += `<div class="divider" style="margin-top:10px;"></div><div class="sec-label">Sent</div><div class="divider"></div><div style="padding:0 22px;">`;
+      pendingOut.forEach(f=>{ html += `<div class="mbr"><div class="mbr-avatar">${f.avatar}</div><div class="mbr-info"><div class="mbr-name">${f.name}</div><div class="mbr-role">pending</div></div></div>`; });
+      html += `</div>`;
+    }
     $('friendsScroll').innerHTML = html;
   }
   function acceptFriend(name){ const f=FRIENDS.find(x=>x.name===name); if(f){f.status='accepted';renderFriends();renderShareSheet();} }
+  function declineFriend(name){ const i=FRIENDS.findIndex(x=>x.name===name); if(i>=0&&FRIENDS[i].status==='pending_in'){FRIENDS.splice(i,1);renderFriends();} }
+  function unfriend(name){ const i=FRIENDS.findIndex(x=>x.name===name); if(i>=0&&FRIENDS[i].status==='accepted'){FRIENDS.splice(i,1);renderFriends();renderShareSheet();} }
   function renderAddFriendResults(q){
     q=(q||'').trim().toLowerCase();
     const results = q ? FRIENDS.filter(f=>f.name.toLowerCase().includes(q)) : FRIENDS.slice(0,4);
@@ -1818,6 +1993,8 @@
   initSwipes();
   $('notifToggle').addEventListener('click',function(e){e.stopPropagation();this.classList.toggle('off');});
   $('notifRow').addEventListener('click',function(e){if(e.target.id==='notifToggle'||e.target.closest('#notifToggle'))return;$('notifToggle').classList.toggle('off');});
+  let themeIdx=0; const THEMES=['Light','Dark'];
+  function cycleTheme(){ themeIdx=(themeIdx+1)%THEMES.length; $('themeVal').textContent=THEMES[themeIdx]; }
 </script>
 </body>
 </html>

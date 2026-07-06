@@ -22,8 +22,8 @@ Hardcoded values with no input path. These are the highest-impact gaps because t
 - [x] **6. Isle `name`** — hardcoded per Isle; shown on Home face, Isle header, Isles list, Notes, League. Set only by the (missing) Create-Isle flow; no rename. ✅ Create path closed (rename still open — see #14 pattern).
 - [x] **7. Isle `mainEmoji`** — hardcoded; shown on Home face, Isle header, Isles list. Set only by Create-Isle; no edit. ✅ Create path closed.
 - [x] **8. Isle `purpose`** — hardcoded (`"crushing the December test together"`); shown on Isle header. Spec field (`purpose: one-line description, optional`). No creation field, no edit. ✅ Create path closed.
-- [ ] **9. Metric spark creation** — **entire mode is read-only.** Spark details renders metric sparks with data panels, but the Kind picker only offers solo/together (ritual). `finishCreate()` hardcodes `mode:'ritual'`. Needs: a third Kind card → metric creation fields.
-- [ ] **10. Metric `target` / `unit` / `template`** — hardcoded in seed data; shown in the metric panel ("This week / Last week"). Spec §6 requires these at creation; no UI exists.
+- [x] **9. Metric spark creation** — **entire mode was read-only.** ✅ Closed: Kind picker now has a third "Track a number" card; selecting it shows target/unit fields and hides deps; `finishCreate` branches to build a metric spark.
+- [x] **10. Metric `target` / `unit` / `template`** — ✅ Closed: target + unit set at creation; `submitLog` updates value/trend, pushes to thread, and lights the spark when target is hit (gap #23 also closed).
 
 ---
 
@@ -31,12 +31,12 @@ Hardcoded values with no input path. These are the highest-impact gaps because t
 
 Shown as a row with a value/chevron suggesting edit, but the row is dead or the action is missing.
 
-- [ ] **11. Isle `visibility`** — Isle Settings shows it as a row with a value (`private`/`public`), but **no `onclick`, no picker**. Dead row.
-- [ ] **12. Member `Remove` buttons** — rendered in member list, but **`onclick` is missing**. Clicking does nothing.
-- [ ] **13. Friends — unfriend** — no remove button on accepted friends. Can accept incoming requests; cannot unfriend.
-- [ ] **14. Spark `title` rename** — correctly read on create (`finishCreate` reads `mainLabel.value`), but **no edit path** post-creation. Spark Settings (which doesn't exist in v2) would hold this.
-- [ ] **15. Spark `shape` per-spark** — spec says cosmetic + editable in Spark Settings. **There is no Spark Settings screen in v2** — only Isle Settings. Shape can't be changed after creation (and isn't settable at creation either).
-- [ ] **16. App Settings theme row** — "Theme · Light" row exists, **dead — no picker**.
+- [x] **11. Isle `visibility`** — ✅ Closed: row now toggles private↔public via `toggleIsleVis()`.
+- [x] **12. Member `Remove` buttons** — ✅ Closed: real `ISLE_MEMBERS` model per isle; Remove is wired (`removeMember`), updates count everywhere.
+- [x] **13. Friends — unfriend** — ✅ Closed: Remove button on accepted friends (`unfriend`).
+- [x] **14. Spark `title` rename** — ✅ Closed: Spark Settings screen has a rename field (`saveSparkSettings`).
+- [x] **15. Spark `shape` per-spark** — ✅ Closed: Spark Settings has 4-corner shape sliders (`updateSparkShape`).
+- [x] **16. App Settings theme row** — ✅ Closed: Display section added with a cycling theme row (`cycleTheme`).
 - [ ] **17. Sign out (Profile)** — row navigates to Home but **doesn't clear any auth state** (no auth state exists). Cosmetic only.
 - [ ] **18. Discover `Join`** — `toggleJoin` flips the button label but **does not add the Isle to `ISLES`**. Join is purely cosmetic; the Isle never appears in Your Isles.
 - [ ] **19. Post image (`postImg`)** — toggle works, but it's a CSS placeholder. **No real image, no proof** (spec §11 re-introduces camera capture).
@@ -50,8 +50,8 @@ Things the v2 spec explicitly defines that have zero UI in the mockup.
 
 - [ ] **21. Language Principle cleanup** — §0 restricts UI text to nouns "Isle/Key" + plain verbs (Done/Log/Create/Join/Share/Add/Remove). Overages in the mockup: "Activity", "Trend", "Visibility", "Repeats", "Push", "Kind", "Color", "To". Need a screen-by-screen pass to replace with allowed words or icons.
 - [ ] **22. Scope (shared/personal) at creation** — §5. The Kind picker conflates scope with mode. Personal-vs-shared is real in the data but the metric path offers no scope choice.
-- [ ] **23. Metric lighting mechanic** — §6 hybrid lighting. Ritual lighting works; **metric lighting has no mechanic** — logging a score doesn't check against `target`, doesn't change spark state. `submitLog()` just pushes a thread message.
-- [ ] **24. Per-Spark thread** — §6. Spec says metric sparks have their own thread. The "Thread" button opens the **Isle chat**, not a per-spark thread.
+- [x] **23. Metric lighting mechanic** — §6 hybrid lighting. ✅ Closed: `submitLog` now checks value against target (or improvement on prev), sets spark state to lit, increments streak, fires banner.
+- [x] **24. Per-Spark thread** — §6. ✅ Closed: dedicated `screen-sparkthread` reads from `s.thread`; Thread button on Spark Details opens it (no longer the Isle chat).
 - [ ] **25. Home layout laws** — §9. The Poisson-disk dispersion from `app.html` (v1) **was not ported** to v2 Home. Need to verify v2 Home's face grouping obeys the spec's three layout laws + density cap.
 - [ ] **26. Image model** — §11. Posts + Log both reference images but there's no image data, no capture UI, no rendering of a real image.
 - [ ] **27. Auth entry (sign in / sign up)** — inherited Tier-2 gap from v1. Blocks every social flow. No screen exists.
@@ -67,7 +67,7 @@ The mockup's logic doesn't match how real state would work. Won't break the demo
 - [ ] **30. `LEAGUE_DB` is a parallel hardcoded structure** — real rankings derive from sparks' streaks + memberships, not a separate array.
 - [ ] **31. No leave-Isle flow** — a creator can delete; a member cannot leave. Spec §12 implies leaving.
 - [ ] **32. Reactions count drift** — `reactMsg` toggling has edge cases where counts can get out of sync across messages.
-- [ ] **33. No friend-request decline** — only Accept. Pending-in requests can't be dismissed.
+- [x] **33. No friend-request decline** — ✅ Closed: Decline button on pending-in requests (`declineFriend`).
 
 ---
 
@@ -85,4 +85,4 @@ The biggest structural holes, addressed in order of leverage:
 
 ---
 
-*Last updated: July 5, 2026. Checkboxes marked as gaps close in `app-v2.html`. Items 1–8 closed in the July 5 Create-Isle + Edit-Profile pass.*
+*Last updated: July 5, 2026. Checkboxes marked as gaps close in `app-v2.html`. Items 1–8 closed in the Create-Isle + Edit-Profile pass; items 9–16, 23–24, 33 closed in the metric + dead-rows + Spark-Settings pass.*
