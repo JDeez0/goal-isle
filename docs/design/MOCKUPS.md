@@ -1,6 +1,8 @@
 # Mockups — Goal Isle
 
-**Date:** July 1, 2026
+**Date:** July 1, 2026 *(mockups below reflect v1 — see banner)*
+
+> ⚠️ **The mockups described here reflect spec v1.** The governing spec is now [`ISLE_SPARKS_SPEC_v2.md`](ISLE_SPARKS_SPEC_v2.md) (July 3, 2026), which rebuilds Home (territories), adds a type picker to New Spark, and adds five new screens (Isle Home, Post Composer, Metric Log, per-Spark thread, Discover). The existing mockups are still useful as v1 references but **will be updated/replaced** as v2 mockup work proceeds.
 
 HTML/CSS mockups used for **design iteration only**. They are not part of the shipped app — they exist to eyeball look-and-feel before porting to Flutter.
 
@@ -20,7 +22,8 @@ Then open in a browser:
 
 | Mockup | URL | What it shows |
 |---|---|---|
-| **App Shell (connected flow)** | http://localhost:8095/docs/design/mockups/app.html | The full connected app shell: **Home** (floating sparks) ↔ **Notes** (chronological spark activity) ↔ **League** (emoji-based streak leaderboard). Swipe left/right on Home, or use the durable bottom nav. Profile avatar is persistent top-right. Includes Friends, Profile, App Settings, Spark Details, Spark Settings, New Spark, and Chat sub-flows. This is the current canonical interactive prototype. |
+| **App Shell v2 (connected flow)** | http://localhost:8095/docs/design/mockups/app-v2.html | 🔒 **The active build target** (governs spec v2). The full connected app shell: **Home** (Isle-face territories) ↔ **Notes** ↔ **League**, plus Isle drill-in, Spark Details (ritual + metric), per-Isle Chat, Post Composer, Discover, Isles list, Isle Settings, Friends, Profile, App Settings. 13 screens, all wired. See [`MOCKUP_GAPS.md`](MOCKUP_GAPS.md) for the open-work audit. |
+| **App Shell v1 (legacy)** | http://localhost:8095/docs/design/mockups/app.html | The v1 connected app shell (pre-v2-spec). Kept as a v1 reference; **no longer the build target**. Floating sparks on Home; do not extend. |
 | **Create Spark** | http://localhost:8095/docs/design/mockups/create-spark.html | Standalone Create Spark reference. Superseded by the connected `app.html` flow; kept as isolated reference for the equation layout. |
 | **Spark Details** | http://localhost:8095/docs/design/mockups/spark-details.html | The Spark Details screen (phone frame). The read-only **recipe / equation** (deps above `=`, main-emoji hero below) — each dep grey→fills as satisfied in chat; the hero lights when all deps are met (or, for a no-dep spark, when the main emoji is posted). Action card: Members · Chat (becomes the primary CTA "Light this spark" when dull) · Settings (creator only). **Interactive** — toggle dep satisfaction, streak, parked state, and creator/member access; plus a **static gallery** of variants (no-dep, parked, streaked-win, partial-fill). |
 | **Chat (per-spark)** | http://localhost:8095/docs/design/mockups/chat.html | Standalone Chat reference. Superseded by the per-spark chat in `app.html`. |
@@ -50,7 +53,7 @@ Then open in a browser:
 
 ## Relationship to the Spec
 
-- Isle Spark behavior and states → see [`ISLE_SPARKS_SPEC.md`](ISLE_SPARKS_SPEC.md).
+- Isle Spark behavior and states → see [`ISLE_SPARKS_SPEC_v2.md`](ISLE_SPARKS_SPEC_v2.md) (governing; v1 spec is historical).
 - Design tokens → see [`TOKENS.md`](TOKENS.md) (note: some new tokens for the spark shape/states are not yet defined there — see the spec's "Visual tokens to add" section).
 - Screen inventory and gaps → see [`SCREEN_INVENTORY.md`](SCREEN_INVENTORY.md).
 
