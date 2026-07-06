@@ -14,14 +14,14 @@
 
 Hardcoded values with no input path. These are the highest-impact gaps because they block core identity flows.
 
-- [ ] **1. Profile name** (`"You"`) — shown on Profile, every `"You"` sender label, League. Hardcoded. Needs: edit-Profile sheet → `USER.name`.
-- [ ] **2. Profile handle** (`@you`) — shown on Profile. Hardcoded. Needs: set-on-signup + edit (with uniqueness check).
-- [ ] **3. Profile bio** (`"Studying for the December LSAT…"`) — shown on Profile. Hardcoded, no edit affordance. Needs: edit-Profile sheet → `USER.bio`.
-- [ ] **4. Profile avatar emoji** (`🧑`) — shown on Profile, Home corner avatar, all `"You"` sender labels, League. Hardcoded. Needs: emoji picker in edit-Profile.
-- [ ] **5. Create-Isle flow** — **does not exist.** Cannot make a new Isle. Blocks the app's core object. Needs: a Create-Isle screen (name + emoji + color + visibility + purpose).
-- [ ] **6. Isle `name`** — hardcoded per Isle; shown on Home face, Isle header, Isles list, Notes, League. Set only by the (missing) Create-Isle flow; no rename.
-- [ ] **7. Isle `mainEmoji`** — hardcoded; shown on Home face, Isle header, Isles list. Set only by Create-Isle; no edit.
-- [ ] **8. Isle `purpose`** — hardcoded (`"crushing the December test together"`); shown on Isle header. Spec field (`purpose: one-line description, optional`). No creation field, no edit.
+- [x] **1. Profile name** (`"You"`) — shown on Profile, every `"You"` sender label, League. Hardcoded. Needs: edit-Profile sheet → `USER.name`. ✅ Closed: `USER` model + edit-Profile sheet.
+- [x] **2. Profile handle** (`@you`) — shown on Profile. Hardcoded. Needs: set-on-signup + edit (with uniqueness check). ✅ Closed: editable in edit-Profile sheet (uniqueness check deferred to backend).
+- [x] **3. Profile bio** (`"Studying for the December LSAT…"`) — shown on Profile. Hardcoded, no edit affordance. Needs: edit-Profile sheet → `USER.bio`. ✅ Closed.
+- [x] **4. Profile avatar emoji** (`🧑`) — shown on Profile, Home corner avatar, all `"You"` sender labels, League. Hardcoded. Needs: emoji picker in edit-Profile. ✅ Closed: avatar picker sheet.
+- [x] **5. Create-Isle flow** — **does not exist.** Cannot make a new Isle. Blocks the app's core object. Needs: a Create-Isle screen (name + emoji + color + visibility + purpose). ✅ Closed: `screen-create-isle` + `finishCreateIsle`.
+- [x] **6. Isle `name`** — hardcoded per Isle; shown on Home face, Isle header, Isles list, Notes, League. Set only by the (missing) Create-Isle flow; no rename. ✅ Create path closed (rename still open — see #14 pattern).
+- [x] **7. Isle `mainEmoji`** — hardcoded; shown on Home face, Isle header, Isles list. Set only by Create-Isle; no edit. ✅ Create path closed.
+- [x] **8. Isle `purpose`** — hardcoded (`"crushing the December test together"`); shown on Isle header. Spec field (`purpose: one-line description, optional`). No creation field, no edit. ✅ Create path closed.
 - [ ] **9. Metric spark creation** — **entire mode is read-only.** Spark details renders metric sparks with data panels, but the Kind picker only offers solo/together (ritual). `finishCreate()` hardcodes `mode:'ritual'`. Needs: a third Kind card → metric creation fields.
 - [ ] **10. Metric `target` / `unit` / `template`** — hardcoded in seed data; shown in the metric panel ("This week / Last week"). Spec §6 requires these at creation; no UI exists.
 
@@ -85,4 +85,4 @@ The biggest structural holes, addressed in order of leverage:
 
 ---
 
-*Last updated: July 5, 2026. Checkboxes marked as gaps close in `app-v2.html`.*
+*Last updated: July 5, 2026. Checkboxes marked as gaps close in `app-v2.html`. Items 1–8 closed in the July 5 Create-Isle + Edit-Profile pass.*

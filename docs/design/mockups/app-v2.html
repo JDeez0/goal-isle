@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goal Isle — v2 App Shell</title>
+<style>
+  /* ============================================================
+     GOAL ISLE · v2 CONNECTED APP SHELL
+     Isle = community. One face per Isle on Home.
+     Every screen wired. Language principle: no light/ritual/metric/
+     scope/window words in UI.
+     Spark treatment = EXACT original from app.html (unchanged).
+     ============================================================ */
+  :root {
+    --bg:#EEF2F5; --water-top:#EEF2F5; --water-bot:#E6ECF1; --surface:#FFFFFF;
+    --ink:#1F2937; --muted:#64748B; --faint:#94A3B8; --line:#ECEFF2;
+    --accent:#3B82F6; --accent-dk:#2563EB; --accent-soft:rgba(59,130,246,0.14);
+    --sparkle:#FBBF24; --dull:#F4F6F8; --frame:#0F172A; --grey:#CBD5E1;
+    --warn:#EF4444; --warn-soft:rgba(239,68,68,0.10);
+    --spark-r:40% 22% 40% 22%;
+    /* isle colors — curated swatch (creator-chosen) */
+    --isle-blue:59,130,246; --isle-green:16,185,129; --isle-amber:245,158,11;
+    --isle-violet:139,92,246; --isle-rose:244,114,182; --isle-teal:20,184,166;
+    --isle-orange:249,115,22; --isle-indigo:99,102,241;
+    /* active isle color — set dynamically by JS on navigation */
+    --isle:var(--isle-blue);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',Roboto,sans-serif;
+    background:radial-gradient(130% 90% at 50% 0%,#F1F5F9 0%,#E6ECF1 55%,#DCE3EA 100%);
+    color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center;
+    padding:30px 20px 60px;-webkit-font-smoothing:antialiased;}
+  .app-title{font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:6px;}
+  .app-title::before{content:'';display:inline-block;width:18px;height:2px;background:var(--accent);
+    vertical-align:middle;margin-right:8px;}
+  .app-sub{font-size:12px;color:var(--faint);margin-bottom:22px;max-width:360px;text-align:center;line-height:1.4;}
+
+  /* ===== PHONE ===== */
+  .phone{width:332px;height:700px;border-radius:46px;border:10px solid var(--frame);
+    background:linear-gradient(180deg,var(--water-top) 0%,var(--water-bot) 100%);
+    box-shadow:0 30px 60px rgba(15,23,42,0.22),0 6px 14px rgba(15,23,42,0.08);
+    position:relative;overflow:hidden;}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:104px;height:24px;
+    background:var(--frame);border-bottom-left-radius:15px;border-bottom-right-radius:15px;z-index:50;}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;}
+  .screen.active{display:flex;}
+  .screen.padbot{padding-bottom:50px;}
+
+  /* ===== SPARK (locked — copied exactly from app.html) ===== */
+  .spark{position:relative;display:flex;align-items:center;justify-content:center;}
+  .aura{position:absolute;transform:skewX(-14deg);border-radius:var(--spark-r);transition:all 550ms ease-out;z-index:0;}
+  .body{position:relative;transform:skewX(-14deg);border-radius:var(--spark-r);display:flex;
+    align-items:center;justify-content:center;transition:background 400ms ease-out,box-shadow 400ms ease-out;z-index:2;}
+  .e{line-height:1;user-select:none;transform:skewX(14deg);transition:filter 400ms ease-out;z-index:3;position:relative;}
+  .sparkle{position:absolute;color:var(--sparkle);line-height:1;pointer-events:none;z-index:4;opacity:0;
+    transition:opacity 400ms ease-out 150ms;transform:skewX(14deg);}
+  .spark.uncomp .body{background:var(--dull);box-shadow:inset 0 0 0 1px rgba(31,41,55,0.06);}
+  .spark.uncomp .aura{background:radial-gradient(ellipse,rgba(100,116,139,0.10),transparent 70%);filter:blur(10px);}
+  .spark.uncomp .e{filter:saturate(0.3) opacity(0.5);}
+  .spark.lit .body{background:linear-gradient(135deg,var(--surface),var(--accent-soft));
+    box-shadow:0 0 0 1.5px var(--accent),0 6px 22px rgba(59,130,246,0.22);}
+  .spark.lit .aura{background:radial-gradient(ellipse,rgba(59,130,246,0.35),rgba(59,130,246,0.06) 55%,transparent 75%);filter:blur(7px);}
+  .spark.lit .e{filter:saturate(1.15);}
+  .spark.lit .sparkle{opacity:0.65;}
+  .spark.greyed .body{background:#E8EBEF;box-shadow:none;}
+  .spark.greyed .aura{display:none;}
+  .spark.greyed .e{filter:grayscale(1) opacity(0.42);}
+  .badge{position:absolute;top:2px;right:2px;z-index:5;background:var(--accent);color:#fff;
+    font-size:11px;font-weight:800;min-width:20px;height:20px;padding:0 5px;display:flex;
+    align-items:center;justify-content:center;transform:skewX(-14deg);box-shadow:0 1px 3px rgba(59,130,246,0.4);}
+  .badge span{transform:skewX(14deg);display:block;}
+  .spark.sz-home{width:64px;height:64px;}
+  .spark.sz-home .aura,.spark.sz-home .body{width:48px;height:48px;}
+  .spark.sz-home .e{font-size:30px;}
+  .spark.sz-hero{width:96px;height:96px;}
+  .spark.sz-hero .aura,.spark.sz-hero .body{width:72px;height:72px;}
+  .spark.sz-hero .e{font-size:38px;}
+  .spark.sz-dep{width:40px;height:40px;}
+  .spark.sz-dep .aura,.spark.sz-dep .body{width:30px;height:30px;}
+  .spark.sz-dep .e{font-size:16px;}
+  .spark.sz-mini{width:30px;height:30px;}
+  .spark.sz-mini .aura,.spark.sz-mini .body{width:22px;height:22px;}
+  .spark.sz-mini .e{font-size:12px;}
+  .spark.sz-rc{width:30px;height:30px;}
+  .spark.sz-rc .aura,.spark.sz-rc .body{width:24px;height:24px;}
+  .spark.sz-rc .e{font-size:14px;}
+
+  /* ===== SHARED CHROME ===== */
+  .topbar{display:flex;align-items:center;padding:44px 14px 8px;gap:6px;}
+  .tb-btn{background:none;border:none;cursor:pointer;color:var(--accent);width:32px;height:32px;
+    display:flex;align-items:center;justify-content:center;}
+  .tb-btn svg{width:22px;height:22px;}
+  .tb-spacer{width:32px;flex-shrink:0;}
+  .tb-word{font:inherit;font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;color:var(--accent);}
+  .tb-word.muted{color:var(--faint);}
+  .tb-word.solid{color:#fff;background:var(--accent);padding:7px 16px;border-radius:10px;font-weight:700;}
+  .tb-word.solid:disabled{background:transparent;color:var(--grey);cursor:not-allowed;}
+  .title{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;padding:2px 6px;
+    font-size:16px;font-weight:600;color:var(--ink);}
+  .title .chev{width:13px;height:13px;color:var(--faint);transition:transform 220ms ease-out;}
+  .title.open .chev{transform:rotate(180deg);}
+
+  /* panels + rows */
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;}
+  .row{display:flex;align-items:center;gap:14px;padding:15px 18px;cursor:pointer;transition:background 150ms ease-out;}
+  .row+.row{border-top:1px solid var(--line);}
+  .row:hover{background:#FAFBFC;}
+  .row.cta{background:var(--accent-soft);}
+  .row.cta:hover{background:rgba(59,130,246,0.20);}
+  .row.danger:hover{background:var(--warn-soft);}
+  .row .ic{width:20px;height:20px;color:var(--muted);flex-shrink:0;}
+  .row.cta .ic{color:var(--accent);}
+  .row.danger .ic{color:var(--warn);}
+  .row .ic svg{width:20px;height:20px;}
+  .row .val{font-size:14px;color:var(--ink);font-weight:500;flex:1;}
+  .row.cta .val{color:var(--accent-dk);font-weight:700;}
+  .row.danger .val{color:var(--warn);}
+  .row .val.placeholder{color:var(--faint);font-weight:400;}
+  .row .chev{color:var(--faint);}
+  .row .chev svg{width:16px;height:16px;}
+
+  .toggle{width:42px;height:25px;border-radius:6px;background:var(--accent);position:relative;flex-shrink:0;
+    transition:background 200ms ease;box-shadow:0 1px 3px rgba(59,130,246,0.30);cursor:pointer;}
+  .toggle::after{content:'';position:absolute;top:3px;right:3px;width:19px;height:19px;border-radius:4px;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.2);transition:all 200ms ease;}
+  .toggle.off{background:var(--line);box-shadow:inset 0 0 0 1px var(--line);}
+  .toggle.off::after{right:auto;left:3px;}
+
+  .scroll{flex:1;overflow-y:auto;padding:0;}
+  .divider{height:1px;background:var(--line);width:100%;}
+  .sec-label{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);
+    padding:20px 22px 12px;display:flex;align-items:center;gap:8px;}
+  .sec-label .count{background:var(--dull);color:var(--muted);padding:1px 7px;border-radius:8px;
+    font-size:10px;font-weight:700;}
+
+  /* ===== HOME — one face per Isle ===== */
+  .home-canvas{flex:1;position:relative;overflow:hidden;}
+  .home-grid{position:absolute;inset:0;}
+  .home-cell{position:absolute;cursor:pointer;transform:translate(-50%,-50%);}
+  .home-bob{animation:bob 6s ease-in-out infinite;transition:transform 150ms ease-out;display:block;}
+  .home-cell:active .home-bob{transform:scale(0.95);}
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+  .water-shimmer{position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.35;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,0.22), transparent 25%),
+      radial-gradient(circle at 80% 60%, rgba(255,255,255,0.18), transparent 30%);
+    animation:shimmer 18s ease-in-out infinite alternate;}
+  @keyframes shimmer{0%{transform:translate(0,0) scale(1);}100%{transform:translate(-8px,4px) scale(1.05);}}
+  .create-pin{position:absolute;bottom:66px;right:22px;z-index:10;}
+  .create-btn{width:58px;height:58px;border:2px dashed var(--faint);border-radius:var(--spark-r);
+    transform:skewX(-14deg);background:transparent;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:all 150ms ease-out;}
+  .create-btn span{transform:skewX(14deg);font-size:26px;font-weight:700;color:var(--faint);}
+  .create-btn:hover{border-color:var(--muted);}
+  .create-btn:hover span{color:var(--muted);}
+
+  /* bottom nav */
+  .bottom-bar{position:absolute;left:0;right:0;bottom:0;height:50px;background:rgba(255,255,255,0.82);
+    backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;align-items:center;
+    justify-content:center;gap:28px;z-index:20;}
+  .nav-btn{width:32px;height:32px;border:none;background:none;cursor:pointer;color:var(--faint);
+    display:flex;align-items:center;justify-content:center;transition:color 150ms ease-out;}
+  .nav-btn svg{width:22px;height:22px;}
+  .nav-btn.active{color:var(--accent);}
+  .nav-btn:hover{color:var(--muted);}
+  .you-avatar{position:absolute;top:46px;right:18px;width:36px;height:36px;border-radius:50%;
+    background:var(--surface);border:1px solid var(--line);font-size:20px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;z-index:30;
+    box-shadow:0 1px 3px rgba(31,41,55,0.08);transition:transform 150ms ease-out;}
+  .you-avatar:hover{transform:scale(1.05);}
+  .you-avatar:active{transform:scale(0.95);}
+
+  /* ===== ISLE HOME ===== */
+  .isle-header{padding:54px 20px 16px;display:flex;align-items:flex-start;gap:14px;
+    border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(var(--isle),0.07),transparent);}
+  .isle-hero{width:60px;height:60px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    border-radius:var(--spark-r);transform:skewX(-14deg);
+    background:rgba(var(--isle),0.12);border:1.5px solid rgba(var(--isle),0.25);}
+  .isle-hero .e{font-size:32px;transform:skewX(14deg);}
+  .isle-meta{flex:1;min-width:0;}
+  .isle-name{font-size:19px;font-weight:700;color:var(--ink);letter-spacing:-0.01em;line-height:1.2;}
+  .isle-purpose{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.3;}
+  .isle-members{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:11px;color:var(--faint);
+    font-weight:600;cursor:pointer;}
+  .isle-members:hover{color:var(--muted);}
+  .isle-members svg{width:12px;height:12px;}
+  .isle-settings-btn{width:32px;height:32px;border:none;background:none;cursor:pointer;color:var(--faint);
+    display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all 150ms ease-out;flex-shrink:0;}
+  .isle-settings-btn:hover{color:var(--muted);background:rgba(0,0,0,0.04);}
+  .isle-settings-btn svg{width:20px;height:20px;}
+
+  /* spark list rows */
+  .spark-list{padding:0 14px;}
+  .spark-row{display:flex;align-items:center;gap:14px;padding:12px 8px;cursor:pointer;
+    border-bottom:1px solid var(--line);transition:background 150ms ease-out;}
+  .spark-row:last-child{border-bottom:none;}
+  .spark-row:hover{background:rgba(255,255,255,0.5);}
+  .spark-row .spark{flex-shrink:0;}
+  .spark-info{flex:1;min-width:0;}
+  .spark-title{font-size:15px;font-weight:600;color:var(--ink);line-height:1.2;
+    display:flex;align-items:center;gap:6px;}
+  .spark-sub{font-size:12px;color:var(--faint);margin-top:2px;}
+  .spark-row.missed .spark-title{color:var(--muted);}
+  .spark-row.missed .spark-sub{color:var(--faint);}
+  /* streak display — lives here (off Home) */
+  .spark-streak{display:flex;align-items:center;gap:3px;flex-shrink:0;
+    font-size:14px;font-weight:800;color:var(--accent);}
+  .spark-streak.missed{color:var(--faint);font-weight:600;}
+  .spark-streak svg{width:13px;height:13px;}
+
+  /* chat preview card */
+  .chat-preview{margin:16px 14px 4px;background:var(--surface);border:1px solid var(--line);
+    border-radius:16px;overflow:hidden;cursor:pointer;transition:background 150ms ease-out;
+    box-shadow:0 1px 3px rgba(31,41,55,0.04);}
+  .chat-preview:hover{background:#FAFBFC;}
+  .chat-preview-top{display:flex;align-items:center;gap:10px;padding:13px 16px 6px;}
+  .chat-preview-top .ic{width:28px;height:28px;border-radius:8px;background:rgba(var(--isle),0.12);
+    display:flex;align-items:center;justify-content:center;color:rgb(var(--isle));flex-shrink:0;}
+  .chat-preview-top .ic svg{width:16px;height:16px;}
+  .chat-preview-top .label{font-size:14px;font-weight:600;color:var(--ink);flex:1;}
+  .chat-preview-top .chat-count{font-size:11px;color:var(--faint);font-weight:600;}
+  .chat-preview-msgs{padding:0 16px 12px;display:flex;flex-direction:column;gap:5px;}
+  .cp-msg{display:flex;align-items:baseline;gap:6px;font-size:12px;line-height:1.4;color:var(--muted);}
+  .cp-msg .who{font-weight:700;color:var(--ink);font-size:11px;}
+  .cp-msg .big{font-size:16px;}
+
+  /* activity list */
+  .activity-list{padding:0 14px;}
+  .activity-item{display:flex;gap:12px;padding:13px 8px;border-bottom:1px solid var(--line);}
+  .activity-item:last-child{border-bottom:none;}
+  .activity-emoji{width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .activity-body{flex:1;min-width:0;}
+  .activity-who{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:1px;}
+  .activity-who b{color:var(--ink);font-weight:700;}
+  .activity-text{font-size:14px;color:var(--ink);line-height:1.4;}
+  .activity-text .big{font-size:22px;line-height:1;}
+  .activity-time{font-size:10px;color:var(--faint);margin-top:3px;}
+
+  /* ===== SPARK DETAILS ===== */
+  .card-wrap{padding:0 16px;}
+  .card{background:var(--surface);border:1px solid var(--line);box-shadow:0 4px 14px rgba(31,41,55,0.06);
+    overflow:hidden;border-radius:16px;}
+  .card-top{display:flex;flex-direction:column;align-items:center;gap:10px;padding:22px 20px 16px;cursor:pointer;}
+  .meta-row{display:flex;align-items:center;gap:12px;color:var(--faint);}
+  .meta-row .g{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--muted);}
+  .meta-row .g svg{width:13px;height:13px;}
+  .meta-row .sep{color:var(--line);}
+  .card-expand{max-height:0;overflow:hidden;transition:max-height 320ms ease-out;}
+  .card.open .card-expand{max-height:340px;}
+  .recipe{padding:4px 20px 18px;display:flex;flex-direction:column;align-items:center;gap:10px;
+    border-top:1px solid var(--line);margin-top:4px;}
+  .rc-deps{display:flex;gap:16px;justify-content:center;padding-top:12px;align-items:center;flex-wrap:wrap;}
+  .rc-eq{font-size:18px;font-weight:800;color:var(--faint);line-height:1;}
+  .rc-label{font-size:10px;color:var(--faint);font-weight:600;margin-top:2px;}
+  .sd-actions{margin:14px 16px 0;display:flex;flex-direction:column;gap:8px;}
+  .sd-btn{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;cursor:pointer;
+    font-size:15px;font-weight:600;transition:all 150ms ease-out;border:1px solid var(--line);background:var(--surface);}
+  .sd-btn:hover{background:#FAFBFC;}
+  .sd-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .sd-btn.primary:hover{background:var(--accent-dk);}
+  .sd-btn .ic{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .sd-btn .ic svg{width:18px;height:18px;}
+  .sd-btn .chev{margin-left:auto;color:var(--faint);}
+  .sd-btn .chev svg{width:16px;height:16px;}
+  .sd-btn.primary .chev{color:rgba(255,255,255,0.6);}
+
+  /* metric panel */
+  .metric-panel{padding:16px 20px;border-top:1px solid var(--line);}
+  .metric-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;}
+  .metric-label{font-size:12px;color:var(--faint);font-weight:600;}
+  .metric-val{font-size:15px;font-weight:700;color:var(--ink);}
+  .metric-val.up{color:var(--accent);}
+  .metric-trend{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:700;color:var(--accent);}
+  .metric-trend svg{width:12px;height:12px;}
+
+  /* ===== CHAT ===== */
+  .members{display:flex;align-items:center;gap:3px;color:var(--faint);}
+  .members svg{width:13px;height:13px;}
+  .members b{font-size:11px;font-weight:700;color:var(--muted);}
+  .msglist{flex:1;overflow-y:auto;padding:10px 14px 14px;display:flex;flex-direction:column;gap:12px;}
+  .msg{display:flex;flex-direction:column;max-width:78%;position:relative;cursor:pointer;}
+  .msg.me{align-self:flex-end;align-items:flex-end;}
+  .msg.them{align-self:flex-start;}
+  .sender{font-size:10px;color:var(--faint);margin:0 4px 3px;font-weight:700;}
+  .bubble{padding:9px 14px;font-size:14px;line-height:1.35;word-break:break-word;border-radius:4px;}
+  .msg.me .bubble{background:var(--accent);color:#fff;}
+  .msg.them .bubble{background:var(--surface);color:var(--ink);border:1px solid var(--line);}
+  .bubble .big{font-size:32px;line-height:1.1;display:block;}
+  .reax{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;}
+  .msg.me .reax{justify-content:flex-end;}
+  .react-chip{font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:2px 8px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;}
+  .react-chip.mine{background:var(--accent-soft);border-color:rgba(59,130,246,0.3);}
+  .react-chip b{font-size:10px;color:var(--muted);font-weight:700;}
+  .composer{border-top:1px solid var(--line);background:var(--surface);padding:10px 12px 16px;}
+  .input-row{display:flex;align-items:center;gap:8px;}
+  .emoji-btn,.send-btn{width:40px;height:40px;flex-shrink:0;border:none;cursor:pointer;display:flex;
+    align-items:center;justify-content:center;border-radius:20px;transition:all 150ms ease-out;}
+  .emoji-btn{background:var(--dull);color:var(--muted);}
+  .emoji-btn:hover{background:var(--line);}
+  .emoji-btn.need{background:var(--accent-soft);color:var(--accent);}
+  .send-btn{background:var(--accent);color:#fff;}
+  .send-btn:hover:not(:disabled){background:var(--accent-dk);}
+  .send-btn:disabled{background:var(--grey);color:var(--faint);cursor:not-allowed;}
+  .send-btn svg,.emoji-btn svg{width:20px;height:20px;}
+  input.field{flex:1;height:40px;border:1px solid var(--line);border-radius:20px;background:var(--surface);
+    padding:0 16px;font:inherit;font-size:14px;color:var(--ink);outline:none;min-width:0;}
+  input.field:focus{border-color:rgba(59,130,246,0.5);}
+  .sweep{position:absolute;inset:0;pointer-events:none;z-index:40;opacity:0;
+    background:radial-gradient(circle at 50% 30%,rgba(59,130,246,0.10),transparent 60%);}
+  .sweep.fire{animation:sweep 1.1s ease-out;}
+  @keyframes sweep{0%{opacity:0;}25%{opacity:1;}100%{opacity:0;}}
+  .lit-banner{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.96);
+    border:1px solid rgba(59,130,246,0.25);border-radius:14px;padding:12px 20px;box-shadow:0 10px 30px rgba(59,130,246,0.22);
+    display:flex;align-items:center;gap:12px;z-index:45;opacity:0;pointer-events:none;}
+  .lit-banner.fire{animation:banner 1.8s ease-out;}
+  @keyframes banner{0%{opacity:0;transform:translate(-50%,-40%) scale(0.9);}15%{opacity:1;transform:translate(-50%,-50%) scale(1);}80%{opacity:1;}100%{opacity:0;transform:translate(-50%,-55%) scale(0.98);}}
+  .lit-banner .b-spark{width:38px;height:38px;position:relative;display:flex;align-items:center;justify-content:center;}
+  .lit-banner .b-spark .ba{position:absolute;width:30px;height:30px;transform:skewX(-14deg);border-radius:var(--spark-r);
+    background:linear-gradient(135deg,var(--surface),var(--accent-soft));box-shadow:0 0 0 1.5px var(--accent);}
+  .lit-banner .b-spark .be{position:relative;font-size:18px;transform:skewX(14deg);z-index:2;}
+  .lit-banner .b-sub{font-size:11px;color:var(--muted);font-weight:600;}
+
+  /* ===== NEW SPARK ===== */
+  .equation{padding:6px 22px;display:flex;flex-direction:column;gap:18px;}
+  .main-row{display:flex;align-items:center;gap:14px;}
+  .main-spark{cursor:pointer;flex-shrink:0;width:72px;height:72px;position:relative;display:flex;align-items:center;justify-content:center;}
+  .main-spark .aura{position:absolute;width:56px;height:56px;transform:skewX(-14deg);border-radius:var(--spark-r);
+    background:radial-gradient(ellipse,rgba(100,116,139,0.10),transparent 70%);filter:blur(8px);z-index:0;transition:all 400ms ease-out;}
+  .main-spark .body{position:relative;width:56px;height:56px;transform:skewX(-14deg);border-radius:var(--spark-r);
+    background:var(--dull);box-shadow:inset 0 0 0 1px rgba(31,41,55,0.06);display:flex;align-items:center;justify-content:center;
+    transition:all 400ms ease-out;z-index:2;}
+  .main-spark.has-emoji .body{background:linear-gradient(135deg,var(--surface),var(--accent-soft));
+    box-shadow:0 0 0 1.5px var(--accent),0 4px 14px rgba(59,130,246,0.18);}
+  .main-spark.has-emoji .aura{background:radial-gradient(ellipse,rgba(59,130,246,0.30),rgba(59,130,246,0.06) 55%,transparent 75%);filter:blur(6px);}
+  .main-spark .e{font-size:30px;line-height:1;transform:skewX(14deg);z-index:3;position:relative;filter:saturate(1.15);}
+  .main-spark .placeholder-q{font-size:24px;font-weight:700;color:var(--faint);transform:skewX(14deg);z-index:3;position:relative;}
+  .main-label{flex:1;border:none;border-bottom:1px solid var(--line);background:transparent;font:inherit;font-size:15px;
+    color:var(--ink);padding:8px 2px;outline:none;transition:border-color 150ms ease-out;}
+  .main-label:focus{border-bottom-color:var(--accent);}
+  .main-label::placeholder{color:var(--faint);}
+  .dep-item{display:flex;align-items:center;gap:14px;}
+  .dep-item .dep-emoji{font-size:28px;line-height:1;width:40px;text-align:center;cursor:pointer;color:var(--faint);}
+  .dep-item .dep-emoji.empty{opacity:0.4;}
+  .dep-item .dep-label{flex:1;border:none;border-bottom:1px solid var(--line);background:transparent;font:inherit;
+    font-size:14px;color:var(--ink);padding:7px 2px;outline:none;transition:border-color 150ms ease-out;}
+  .dep-item .dep-label:focus{border-bottom-color:var(--accent);}
+  .dep-item .dep-label::placeholder{color:var(--faint);}
+  .preview-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 0 24px;}
+  .preview-cap{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);}
+
+  /* type picker — 2 cards, centered, fixed width */
+  .type-grid{display:flex;gap:10px;padding:0 16px 8px;justify-content:center;}
+  .type-grid .type-card{flex:0 0 140px;}
+  .type-card{border:1.5px solid var(--line);border-radius:14px;padding:16px 14px;cursor:pointer;
+    transition:all 180ms ease-out;background:var(--surface);text-align:left;}
+  .type-card:hover{border-color:var(--accent);}
+  .type-card.sel{border-color:var(--accent);background:var(--accent-soft);}
+  .type-card .tc-emoji{font-size:28px;line-height:1;margin-bottom:8px;}
+  .type-card .tc-title{font-size:13px;font-weight:700;color:var(--ink);line-height:1.25;margin-bottom:2px;}
+  .type-card .tc-sub{font-size:11px;color:var(--faint);line-height:1.3;}
+  .type-card.sel .tc-title{color:var(--accent-dk);}
+
+  /* ===== POST COMPOSER ===== */
+  .post-area{margin:0 16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:14px;min-height:120px;}
+  .post-area textarea{width:100%;min-height:80px;border:none;resize:none;font:inherit;font-size:15px;
+    color:var(--ink);outline:none;background:transparent;line-height:1.4;}
+  .post-area textarea::placeholder{color:var(--faint);}
+  .post-img-slot{margin-top:10px;height:120px;border:1.5px dashed var(--line);border-radius:10px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--faint);font-size:13px;
+    transition:all 150ms ease-out;background:#FAFBFC;}
+  .post-img-slot:hover{border-color:var(--accent);color:var(--accent);}
+  .post-img-slot.filled{border-style:solid;border-color:var(--line);background:url('https://picsum.photos/seed/lsat-score/280/120') center/cover;}
+  .post-img-slot.filled::after{content:'✕';position:absolute;top:6px;right:8px;background:rgba(0,0,0,0.5);
+    color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;}
+
+  /* audience picker */
+  .audience-list{padding:0 16px;}
+  .audience-row{display:flex;align-items:center;gap:12px;padding:13px 8px;cursor:pointer;
+    border-bottom:1px solid var(--line);transition:background 150ms ease-out;}
+  .audience-row:last-child{border-bottom:none;}
+  .audience-row:hover{background:rgba(255,255,255,0.5);}
+  .audience-row .check{margin-left:auto;width:22px;height:22px;border:2px solid var(--line);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;transition:all 150ms ease-out;flex-shrink:0;}
+  .audience-row.sel .check{border-color:var(--accent);background:var(--accent);}
+  .audience-row.sel .check svg{opacity:1;}
+  .audience-row .check svg{width:13px;height:13px;color:#fff;opacity:0;transition:opacity 150ms ease-out;}
+  .audience-row .ar-hero{width:36px;height:36px;border-radius:var(--spark-r);transform:skewX(-14deg);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .audience-row .ar-hero .e{font-size:18px;transform:skewX(14deg);}
+  .audience-row .ar-name{font-size:14px;font-weight:600;color:var(--ink);}
+  .audience-row .ar-sub{font-size:11px;color:var(--faint);}
+
+  /* ===== DISCOVER ===== */
+  .discover-list{padding:0 14px;}
+  .discover-row{display:flex;align-items:center;gap:14px;padding:14px 8px;cursor:pointer;
+    border-bottom:1px solid var(--line);transition:background 150ms ease-out;}
+  .discover-row:hover{background:rgba(255,255,255,0.5);}
+  .discover-row .dr-hero{width:48px;height:48px;border-radius:var(--spark-r);transform:skewX(-14deg);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .discover-row .dr-hero .e{font-size:24px;transform:skewX(14deg);}
+  .discover-row .dr-info{flex:1;min-width:0;}
+  .discover-row .dr-name{font-size:15px;font-weight:600;color:var(--ink);}
+  .discover-row .dr-sub{font-size:12px;color:var(--muted);margin-top:1px;line-height:1.3;}
+  .discover-row .dr-members{font-size:11px;color:var(--faint);font-weight:600;margin-top:3px;
+    display:flex;align-items:center;gap:4px;}
+  .discover-row .dr-members svg{width:11px;height:11px;}
+  .join-btn{padding:7px 14px;border:1.5px solid var(--accent);background:none;color:var(--accent);
+    font-size:13px;font-weight:700;border-radius:10px;cursor:pointer;transition:all 150ms ease-out;flex-shrink:0;}
+  .join-btn:hover{background:var(--accent-soft);}
+  .join-btn.joined{border-color:var(--line);color:var(--faint);background:none;}
+
+  /* ===== NOTES (bare chat list — name + subtitle, no previews) ===== */
+  .notes-list{padding:0;}
+  .note-row{display:flex;align-items:center;gap:14px;padding:15px 22px;cursor:pointer;
+    border-bottom:1px solid var(--line);transition:background 150ms ease-out;}
+  .note-row:last-child{border-bottom:none;}
+  .note-row:hover{background:#F8FAFC;}
+  .note-row .nr-spark{flex-shrink:0;}
+  .note-row .nr-info{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .note-row .nr-name{font-size:16px;font-weight:600;color:var(--ink);line-height:1.2;}
+  .note-row .nr-sub{font-size:13px;color:var(--faint);line-height:1.2;}
+  .note-row .nr-sub.new{color:var(--accent);font-weight:600;}
+
+  /* ===== LEAGUE — horizontal swipe bar of Isles ===== */
+  .league-menu-btn{width:32px;height:32px;border:none;background:none;cursor:pointer;color:var(--faint);
+    display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all 150ms ease-out;}
+  .league-menu-btn:hover{color:var(--muted);background:rgba(0,0,0,0.04);}
+  .league-menu-btn svg{width:20px;height:20px;}
+  .isle-swipe-bar{display:flex;gap:10px;padding:6px 22px 16px;overflow-x:auto;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;}
+  .isle-swipe-bar::-webkit-scrollbar{display:none;}
+  .isle-chip{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;
+    padding:6px 4px;transition:transform 150ms ease-out;}
+  .isle-chip:active{transform:scale(0.94);}
+  .isle-chip .ic-spark{opacity:0.5;transition:opacity 200ms ease-out;}
+  .isle-chip.sel .ic-spark{opacity:1;}
+  .isle-chip .ic-name{font-size:9px;font-weight:600;color:var(--faint);white-space:nowrap;
+    transition:color 200ms ease-out;}
+  .isle-chip.sel .ic-name{color:var(--ink);}
+  .league-isle-name{padding:0 22px 14px;font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-0.01em;}
+  .rank-row{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--line);}
+  .rank-row:last-child{border-bottom:none;}
+  .rank-num{width:24px;text-align:center;font-size:13px;font-weight:800;color:var(--faint);}
+  .rank-row.top .rank-num{color:var(--accent);}
+  .rank-streak{margin-left:auto;font-size:15px;font-weight:800;color:var(--accent);
+    display:flex;align-items:center;gap:3px;}
+  .rank-streak svg{width:13px;height:13px;}
+  .rank-row.me{background:var(--accent-soft);border-radius:10px;padding-left:8px;padding-right:8px;margin:0 -8px;}
+
+  /* ===== SHEETS ===== */
+  .scrim{position:absolute;inset:0;background:rgba(15,23,42,0.35);z-index:55;opacity:0;pointer-events:none;
+    transition:opacity 200ms ease-out;}
+  .scrim.open{opacity:1;pointer-events:auto;}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:20px 20px 0 0;
+    padding:10px 16px 22px;z-index:60;transform:translateY(101%);transition:transform 280ms cubic-bezier(0.22,1,0.36,1);
+    box-shadow:0 -10px 28px rgba(15,23,42,0.16);max-height:78%;overflow-y:auto;}
+  .sheet.open{transform:translateY(0);}
+  .grabber{width:38px;height:4px;border-radius:3px;background:#E2E8F0;margin:4px auto 14px;}
+  .sheet-title{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);
+    margin-bottom:12px;}
+  .es-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:14px;}
+  .es-grid button{font-size:26px;aspect-ratio:1;border:none;background:none;cursor:pointer;border-radius:10px;
+    transition:background 120ms ease-out;line-height:1;}
+  .es-grid button:hover{background:var(--accent-soft);}
+  .es-grid button.needed{background:var(--accent-soft);}
+  .opt-list{display:flex;flex-direction:column;}
+  .opt{display:flex;align-items:center;gap:12px;padding:14px 4px;cursor:pointer;border-bottom:1px solid var(--line);
+    font-size:15px;font-weight:500;color:var(--ink);transition:color 120ms ease-out;}
+  .opt:last-child{border-bottom:none;}
+  .opt:hover{color:var(--accent);}
+  .opt .check{margin-left:auto;width:20px;height:20px;color:var(--accent);opacity:0;}
+  .opt.sel .check{opacity:1;}
+  .opt.sel{color:var(--accent);font-weight:700;}
+  .mbr{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--line);}
+  .mbr:last-child{border-bottom:none;}
+  .mbr-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;
+    justify-content:center;font-size:18px;flex-shrink:0;}
+  .mbr-info{flex:1;}
+  .mbr-name{font-size:14px;font-weight:600;color:var(--ink);}
+  .mbr-role{font-size:11px;color:var(--faint);}
+  .mbr-remove{font-size:12px;font-weight:600;color:var(--warn);background:none;border:none;cursor:pointer;}
+  .confirm-box{text-align:center;padding:8px 0;}
+  .confirm-box .ct{font-size:16px;font-weight:700;margin-bottom:6px;}
+  .confirm-box .cs{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5;}
+  .btn-delete{width:100%;height:46px;border:none;background:var(--warn);color:#fff;font-size:15px;font-weight:700;
+    cursor:pointer;border-radius:12px;transition:background 150ms ease-out;}
+  .btn-delete:hover{background:#DC2626;}
+  .btn-cancel{width:100%;height:46px;border:none;background:none;color:var(--muted);font-size:15px;font-weight:600;
+    cursor:pointer;margin-top:8px;}
+  .search{width:100%;height:40px;border:1px solid var(--line);border-radius:20px;padding:0 16px;font:inherit;
+    font-size:14px;color:var(--ink);outline:none;margin-bottom:14px;}
+  .search:focus{border-color:rgba(59,130,246,0.5);}
+
+  /* metric log sheet inputs */
+  .log-input-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .log-input{flex:1;height:48px;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:24px;
+    font-weight:700;color:var(--ink);text-align:center;outline:none;background:var(--surface);min-width:0;}
+  .log-input:focus{border-color:var(--accent);}
+  .log-input::placeholder{color:var(--faint);font-weight:400;font-size:15px;}
+  .log-photo-btn{width:48px;height:48px;border:1.5px dashed var(--line);border-radius:12px;background:#FAFBFC;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--faint);flex-shrink:0;
+    transition:all 150ms ease-out;}
+  .log-photo-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .log-photo-btn svg{width:22px;height:22px;}
+  .log-photo-btn.filled{border-style:solid;background:var(--accent-soft);color:var(--accent);}
+
+  /* metric log sheet inputs */
+  .log-input-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+
+  /* color swatch picker */
+  .swatch-row{display:flex;gap:10px;justify-content:center;padding:8px 0 4px;}
+  .swatch{width:36px;height:36px;border-radius:10px;cursor:pointer;border:2.5px solid transparent;
+    transition:all 150ms ease-out;}
+  .swatch:hover{transform:scale(1.1);}
+  .swatch.sel{border-color:var(--ink);transform:scale(1.1);}
+
+  /* isle face on home — NO blue square ring (overrides lit's box-shadow) */
+  .home-cell .spark.lit .body{box-shadow:none !important;}
+  .home-cell .spark.lit .aura{opacity:1;}
+
+  /* misc helpers */
+  .empty-state{padding:40px 30px;text-align:center;color:var(--faint);font-size:14px;line-height:1.5;}
+  .pill{font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:2px 6px;border-radius:6px;
+    background:rgba(var(--isle),0.10);color:rgb(var(--isle));}
+</style>
+</head>
+<body>
+<div class="app-title">Goal Isle · v2</div>
+<div class="app-sub">connected app shell · tap faces, sparks, everything works</div>
+
+<div class="phone" id="phone">
+  <div class="notch"></div>
+  <div class="water-shimmer"></div>
+
+  <!-- ====================================================
+       SCREEN: HOME — one face per Isle
+       ==================================================== -->
+  <div class="screen active padbot" id="screen-home">
+    <div class="home-canvas" id="homeCanvas">
+      <div class="home-grid" id="homeGrid"></div>
+    </div>
+    <button class="you-avatar" onclick="go('profile')">🧑</button>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: ISLE HOME — drill-in from a Home face
+       ==================================================== -->
+  <div class="screen padbot" id="screen-isle">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title" id="isleTitle">Isle</div>
+      <button class="tb-btn" onclick="go('isle-settings')" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+    </div>
+    <div class="isle-header" id="isleHeader"></div>
+    <div class="scroll" id="isleScroll"></div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: SPARK DETAILS
+       ==================================================== -->
+  <div class="screen padbot" id="screen-spark">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('isle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title" id="sparkTitle">Spark</div>
+      <span class="tb-spacer"></span>
+    </div>
+    <div class="scroll" id="sparkScroll"></div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: CHAT (per-Isle room)
+       ==================================================== -->
+  <div class="screen" id="screen-chat">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('isle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title" id="chatTitle" onclick="toggleChatInfo()">
+        <div class="spark sz-mini uncomp" id="chatTitleSpark"><div class="aura"></div><div class="body"><span class="e">💬</span></div></div>
+        <span id="chatTitleText">Chat</span>
+      </div>
+      <span class="tb-spacer"></span>
+    </div>
+    <div class="msglist" id="msgList"></div>
+    <div class="composer">
+      <div class="input-row">
+        <button class="emoji-btn" id="emojiBtn" onclick="openSheet('chatEmojiSheet')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>
+        <input type="text" class="field" id="chatInput" placeholder="Message..." oninput="updateSend()" onkeydown="if(event.key==='Enter'&&this.value.trim())sendChat()">
+        <button class="send-btn" id="sendBtn" disabled onclick="sendChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+      </div>
+    </div>
+    <div class="sweep" id="chatSweep"></div>
+    <div class="lit-banner" id="chatBanner"><div class="b-spark"><div class="ba"></div><div class="be" id="chatBannerEmoji">💪</div></div><div><div class="b-sub" id="chatBannerSub">streak +1</div></div></div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: NEW SPARK
+       ==================================================== -->
+  <div class="screen padbot" id="screen-create">
+    <div class="topbar">
+      <button class="tb-word" onclick="go('isle')">Cancel</button>
+      <span class="tb-spacer"></span>
+      <button class="tb-word solid" id="createBtn" disabled onclick="finishCreate()">Create</button>
+    </div>
+    <div class="scroll" id="createScroll">
+      <div class="sec-label" style="padding-top:10px;">Spark</div>
+      <div class="equation">
+        <div class="main-row">
+          <div class="main-spark" id="mainSpark" onclick="pickMainEmoji()"><div class="aura"></div><div class="body"><span class="placeholder-q">?</span></div></div>
+          <input type="text" class="main-label" id="mainLabel" placeholder="Name (optional)">
+        </div>
+        <div class="dep-item"><span class="dep-emoji empty" id="dep0" onclick="pickDepEmoji(0)">+</span><input type="text" class="dep-label" placeholder="label (optional)"></div>
+        <div class="dep-item"><span class="dep-emoji empty" id="dep1" onclick="pickDepEmoji(1)">+</span><input type="text" class="dep-label" placeholder="label (optional)"></div>
+      </div>
+
+      <div class="divider" style="margin-top:8px;"></div>
+      <div class="sec-label">Kind</div>
+      <div class="type-grid" id="typeGrid"></div>
+
+      <div class="divider" style="margin-top:8px;"></div>
+      <div class="panel" style="margin:0 16px;">
+        <div class="row" onclick="openSheet('repeatSheet')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="val">Repeats</span><span class="val" style="flex:0;font-weight:600;color:var(--muted);" id="repeatVal">Daily</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        <div class="row" id="streakRowCreate"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span><span class="val">Breaks on miss</span><span class="toggle off" id="streakToggleCreate"></span></div>
+        <div class="row" onclick="openSheet('shareSheet')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span><span class="val placeholder" id="shareVal">Share</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+      </div>
+
+      <div class="preview-wrap">
+        <div class="spark sz-hero uncomp" id="previewSpark"><div class="aura"></div><div class="body"><span class="e" id="previewE" style="font-size:20px;color:var(--faint);">—</span></div></div>
+        <span class="preview-cap" id="previewCap">pick a spark</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: POST COMPOSER
+       ==================================================== -->
+  <div class="screen padbot" id="screen-post">
+    <div class="topbar">
+      <button class="tb-word" onclick="go('home')">Cancel</button>
+      <span class="tb-spacer"></span>
+      <button class="tb-word solid" id="postBtn" disabled onclick="finishPost()">Post</button>
+    </div>
+    <div class="scroll" style="padding-top:6px;">
+      <div class="post-area">
+        <textarea id="postText" placeholder="Share something..." oninput="updatePostBtn()"></textarea>
+        <div class="post-img-slot" id="postImgSlot" onclick="togglePostImg()" style="position:relative;">
+          <span id="postImgHint"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Add photo</span>
+        </div>
+      </div>
+      <div class="sec-label">To</div>
+      <div class="audience-list" id="audienceList"></div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: DISCOVER
+       ==================================================== -->
+  <div class="screen padbot" id="screen-discover">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('isles')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title">Discover</div>
+      <span class="tb-spacer"></span>
+    </div>
+    <div class="scroll">
+      <div style="padding:6px 16px 10px;">
+        <input type="text" class="search" id="discoverSearch" placeholder="Search schools, emojis, names..." oninput="renderDiscover()">
+      </div>
+      <div class="discover-list" id="discoverList"></div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: ISLES (index)
+       ==================================================== -->
+  <div class="screen padbot" id="screen-isles">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title">Your Isles</div>
+      <button class="tb-btn" onclick="startCreateIsle()" aria-label="Create"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    </div>
+    <div class="scroll" id="islesScroll"></div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: CREATE ISLE (new community)
+       ==================================================== -->
+  <div class="screen padbot" id="screen-create-isle">
+    <div class="topbar">
+      <button class="tb-word" onclick="go('isles')">Cancel</button>
+      <span class="tb-spacer"></span>
+      <button class="tb-word solid" id="createIsleBtn" disabled onclick="finishCreateIsle()">Create</button>
+    </div>
+    <div class="scroll" style="padding:0 0 24px;">
+      <div class="sec-label" style="padding-top:14px;">Isle</div>
+      <div class="divider"></div>
+      <div style="padding:18px 22px;display:flex;align-items:center;gap:16px;">
+        <div class="main-spark" id="isleEmojiSlot" onclick="pickIsleEmoji()" style="cursor:pointer;">
+          <div class="aura"></div><div class="body"><span class="placeholder-q">?</span></div>
+        </div>
+        <input type="text" class="main-label" id="isleNameInput" placeholder="Name" oninput="updateCreateIsle()">
+      </div>
+      <div class="divider"></div>
+      <div style="padding:14px 22px 6px;">
+        <input type="text" id="islePurposeInput" placeholder="Purpose (optional)" style="border:none;border-bottom:1px solid var(--line);width:100%;font:inherit;font-size:14px;padding:8px 2px;outline:none;color:var(--ink);background:transparent;">
+      </div>
+      <div class="divider" style="margin-top:14px;"></div>
+      <div class="sec-label">Color</div>
+      <div class="divider"></div>
+      <div id="isleColorRow" style="display:flex;gap:12px;padding:16px 22px;flex-wrap:wrap;"></div>
+      <div class="divider"></div>
+      <div class="sec-label">Visibility</div>
+      <div class="divider"></div>
+      <div class="panel" style="margin:0 16px;">
+        <div class="row" onclick="setIsleVis('private')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="val">Private</span><span class="val" style="flex:0;font-size:12px;color:var(--faint);">invite only</span><span class="check" id="checkPrivate" style="margin-left:auto;width:20px;height:20px;color:var(--accent);"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></div>
+        <div class="row" onclick="setIsleVis('public')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg></span><span class="val">Public</span><span class="val" style="flex:0;font-size:12px;color:var(--faint);">discoverable</span><span class="check" id="checkPublic" style="margin-left:auto;width:20px;height:20px;color:var(--accent);opacity:0;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: NOTES (feed)
+       ==================================================== -->
+  <div class="screen padbot" id="screen-notes">
+    <div class="topbar">
+      <div class="title">Notes</div>
+      <span class="tb-spacer"></span>
+    </div>
+    <div class="scroll" id="notesScroll"></div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: LEAGUE — horizontal swipe bar of Isles + subtle menu
+       ==================================================== -->
+  <div class="screen padbot" id="screen-league">
+    <div class="topbar">
+      <div class="title">League</div>
+      <button class="league-menu-btn" onclick="renderLeagueMenu();openSheet('leagueEmojiSheet')" aria-label="All Isles">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="scroll">
+      <div class="isle-swipe-bar" id="isleSwipeBar"></div>
+      <div class="league-isle-name" id="leagueIsleName"></div>
+      <div id="leagueList" style="padding:0 22px;"></div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: ISLE SETTINGS
+       ==================================================== -->
+  <div class="screen padbot" id="screen-isle-settings">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('isle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title">Settings</div>
+      <span class="tb-spacer"></span>
+    </div>
+    <div class="scroll" id="isleSettingsScroll"></div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: FRIENDS
+       ==================================================== -->
+  <div class="screen padbot" id="screen-friends">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title">Friends</div>
+      <button class="tb-btn" onclick="openSheet('addFriendSheet')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    </div>
+    <div class="scroll" id="friendsScroll"></div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: PROFILE (now the account hub — full screen, not a sheet)
+       ==================================================== -->
+  <div class="screen padbot" id="screen-profile">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title">You</div>
+      <button class="tb-btn" onclick="openSheet('editProfileSheet');renderEditProfile()" aria-label="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+    </div>
+    <div class="scroll" style="padding-top:10px;">
+      <div id="profileIdentity" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 0 18px;"></div>
+      <div class="divider"></div>
+      <div class="panel" style="margin:12px 16px;">
+        <div class="row" onclick="go('isles')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22h20M4 22V8l8-6 8 6v14M9 22v-6h6v6"/></svg></span><span class="val">Your Isles</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        <div class="row" onclick="go('discover')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span class="val">Discover</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        <div class="row" onclick="go('post')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><span class="val">Post</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        <div class="row" onclick="go('friends')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.1"/></svg></span><span class="val">Friends</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        <div class="row" onclick="go('appsettings')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="val">Settings</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SCREEN: APP SETTINGS
+       ==================================================== -->
+  <div class="screen padbot" id="screen-appsettings">
+    <div class="topbar">
+      <button class="tb-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="title">Settings</div>
+      <span class="tb-spacer"></span>
+    </div>
+    <div class="scroll">
+      <div class="sec-label">Notifications</div><div class="divider"></div>
+      <div class="panel" style="margin:0 16px;">
+        <div class="row" id="notifRow"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span class="val">Push</span><span class="toggle" id="notifToggle"></span></div>
+      </div>
+      <div class="divider" style="margin-top:16px;"></div>
+      <div class="sec-label">About</div><div class="divider"></div>
+      <div class="panel" style="margin:0 16px;">
+        <div class="row"><span class="val placeholder">v0.2 · mockup</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SHEETS
+       ==================================================== -->
+  <div class="scrim" id="scrim" onclick="closeAllSheets()"></div>
+
+  <div class="sheet" id="createEmojiSheet"><div class="grabber"></div><div class="es-grid" id="createEmojiGrid"></div></div>
+  <div class="sheet" id="repeatSheet"><div class="grabber"></div><div class="sheet-title">Repeats</div><div class="opt-list" id="repeatOpts"></div></div>
+
+  <div class="sheet" id="shareSheet">
+    <div class="grabber"></div><div class="sheet-title">Share with friends</div>
+    <input type="text" class="search" placeholder="@username">
+    <div class="es-grid" style="grid-template-columns:repeat(4,1fr);" id="shareGrid"></div>
+    <button class="tb-word solid" style="border-radius:12px;padding:12px;width:100%;text-align:center;margin-top:8px;">Copy invite link</button>
+  </div>
+
+  <div class="sheet" id="memberListSheet">
+    <div class="grabber"></div><div class="sheet-title" id="memberListTitle">Members · 3</div>
+    <div id="memberListBody"></div>
+  </div>
+
+  <div class="sheet" id="deleteSheet">
+    <div class="grabber"></div>
+    <div class="confirm-box">
+      <div class="ct" id="deleteTitle">Delete?</div>
+      <div class="cs" id="deleteSub">This cannot be undone.</div>
+      <button class="btn-delete" id="deleteConfirmBtn">Delete</button>
+      <button class="btn-cancel" onclick="closeAllSheets()">Cancel</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="chatEmojiSheet">
+    <div class="grabber"></div><div class="sheet-title">Emoji</div>
+    <div class="es-grid" id="chatStdGrid"></div>
+  </div>
+
+  <!-- ADD FRIEND sheet -->
+  <div class="sheet" id="addFriendSheet">
+    <div class="grabber"></div><div class="sheet-title">Add friend</div>
+    <input type="text" class="search" placeholder="@username or phone" oninput="renderAddFriendResults(this.value)">
+    <div id="addFriendResults" style="margin-top:4px;"></div>
+  </div>
+
+  <!-- LEAGUE EMOJI picker -->
+  <div class="sheet" id="leagueEmojiSheet">
+    <div class="grabber"></div><div class="sheet-title">League</div>
+    <div class="es-grid" id="leagueEmojiGrid"></div>
+  </div>
+
+  <!-- METRIC LOG sheet -->
+  <div class="sheet" id="logSheet">
+    <div class="grabber"></div><div class="sheet-title" id="logSheetTitle">Log</div>
+    <div class="log-input-row">
+      <input type="number" class="log-input" id="logInput" placeholder="score">
+      <button class="log-photo-btn" id="logPhotoBtn" onclick="toggleLogPhoto()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+    </div>
+    <button class="tb-word solid" style="border-radius:12px;padding:14px;width:100%;text-align:center;" onclick="submitLog()">Add</button>
+  </div>
+
+  <!-- COLOR swatch picker -->
+  <div class="sheet" id="colorSheet">
+    <div class="grabber"></div><div class="sheet-title">Isle color</div>
+    <div class="swatch-row" id="swatchRow"></div>
+  </div>
+
+  <!-- EDIT PROFILE sheet -->
+  <div class="sheet" id="editProfileSheet">
+    <div class="grabber"></div><div class="sheet-title">Edit</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:4px 0 14px;">
+      <div id="editAvatarSlot" onclick="pickAvatar()" style="width:64px;height:64px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:34px;cursor:pointer;"></div>
+    </div>
+    <div class="dep-item" style="margin-bottom:8px;"><span class="dep-emoji" style="opacity:0;font-size:0;">·</span><input type="text" id="editNameInput" placeholder="Name" style="border:none;border-bottom:1px solid var(--line);width:100%;font:inherit;font-size:15px;padding:8px 2px;outline:none;color:var(--ink);background:transparent;"></div>
+    <div class="dep-item" style="margin-bottom:8px;"><span class="dep-emoji" style="opacity:0;font-size:0;">·</span><input type="text" id="editHandleInput" placeholder="@handle" style="border:none;border-bottom:1px solid var(--line);width:100%;font:inherit;font-size:15px;padding:8px 2px;outline:none;color:var(--ink);background:transparent;"></div>
+    <div class="dep-item" style="margin-bottom:14px;"><span class="dep-emoji" style="opacity:0;font-size:0;">·</span><input type="text" id="editBioInput" placeholder="Bio (optional)" style="border:none;border-bottom:1px solid var(--line);width:100%;font:inherit;font-size:14px;padding:8px 2px;outline:none;color:var(--ink);background:transparent;"></div>
+    <button class="tb-word solid" style="border-radius:12px;padding:14px;width:100%;text-align:center;" onclick="saveProfile()">Done</button>
+  </div>
+
+  <!-- AVATAR picker sheet (reuses es-grid) -->
+  <div class="sheet" id="avatarSheet">
+    <div class="grabber"></div><div class="sheet-title">Avatar</div>
+    <div class="es-grid" id="avatarGrid"></div>
+  </div>
+
+  <!-- bottom nav (durable across home/notes/league) -->
+  <div class="bottom-bar" id="globalBottomBar">
+    <button class="nav-btn" id="navNotes" onclick="go('notes')" aria-label="Notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+    <button class="nav-btn active" id="navHome" onclick="go('home')" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></button>
+    <button class="nav-btn" id="navLeague" onclick="go('league')" aria-label="League"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.24C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.24C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg></button>
+  </div>
+
+</div>
+
+<script>
+  // ============================================================
+  // DATA MODEL — v2 (Isle = community, contains sparks/posts/chat)
+  // ============================================================
+  const ISLES = [
+    {
+      id:0, name:'LSAT crew', emoji:'📈', color:'--isle-blue',
+      purpose:'crushing the December test together', visibility:'private', memberCount:6,
+      sparks:[
+        { id:0, emoji:'📈', title:'Weekly average', mode:'metric', scope:'personal',
+          state:'lit', streak:4, window:'weekly', isMain:true,
+          metric:{ value:168, prev:162, target:0, unit:'', trend:'up' },
+          thread:[
+            {sender:'You', text:'168 on PT 89 today', big:null, time:'2h'},
+            {sender:'Priya', text:null, big:'🔥', time:'2h'},
+            {sender:'Sam', text:'got a 174!!', big:null, time:'5h'},
+          ]
+        },
+        { id:1, emoji:'📚', title:'Study', mode:'ritual', scope:'shared',
+          state:'lit', streak:7, window:'daily',
+          deps:[{emoji:'📚',sat:true}], sat:{'📚':true},
+        },
+        { id:2, emoji:'⏱️', title:'Timed sections', mode:'metric', scope:'personal',
+          state:'lit', streak:2, window:'weekly',
+          metric:{ value:3, prev:2, target:3, unit:'', trend:'up' },
+          thread:[]
+        },
+        { id:3, emoji:'🧩', title:'LR drilling', mode:'ritual', scope:'shared',
+          state:'greyed', streak:0, window:'daily',
+          deps:[{emoji:'🧩',sat:false}], sat:{'🧩':false},
+        },
+      ],
+      posts:[
+        { author:'Priya', avatar:'👩', text:'Got into Columbia!! ', big:'🎉', img:true, time:'2h ago' },
+      ],
+      msgs:[
+        {id:1, sender:'Priya', text:'got a 174 on PT 89 today', big:null, reactions:{}},
+        {id:2, sender:'Sam', text:null, big:'🔥', reactions:{}},
+        {id:3, sender:'Diego', text:'anyone doing games tonight?', big:null, reactions:{}},
+      ]
+    },
+    {
+      id:1, name:'Morning runners', emoji:'🏃', color:'--isle-green',
+      purpose:'5K before coffee', visibility:'private', memberCount:4,
+      sparks:[
+        { id:0, emoji:'🏃', title:'Morning run', mode:'ritual', scope:'shared',
+          state:'lit', streak:12, window:'daily', isMain:true,
+          deps:[{emoji:'🏃',sat:true}], sat:{'🏃':true},
+        },
+        { id:1, emoji:'💧', title:'Hydrate', mode:'ritual', scope:'shared',
+          state:'lit', streak:5, window:'daily',
+          deps:[{emoji:'💧',sat:true}], sat:{'💧':true},
+        },
+      ],
+      posts:[],
+      msgs:[
+        {id:1, sender:'Lia', text:'5K done!', big:null, reactions:{}},
+        {id:2, sender:'You', text:null, big:'🏃', reactions:{}},
+      ]
+    },
+    {
+      id:2, name:"HLS '26", emoji:'🎓', color:'--isle-violet',
+      purpose:'Harvard Law admitted 2026', visibility:'public', memberCount:42,
+      sparks:[
+        { id:0, emoji:'🎓', title:'Welcome post', mode:'ritual', scope:'personal',
+          state:'greyed', streak:0, window:'monthly', isMain:true,
+          deps:[], sat:{},
+        },
+      ],
+      posts:[
+        { author:'Alex', avatar:'🧑', text:'So excited to meet everyone in August! ', big:'🎓', img:false, time:'1d ago' },
+      ],
+      msgs:[
+        {id:1, sender:'Alex', text:'orientation dates are up', big:null, reactions:{}},
+      ]
+    },
+    {
+      id:3, name:'Book club', emoji:'📖', color:'--isle-amber',
+      purpose:'one book a month', visibility:'private', memberCount:5,
+      sparks:[
+        { id:0, emoji:'📖', title:'Read', mode:'ritual', scope:'shared',
+          state:'uncomp', streak:0, window:'daily', isMain:true,
+          deps:[{emoji:'📖',sat:false}], sat:{'📖':false},
+        },
+      ],
+      posts:[],
+      msgs:[]
+    },
+  ];
+
+  // DISCOVERABLE public Isles
+  const DISCOVER = [
+    { name:'Columbia Law 2026', emoji:'⚖️', color:'--isle-blue', members:128, sub:'admitted students' },
+    { name:'NYU Law 2026', emoji:'🗽', color:'--isle-teal', members:96, sub:'admitted students' },
+    { name:'LSAT December', emoji:'📝', color:'--isle-orange', members:312, sub:'everyone taking the Dec test' },
+    { name:'Yale Law 2026', emoji:'🎓', color:'--isle-indigo', members:34, sub:'admitted students' },
+    { name:'170+ Club', emoji:'🎯', color:'--isle-rose', members:87, sub:'shooting for top scores' },
+    { name:'Logic Games Gang', emoji:'🧩', color:'--isle-green', members:54, sub:'LG drilling' },
+  ];
+
+  const FRIENDS = [
+    { name:'Sam', avatar:'🧑‍🦰', status:'accepted' },
+    { name:'Lia', avatar:'👩', status:'accepted' },
+    { name:'Priya', avatar:'👩', status:'accepted' },
+    { name:'Mia', avatar:'🧑‍🦱', status:'pending_in' },
+    { name:'Tom', avatar:'👨', status:'pending_out' },
+  ];
+
+  const STD_EMOJIS = ['😀','😂','😍','👍','👏','🔥','✨','🎉','❤️','💯','🌟','☕','🏃','🧘','💧','💪','📚','📈','🎓','⚖️'];
+  const EMOJI_POOL = ['💪','🏃','💧','🧘','📚','🥗','😴','✍️','🎸','🏋️','📖','🧠','🔥','🎯','📈','🎓','⏱️','🧩','⚖️','📝'];
+  const AVATAR_POOL = ['🧑','🧑‍🦰','🧑‍🦱','🧑‍🦲','👩','👨','🧑‍🦳','👩‍🦰','👨‍🦰','👩‍🦱','🧑‍🎤','🧑‍🎨','🦸','🦹','🧙','🧞'];
+  // USER — the signed-in account (single mock user)
+  const USER = { name:'Jasper', handle:'jasper', avatar:'🧑', bio:'Studying for the December LSAT. Shooting for a 170+. 📈' };
+  const FLAME_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>';
+
+  // state
+  let activeIsle = 0;
+  let activeSpark = 0;
+  let chatId = 500;
+  const $ = id => document.getElementById(id);
+
+  // ============================================================
+  // ROUTER
+  // ============================================================
+  const NAV_SCREENS = ['home','notes','league','isle','spark','chat'];
+  function go(screen){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    $('screen-'+screen).classList.add('active');
+    closeAllSheets();
+    // show/hide bottom nav only on top-level screens
+    const showNav = ['home','notes','league'].includes(screen);
+    $('globalBottomBar').style.display = showNav ? 'flex' : 'none';
+    $('screen-home').querySelector('.you-avatar').style.display = screen==='home' ? 'flex' : 'none';
+    // set isle color context
+    const isle = ISLES[activeIsle];
+    document.documentElement.style.setProperty('--isle', `var(${isle.color})`);
+    // render-on-enter
+    if(screen==='home') renderHome();
+    if(screen==='isle') renderIsle();
+    if(screen==='spark') renderSpark();
+    if(screen==='chat') renderChat();
+    if(screen==='isles') renderIslesIndex();
+    if(screen==='notes') renderNotes();
+    if(screen==='league') renderLeague();
+    if(screen==='discover') renderDiscover();
+    if(screen==='isle-settings') renderIsleSettings();
+    if(screen==='friends') renderFriends();
+    if(screen==='profile') renderProfile();
+    updateNav(screen);
+  }
+  function updateNav(active){
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    if(active==='home') $('navHome').classList.add('active');
+    if(active==='notes') $('navNotes').classList.add('active');
+    if(active==='league') $('navLeague').classList.add('active');
+  }
+  function openIsle(id){ activeIsle=id; go('isle'); }
+  function openSpark(isleId, sparkId){ activeIsle=isleId; activeSpark=sparkId; go('spark'); }
+  function openChat(isleId){ activeIsle=isleId; go('chat'); }
+
+  // ============================================================
+  // SHEETS
+  // ============================================================
+  function openSheet(id){ closeAllSheets(); $('scrim').classList.add('open'); $(id).classList.add('open'); }
+  function closeAllSheets(){ $('scrim').classList.remove('open'); document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open')); }
+
+  // ============================================================
+  // SPARK renderer helper
+  // ============================================================
+  function sparkEl(emoji, state, sz, badgeNum){
+    const cls = state==='lit' ? 'lit' : state==='greyed' ? 'greyed' : 'uncomp';
+    const sparkle = state==='lit' ? `<span class="sparkle" style="top:6px;right:8px;font-size:9px;">✦</span>` : '';
+    const badge = (state==='lit' && badgeNum) ? `<div class="badge"><span>${badgeNum}</span></div>` : '';
+    return `<div class="spark ${sz} ${cls}"><div class="aura"></div><div class="body">${badge}${sparkle}<span class="e">${emoji}</span></div></div>`;
+  }
+
+  // ============================================================
+  // HOME — one face per Isle
+  // ============================================================
+  let homeLayout = null;
+  function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+  function computeHomeLayout(){
+    const n = ISLES.length;
+    const rng = mulberry32(11);
+    const xMin=20, xMax=80, yMin=14, yMax=72;
+    const uW=xMax-xMin, uH=yMax-yMin, area=uW*uH;
+    let D=Math.sqrt(area/(n*1.8));
+    const edgeD=D*0.5;
+    const dist=(x1,y1,x2,y2)=>{const dx=x1-x2,dy=(y1-y2)*(uW/uH);return Math.sqrt(dx*dx+dy*dy);};
+    const pos=[];
+    const tooClose=(x,y)=>{
+      if(x-xMin<edgeD||xMax-x<edgeD||y-yMin<edgeD||yMax-y<edgeD)return true;
+      for(const p of pos){if(dist(x,y,p.x,p.y)<D)return true;}
+      return false;
+    };
+    // place lit/uncomp in top band, greyed in bottom band
+    const litCount = ISLES.filter(i=>getIsleFaceState(i)!=='greyed').length;
+    const splitY = yMin + uH*(litCount/n);
+    ISLES.filter(i=>getIsleFaceState(i)!=='greyed').forEach((i,idx)=>{
+      for(let t=0;t<2000;t++){const x=xMin+edgeD+rng()*(uW-edgeD*2),y=yMin+edgeD+rng()*(splitY-yMin-edgeD*2);if(!tooClose(x,y)){pos[idx]={x,y};break;}}
+    });
+    ISLES.filter(i=>getIsleFaceState(i)==='greyed').forEach(i=>{
+      for(let t=0;t<2000;t++){const x=xMin+edgeD+rng()*(uW-edgeD*2),y=splitY+edgeD+rng()*(yMax-splitY-edgeD*2);if(!tooClose(x,y)){pos.push({x,y});break;}}
+    });
+    while(pos.length<n) pos.push({x:50,y:50});
+    homeLayout = pos;
+  }
+  function getIsleFaceState(isle){
+    const main = isle.sparks.find(s=>s.isMain);
+    if(!main) return 'uncomp';
+    return main.state;
+  }
+  function getIsleFaceEmoji(isle){
+    const main = isle.sparks.find(s=>s.isMain);
+    return main ? main.emoji : isle.emoji;
+  }
+  function renderHome(){
+    if(!homeLayout) computeHomeLayout();
+    let html = ISLES.map((isle,i)=>{
+      const state = getIsleFaceState(isle);
+      const emoji = getIsleFaceEmoji(isle);
+      const p = homeLayout[i]||{x:50,y:50};
+      return `<div class="home-cell" style="left:${p.x.toFixed(1)}%;top:${p.y.toFixed(1)}%;" onclick="openIsle(${isle.id})">
+        <div class="home-bob" style="animation-delay:${(i*0.8).toFixed(1)}s;">${sparkEl(emoji, state, 'sz-home')}</div>
+      </div>`;
+    }).join('');
+    html += `<div class="create-pin"><button class="create-btn" onclick="openIsle(0);go('create')"><span>?</span></button></div>`;
+    $('homeGrid').innerHTML = html;
+  }
+
+  // ============================================================
+  // ISLE HOME
+  // ============================================================
+  function renderIsle(){
+    const isle = ISLES[activeIsle];
+    $('isleTitle').textContent = isle.name;
+    // header
+    $('isleHeader').innerHTML = `
+      <div class="isle-hero"><span class="e">${isle.emoji}</span></div>
+      <div class="isle-meta">
+        <div class="isle-name">${isle.name}</div>
+        <div class="isle-purpose">${isle.purpose}</div>
+        <div class="isle-members" onclick="openSheet('memberListSheet');renderMemberList()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>${isle.memberCount} members</span>
+        </div>
+      </div>`;
+    // sparks list — ordered lit first, greyed last
+    const sorted = isle.sparks.slice().sort((a,b)=>{
+      const order = {lit:0, uncomp:1, greyed:2};
+      return order[a.state] - order[b.state];
+    });
+    let sparkHTML = '';
+    if(sorted.length===0){
+      sparkHTML = `<div class="empty-state">No sparks yet.<br>Tap the ? to add one.</div>`;
+    } else {
+      sparkHTML = sorted.map(s=>{
+        const rowCls = s.state==='greyed' ? ' missed' : '';
+        const streakCls = s.state==='greyed' ? ' missed' : '';
+        const streakNum = s.state==='greyed' ? '0' : s.streak;
+        let sub = '';
+        if(s.state==='lit') sub = 'done';
+        else if(s.state==='greyed') sub = 'missed';
+        else sub = 'not yet';
+        return `<div class="spark-row${rowCls}" onclick="openSpark(${activeIsle},${s.id})">
+          ${sparkEl(s.emoji, s.state, 'sz-rc')}
+          <div class="spark-info">
+            <div class="spark-title">${s.title} <span class="pill">${s.window}</span></div>
+            <div class="spark-sub">${sub}</div>
+          </div>
+          <div class="spark-streak${streakCls}">${s.state==='greyed'?'0':FLAME_SVG+streakNum}</div>
+        </div>`;
+      }).join('');
+    }
+    // chat preview
+    const chatPreview = isle.msgs.length ? `
+      <div class="chat-preview" onclick="openChat(${activeIsle})">
+        <div class="chat-preview-top">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div class="label">Chat</div>
+          <div class="chat-count">${isle.msgs.length} messages</div>
+        </div>
+        <div class="chat-preview-msgs">
+          ${isle.msgs.slice(-3).map(m=>`<div class="cp-msg"><span class="who">${m.sender}</span> ${m.big?`<span class="big">${m.big}</span>`:escapeHtml(m.text||'')}</div>`).join('')}
+        </div>
+      </div>` : '';
+    // activity (posts + completions)
+    let activityHTML = '';
+    const allActivity = [
+      ...isle.posts.map(p=>({type:'post', ...p})),
+    ];
+    if(allActivity.length){
+      activityHTML = `<div class="sec-label">Activity</div><div class="activity-list">` +
+        allActivity.map(a=>`<div class="activity-item">
+          <div class="activity-emoji">${a.big||a.emoji||isle.emoji}</div>
+          <div class="activity-body">
+            <div class="activity-who"><b>${a.author}</b> posted</div>
+            <div class="activity-text">${escapeHtml(a.text||'')}${a.big?` <span class="big">${a.big}</span>`:''}</div>
+            <div class="activity-time">${a.time}</div>
+          </div>
+        </div>`).join('') + `</div>`;
+    }
+    $('isleScroll').innerHTML = `
+      <div class="sec-label">Sparks ${sorted.length?`<span class="count">${sorted.length}</span>`:''}</div>
+      <div class="spark-list">${sparkHTML}</div>
+      ${chatPreview}
+      ${activityHTML}
+    `;
+  }
+
+  // ============================================================
+  // SPARK DETAILS
+  // ============================================================
+  function renderSpark(){
+    const isle = ISLES[activeIsle];
+    const s = isle.sparks.find(x=>x.id===activeSpark) || isle.sparks[0];
+    activeSpark = s.id;
+    $('sparkTitle').textContent = s.title;
+    let recipeHTML = '';
+    if(s.mode==='ritual' && s.deps.length){
+      const deps = s.deps.map(d=>sparkEl(d.emoji, d.sat?'lit':'uncomp', 'sz-dep')).join('');
+      recipeHTML = `<div class="rc-deps">${deps}</div><div class="rc-eq">=</div>${sparkEl(s.emoji, s.state==='greyed'?'greyed':'lit', 'sz-dep')}`;
+    } else {
+      recipeHTML = `${sparkEl(s.emoji, s.state, 'sz-dep')}`;
+    }
+    // metric panel
+    let metricHTML = '';
+    if(s.mode==='metric'){
+      const m = s.metric;
+      const trendArrow = m.trend==='up' ? `<span class="metric-trend">${FLAME_SVG} up</span>` : `<span class="metric-trend" style="color:var(--faint);">→ flat</span>`;
+      metricHTML = `<div class="metric-panel">
+        <div class="metric-row"><span class="metric-label">This week</span><span class="metric-val">${m.value}</span></div>
+        <div class="metric-row"><span class="metric-label">Last week</span><span class="metric-val" style="color:var(--muted);">${m.prev}</span></div>
+        <div class="metric-row"><span class="metric-label">Trend</span>${trendArrow}</div>
+      </div>`;
+    }
+    // primary action
+    let actionHTML = '';
+    if(s.mode==='metric'){
+      actionHTML = `<div class="sd-btn primary" onclick="openLogSheet()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Log <span class="chev"></span></div>`;
+    } else if(s.mode==='ritual' && s.state!=='lit'){
+      actionHTML = `<div class="sd-btn primary" onclick="markDone()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> Done <span class="chev"></span></div>`;
+    }
+    // secondary actions
+    const secondaryHTML = `
+      <div class="sd-btn" onclick="openChat(${activeIsle})"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span> Thread <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+      <div class="sd-btn" onclick="openSheet('memberListSheet');renderMemberList()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span> Members <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+    `;
+    $('sparkScroll').innerHTML = `
+      <div class="card-wrap" style="padding-top:14px;">
+        <div class="card" id="sparkCard">
+          <div class="card-top" onclick="$('sparkCard').classList.toggle('open')">
+            ${sparkEl(s.emoji, s.state, 'sz-hero')}
+            <div class="meta-row">
+              <span class="g">${FLAME_SVG}${s.streak}</span>
+              <span class="sep">·</span>
+              <span class="g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="g" style="margin-left:-8px;">${cap(s.window)}</span>
+            </div>
+          </div>
+          <div class="card-expand">
+            <div class="recipe">${recipeHTML}</div>
+          </div>
+          ${metricHTML}
+        </div>
+      </div>
+      <div class="sd-actions">
+        ${actionHTML}
+        ${secondaryHTML}
+      </div>
+    `;
+    // open card by default for metric sparks (show the data)
+    if(s.mode==='metric') $('sparkCard').classList.add('open');
+  }
+  function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+
+  function markDone(){
+    const isle = ISLES[activeIsle];
+    const s = isle.sparks.find(x=>x.id===activeSpark);
+    if(s.deps.length){ s.deps.forEach(d=>d.sat=true); s.sat={}; s.deps.forEach(d=>s.sat[d.emoji]=true); }
+    s.state='lit'; s.streak++;
+    fireBanner(isle.emoji, s.streak);
+    renderSpark(); renderHome();
+  }
+  function openLogSheet(){
+    const s = ISLES[activeIsle].sparks.find(x=>x.id===activeSpark);
+    $('logSheetTitle').textContent = 'Log ' + s.title;
+    $('logInput').value='';
+    $('logInput').placeholder = s.metric ? 'score' : 'value';
+    $('logPhotoBtn').classList.remove('filled');
+    openSheet('logSheet');
+    setTimeout(()=>$('logInput').focus(), 300);
+  }
+  let logPhoto=false;
+  function toggleLogPhoto(){ logPhoto=!logPhoto; $('logPhotoBtn').classList.toggle('filled', logPhoto); }
+  function submitLog(){
+    const isle = ISLES[activeIsle];
+    const s = isle.sparks.find(x=>x.id===activeSpark);
+    const v = parseInt($('logInput').value);
+    if(isNaN(v)){ closeAllSheets(); return; }
+    if(s.metric){ s.metric.prev=s.metric.value; s.metric.value=v; s.metric.trend=v>s.metric.prev?'up':'flat'; }
+    closeAllSheets();
+    renderSpark();
+  }
+
+  function fireBanner(emoji, streak){
+    $('chatBannerEmoji').textContent = emoji;
+    $('chatBannerSub').textContent = 'streak ' + streak;
+    // reuse sweep+banner on whatever screen is active
+    const sw=$('chatSweep'),bn=$('chatBanner');
+    sw.classList.remove('fire');void sw.offsetWidth;sw.classList.add('fire');
+    bn.classList.remove('fire');void bn.offsetWidth;bn.classList.add('fire');
+  }
+
+  // ============================================================
+  // CHAT (per-Isle room)
+  // ============================================================
+  function renderChat(){
+    const isle = ISLES[activeIsle];
+    $('chatTitleText').textContent = isle.name;
+    $('chatTitleSpark').className = 'spark sz-mini lit';
+    $('chatTitleSpark').innerHTML = `<div class="aura"></div><div class="body"><span class="e">${isle.emoji}</span></div>`;
+    $('msgList').innerHTML = isle.msgs.map(m=>{
+      const me = m.sender==='You';
+      const reax = Object.entries(m.reactions||{});
+      const reaxHTML = reax.length ? `<div class="reax">${reax.map(([e,w])=>`<span class="react-chip ${w.includes('You')?'mine':''}">${e}<b>${w.length}</b></span>`).join('')}</div>`:'';
+      const content = m.big ? `<span class="big">${m.big}</span>` : escapeHtml(m.text);
+      return `<div class="msg ${me?'me':'them'}" onclick="reactMsg(${m.id})">${!me?`<div class="sender">${m.sender}</div>`:''}<div class="bubble">${content}</div>${reaxHTML}</div>`;
+    }).join('');
+    $('msgList').scrollTop = $('msgList').scrollHeight;
+    renderChatEmoji();
+  }
+  function toggleChatInfo(){ go('spark'); }
+  function renderChatEmoji(){
+    $('chatStdGrid').innerHTML = STD_EMOJIS.map(e=>`<button onclick="insertChat('${e}')">${e}</button>`).join('');
+  }
+  function insertChat(e){ $('chatInput').value += e; $('chatInput').focus(); updateSend(); closeAllSheets(); }
+  function updateSend(){ $('sendBtn').disabled = $('chatInput').value.trim().length === 0; }
+  function sendChat(){
+    const isle = ISLES[activeIsle];
+    const v = $('chatInput').value.trim(); if(!v) return;
+    $('chatInput').value=''; updateSend();
+    isle.msgs.push({id:chatId++, sender:'You', text:v, big:null, reactions:{}});
+    renderChat(); renderHome();
+  }
+  function reactMsg(id){
+    const isle = ISLES[activeIsle];
+    const m = isle.msgs.find(x=>x.id===id); if(!m) return;
+    const emoji = '🔥';
+    if(!m.reactions[emoji]) m.reactions[emoji]=[];
+    if(m.reactions[emoji].includes('You')){ m.reactions[emoji]=m.reactions[emoji].filter(w=>w!=='You'); if(!m.reactions[emoji].length)delete m.reactions[emoji]; }
+    else m.reactions[emoji].push('You');
+    renderChat();
+  }
+
+  // ============================================================
+  // NEW SPARK — simplified: just "you" vs "add people"
+  // (the deeper score/streak model is deferred to a later conversation)
+  // ============================================================
+  const TYPES = [
+    { id:'solo', emoji:'🙋', title:'Just you', sub:'your own streak' },
+    { id:'together', emoji:'🤝', title:'Add people', sub:'done together' },
+  ];
+  let createMain=null, createDeps=[null,null], pickTarget=null, createType=null;
+  let repeatIdx=1;
+  const REPEATS=['Instant','Daily','Weekly','Monthly'];
+
+  function renderMain(){
+    const s=$('mainSpark'),b=s.querySelector('.body');
+    if(createMain){s.classList.add('has-emoji');b.innerHTML=`<span class="e">${createMain}</span>`;}
+    else{s.classList.remove('has-emoji');b.innerHTML=`<span class="placeholder-q">?</span>`;}
+    $('createBtn').disabled=!createMain; renderPreview();
+  }
+  function renderDep(i){
+    const el=$('dep'+i);
+    if(createDeps[i]){el.textContent=createDeps[i];el.classList.remove('empty');}
+    else{el.textContent='+';el.classList.add('empty');}
+    renderPreview();
+  }
+  function renderPreview(){
+    const e=$('previewE'),cap=$('previewCap'),sp=$('previewSpark');
+    if(createMain){e.textContent=createMain;e.style.color='';e.style.fontSize='';sp.classList.remove('uncomp');sp.classList.add('lit');e.style.filter='saturate(1.15)';cap.textContent='your spark';}
+    else{e.textContent='—';e.style.color='var(--faint)';e.style.fontSize='20px';sp.classList.remove('lit');sp.classList.add('uncomp');cap.textContent='pick a spark';}
+  }
+  function renderTypeGrid(){
+    $('typeGrid').innerHTML = TYPES.map(t=>`
+      <div class="type-card ${createType===t.id?'sel':''}" onclick="selectType('${t.id}')">
+        <div class="tc-emoji">${t.emoji}</div>
+        <div class="tc-title">${t.title}</div>
+        <div class="tc-sub">${t.sub}</div>
+      </div>`).join('');
+  }
+  function selectType(id){ createType=id; renderTypeGrid(); }
+  function pickMainEmoji(){pickTarget='main';openCreateEmoji();}
+  function pickDepEmoji(i){pickTarget=i;openCreateEmoji();}
+  function openCreateEmoji(){
+    $('createEmojiGrid').innerHTML=EMOJI_POOL.map(e=>`<button onclick="chooseCreateEmoji('${e}')">${e}</button>`).join('');
+    openSheet('createEmojiSheet');
+  }
+  function chooseCreateEmoji(e){
+    if(pickTarget==='main'){createMain=e;renderMain();}
+    else{createDeps[pickTarget]=e;renderDep(pickTarget);}
+    closeAllSheets();
+  }
+  function finishCreate(){
+    if(!createMain) return;
+    const isle = ISLES[activeIsle];
+    const isTogether = createType==='together';
+    const newId = isle.sparks.length ? Math.max(...isle.sparks.map(s=>s.id))+1 : 0;
+    const newSpark = {
+      id:newId, emoji:createMain, title:$('mainLabel').value||createMain,
+      mode:'ritual', scope: isTogether?'shared':'personal',
+      state:'uncomp', streak:0, window:REPEATS[repeatIdx].toLowerCase(),
+      deps:[], sat:{},
+    };
+    createDeps.forEach((d,i)=>{ if(d) newSpark.deps.push({emoji:d,sat:false}); newSpark.sat[d]=false; });
+    isle.sparks.push(newSpark);
+    // reset
+    createMain=null; createDeps=[null,null]; createType=null; $('mainLabel').value='';
+    renderMain(); for(let i=0;i<2;i++)renderDep(i); renderTypeGrid();
+    go('isle');
+  }
+
+  // ============================================================
+  // CREATE ISLE
+  // ============================================================
+  let newIsleEmoji=null, newIsleColor='--isle-blue', newIsleVis='private';
+  function startCreateIsle(){
+    newIsleEmoji=null; newIsleColor='--isle-blue'; newIsleVis='private';
+    $('isleNameInput').value=''; $('islePurposeInput').value='';
+    renderIsleEmojiSlot(); renderIsleColorRow(); renderIsleVis();
+    updateCreateIsle();
+    go('create-isle');
+  }
+  function renderIsleEmojiSlot(){
+    const s=$('isleEmojiSlot'), b=s.querySelector('.body');
+    if(newIsleEmoji){ s.classList.add('has-emoji'); b.innerHTML=`<span class="e">${newIsleEmoji}</span>`; s.style.setProperty('--spark-r','40% 22% 40% 22%'); }
+    else{ s.classList.remove('has-emoji'); b.innerHTML=`<span class="placeholder-q">?</span>`; }
+  }
+  function pickIsleEmoji(){
+    pickTarget='isle';
+    $('createEmojiGrid').innerHTML=EMOJI_POOL.map(e=>`<button onclick="chooseCreateEmoji('${e}')">${e}</button>`).join('');
+    openSheet('createEmojiSheet');
+  }
+  // hook isle target into the existing emoji chooser
+  const _origChooseCreateEmoji = chooseCreateEmoji;
+  chooseCreateEmoji = function(e){
+    if(pickTarget==='isle'){ newIsleEmoji=e; renderIsleEmojiSlot(); updateCreateIsle(); closeAllSheets(); }
+    else _origChooseCreateEmoji(e);
+  };
+  function renderIsleColorRow(){
+    $('isleColorRow').innerHTML = SWATCHES.map(c=>
+      `<div class="swatch ${newIsleColor===c?'sel':''}" style="width:32px;height:32px;border-radius:8px;background:rgb(var(${c}));cursor:pointer;" onclick="setNewIsleColor('${c}')"></div>`
+    ).join('');
+  }
+  function setNewIsleColor(c){ newIsleColor=c; renderIsleColorRow(); }
+  function setIsleVis(v){
+    newIsleVis=v;
+    $('checkPrivate').style.opacity = v==='private'?'1':'0';
+    $('checkPublic').style.opacity  = v==='public'?'1':'0';
+  }
+  function renderIsleVis(){ setIsleVis(newIsleVis); }
+  function updateCreateIsle(){
+    $('createIsleBtn').disabled = !newIsleEmoji || !$('isleNameInput').value.trim();
+  }
+  function finishCreateIsle(){
+    if(!newIsleEmoji || !$('isleNameInput').value.trim()) return;
+    const newId = ISLES.length ? Math.max(...ISLES.map(i=>i.id))+1 : 0;
+    ISLES.push({
+      id:newId, name:$('isleNameInput').value.trim(), emoji:newIsleEmoji, color:newIsleColor,
+      purpose:$('islePurposeInput').value.trim(), visibility:newIsleVis, memberCount:1,
+      sparks:[], posts:[], msgs:[]
+    });
+    activeIsle=newId;
+    go('isle');
+  }
+
+  // repeats sheet
+  function renderRepeatOpts(){
+    $('repeatOpts').innerHTML=REPEATS.map((r,i)=>`<div class="opt ${i===repeatIdx?'sel':''}" onclick="setRepeat(${i})"><span>${r}</span><span class="check"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></div>`).join('');
+  }
+  function setRepeat(i){repeatIdx=i;$('repeatVal').textContent=REPEATS[i];renderRepeatOpts();closeAllSheets();}
+
+  // streak toggle
+  function initStreakToggle(){
+    $('streakRowCreate').addEventListener('click',function(e){const tg=$('streakToggleCreate');if(e.target===tg||tg.contains(e.target))return;tg.classList.toggle('off');});
+    $('streakToggleCreate').addEventListener('click',function(e){e.stopPropagation();this.classList.toggle('off');});
+  }
+
+  // share sheet
+  function renderShareSheet(){
+    const accepted = FRIENDS.filter(f=>f.status==='accepted');
+    $('shareGrid').innerHTML = accepted.map(f=>`<button style="font-size:14px;font-weight:600;color:var(--accent);">${f.name}</button>`).join('') || '<span style="color:var(--faint);font-size:13px;grid-column:1/-1;">no friends yet</span>';
+  }
+
+  // ============================================================
+  // POST COMPOSER
+  // ============================================================
+  let postImg=false;
+  let postAudience={}; // isleId -> bool
+  function renderAudience(){
+    $('audienceList').innerHTML = `
+      <div class="audience-row ${postAudience.all?'sel':''}" onclick="toggleAudience('all')">
+        <div class="ar-hero" style="background:var(--accent-soft);"><span class="e">📢</span></div>
+        <div><div class="ar-name">All your Isles</div><div class="ar-sub">${ISLES.length} communities</div></div>
+        <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+      </div>
+      ${ISLES.map(isle=>`<div class="audience-row ${postAudience[isle.id]?'sel':''}" onclick="toggleAudience(${isle.id})">
+        <div class="ar-hero" style="background:rgba(var(${isle.color}),0.12);"><span class="e">${isle.emoji}</span></div>
+        <div><div class="ar-name">${isle.name}</div><div class="ar-sub">${isle.memberCount} members</div></div>
+        <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+      </div>`).join('')}
+    `;
+  }
+  function toggleAudience(key){
+    if(key==='all'){ postAudience={all:true}; }
+    else { delete postAudience.all; postAudience[key]=!postAudience[key]; }
+    renderAudience(); updatePostBtn();
+  }
+  function togglePostImg(){
+    postImg=!postImg;
+    const slot=$('postImgSlot');
+    slot.classList.toggle('filled', postImg);
+    $('postImgHint').style.display = postImg ? 'none' : '';
+  }
+  function updatePostBtn(){
+    const hasText = $('postText').value.trim().length>0;
+    const hasImg = postImg;
+    const hasAudience = Object.keys(postAudience).length>0;
+    $('postBtn').disabled = !(hasText||hasImg) || !hasAudience;
+  }
+  function finishPost(){
+    const text = $('postText').value.trim();
+    const targetIsles = postAudience.all ? ISLES.map(i=>i.id) : Object.keys(postAudience).map(k=>parseInt(k));
+    targetIsles.forEach(id=>{
+      const isle = ISLES[id]; if(!isle) return;
+      isle.posts.push({ author:'You', avatar:'🧑', text:text, big:null, img:postImg, time:'just now' });
+    });
+    // reset
+    $('postText').value=''; postImg=false; postAudience={};
+    togglePostImg(); renderAudience(); updatePostBtn();
+    go('notes');
+  }
+
+  // ============================================================
+  // NOTES (bare chat list — no previews, just name + status)
+  // ============================================================
+  const OPENED_STATE = {0:'5m',1:'1h',2:'yesterday',3:'never'}; // mock last-opened
+  function renderNotes(){
+    // sorted: unopened/new first, then by last-opened
+    const rows = ISLES.slice().sort((a,b)=>((OPENED_STATE[a.id]==='never'?-1:0))-((OPENED_STATE[b.id]==='never'?-1:0)));
+    $('notesScroll').innerHTML = `<div class="notes-list">` + rows.map(isle=>{
+      const status = OPENED_STATE[isle.id];
+      const isNew = status==='never';
+      const subText = isNew ? 'New chat' : 'Opened ' + status;
+      const subCls = isNew ? 'new' : '';
+      return `<div class="note-row" onclick="openChat(${isle.id})">
+        <div class="nr-spark">${sparkEl(isle.emoji, getIsleFaceState(isle), 'sz-rc')}</div>
+        <div class="nr-info">
+          <div class="nr-name">${isle.name}</div>
+          <div class="nr-sub ${subCls}">${subText}</div>
+        </div>
+      </div>`;
+    }).join('') + `</div>`;
+  }
+
+  // ============================================================
+  // LEAGUE — horizontal swipe bar of Isles, ranked by streak
+  // ============================================================
+  let currentLeagueIsle = 0;
+  // per-isle mock ranking data
+  const LEAGUE_DB = {
+    0:[ // LSAT crew
+      {name:'Priya',avatar:'👩',streak:24},{name:'You',avatar:'🧑',streak:18},
+      {name:'Sam',avatar:'🧑‍🦰',streak:15},{name:'Diego',avatar:'🧑‍🦱',streak:11},
+      {name:'Mia',avatar:'🧑‍🦲',streak:6},
+    ],
+    1:[ // runners
+      {name:'You',avatar:'🧑',streak:14},{name:'Lia',avatar:'👩',streak:9},
+      {name:'Sam',avatar:'🧑‍🦰',streak:7},
+    ],
+    2:[ // HLS '26
+      {name:'Alex',avatar:'🧑',streak:8},{name:'You',avatar:'🧑',streak:5},
+      {name:'Jordan',avatar:'👩',streak:3},
+    ],
+    3:[ // book club
+      {name:'You',avatar:'🧑',streak:0},{name:'Lia',avatar:'👩',streak:0},
+    ],
+  };
+  function pickLeagueIsle(id){ currentLeagueIsle=id; closeAllSheets(); renderLeague(); }
+  function renderLeague(){
+    // swipe bar of all Isles
+    $('isleSwipeBar').innerHTML = ISLES.map(isle=>`
+      <div class="isle-chip ${isle.id===currentLeagueIsle?'sel':''}" onclick="pickLeagueIsle(${isle.id})">
+        <div class="ic-spark">${sparkEl(isle.emoji, getIsleFaceState(isle), 'sz-mini')}</div>
+        <div class="ic-name">${isle.name.split(' ')[0]}</div>
+      </div>`).join('');
+    const isle = ISLES[currentLeagueIsle];
+    $('leagueIsleName').textContent = isle.name;
+    // menu sheet still shows all isles as a list (subtle entry)
+    $('leagueEmojiGrid').style.display='none';
+    const players = LEAGUE_DB[currentLeagueIsle] || [];
+    const sorted = players.slice().sort((a,b)=>b.streak-a.streak);
+    $('leagueList').innerHTML = sorted.length ? sorted.map((p,i)=>
+      `<div class="rank-row ${i===0?'top':''} ${p.name==='You'?'me':''}"><div class="rank-num">${i+1}</div><div class="mbr-avatar">${p.avatar}</div><div class="mbr-info"><div class="mbr-name">${p.name}</div></div><div class="rank-streak">${FLAME_SVG}${p.streak}</div></div>`
+    ).join('') : '<div class="empty-state">no streaks yet</div>';
+    // the menu sheet — repurpose as an isle picker list
+  }
+  // repurpose the leagueEmojiSheet into a full isle-list picker
+  function renderLeagueMenu(){
+    const sheet = $('leagueEmojiSheet');
+    sheet.innerHTML = `<div class="grabber"></div><div class="sheet-title">Pick an Isle</div>
+      <div class="opt-list">` + ISLES.map(isle=>`
+        <div class="opt ${isle.id===currentLeagueIsle?'sel':''}" onclick="pickLeagueIsle(${isle.id})">
+          <span style="font-size:20px;">${isle.emoji}</span><span>${isle.name}</span>
+          <span class="check"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+        </div>`).join('') + `</div>`;
+  }
+
+  // ============================================================
+  // ISLES INDEX
+  // ============================================================
+  function renderIslesIndex(){
+    $('islesScroll').innerHTML = `<div class="panel" style="margin:8px 16px 12px;">` +
+      ISLES.map(isle=>`<div class="row" onclick="openIsle(${isle.id})">
+        <div class="ar-hero" style="width:36px;height:36px;border-radius:var(--spark-r);transform:skewX(-14deg);background:rgba(var(${isle.color}),0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <span class="e" style="font-size:18px;transform:skewX(14deg);">${isle.emoji}</span>
+        </div>
+        <span class="val">${isle.name}</span>
+        <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+      </div>`).join('') + `</div>
+      <div class="sec-label">Find more</div>
+      <div class="panel" style="margin:0 16px;">
+        <div class="row cta" onclick="go('discover')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span class="val">Discover Isles</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+      </div>`;
+  }
+
+  // ============================================================
+  // ISLE SETTINGS
+  // ============================================================
+  function renderIsleSettings(){
+    const isle = ISLES[activeIsle];
+    $('isleSettingsScroll').innerHTML = `
+      <div class="sec-label">Members · ${isle.memberCount}</div>
+      <div class="panel" style="margin:0 16px;">
+        <div class="row" onclick="openSheet('memberListSheet');renderMemberList()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span><span class="val">Manage members</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        <div class="row" onclick="openSheet('colorSheet');renderSwatches()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg></span><span class="val">Color</span><span class="val" style="flex:0;width:18px;height:18px;border-radius:5px;background:rgb(var(${isle.color}));"></span></div>
+        <div class="row"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg></span><span class="val">Visibility</span><span class="val" style="flex:0;font-weight:600;color:var(--muted);text-transform:capitalize;">${isle.visibility}</span></div>
+      </div>
+      <div class="sec-label">Danger zone</div>
+      <div class="panel" style="margin:0 16px;">
+        <div class="row danger" onclick="openDeleteSheet('isle')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span><span class="val">Delete Isle</span></div>
+      </div>
+    `;
+  }
+  function openDeleteSheet(what){
+    $('deleteTitle').textContent = what==='isle' ? 'Delete this Isle?' : 'Delete spark?';
+    $('deleteSub').textContent = what==='isle' ? 'This removes it for everyone. There is no undo.' : 'This removes it for everyone. There is no undo.';
+    $('deleteConfirmBtn').onclick = function(){ closeAllSheets(); go('home'); };
+    openSheet('deleteSheet');
+  }
+  // color swatches
+  const SWATCHES = ['--isle-blue','--isle-green','--isle-amber','--isle-violet','--isle-rose','--isle-teal','--isle-orange','--isle-indigo'];
+  function renderSwatches(){
+    const isle = ISLES[activeIsle];
+    $('swatchRow').innerHTML = SWATCHES.map(c=>`<div class="swatch ${isle.color===c?'sel':''}" style="background:rgb(var(${c}));" onclick="setIsleColor('${c}')"></div>`).join('');
+  }
+  function setIsleColor(c){ ISLES[activeIsle].color=c; closeAllSheets(); renderIsleSettings(); renderHome(); }
+
+  // ============================================================
+  // MEMBER LIST
+  // ============================================================
+  function renderMemberList(){
+    const isle = ISLES[activeIsle];
+    const members = [
+      {name:'You', role:'creator', avatar:'🧑'},
+      {name:'Sam', role:'member', avatar:'🧑‍🦰'},
+      {name:'Priya', role:'member', avatar:'👩'},
+    ];
+    $('memberListTitle').textContent = `Members · ${isle.memberCount}`;
+    $('memberListBody').innerHTML = members.map(m=>
+      `<div class="mbr"><div class="mbr-avatar">${m.avatar}</div><div class="mbr-info"><div class="mbr-name">${m.name}</div><div class="mbr-role">${m.role}</div></div>${m.role!=='creator'?`<button class="mbr-remove">Remove</button>`:''}</div>`
+    ).join('');
+  }
+
+  // ============================================================
+  // PROFILE (own) — reads from USER model
+  // ============================================================
+  function renderProfile(){
+    $('profileIdentity').innerHTML = `
+      <div style="width:80px;height:80px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:42px;">${USER.avatar}</div>
+      <div style="font-size:20px;font-weight:700;">${escapeHtml(USER.name)}</div>
+      <div style="font-size:13px;color:var(--muted);">@${escapeHtml(USER.handle)}</div>
+      ${USER.bio ? `<div style="font-size:13px;color:var(--muted);max-width:240px;text-align:center;line-height:1.4;margin-top:4px;">${escapeHtml(USER.bio)}</div>` : ''}
+    `;
+  }
+  function renderEditProfile(){
+    $('editAvatarSlot').textContent = USER.avatar;
+    $('editNameInput').value = USER.name;
+    $('editHandleInput').value = USER.handle;
+    $('editBioInput').value = USER.bio;
+  }
+  function pickAvatar(){
+    $('avatarGrid').innerHTML = AVATAR_POOL.map(e=>`<button onclick="chooseAvatar('${e}')">${e}</button>`).join('');
+    openSheet('avatarSheet');
+  }
+  function chooseAvatar(e){
+    USER.avatar = e;
+    $('editAvatarSlot').textContent = e;
+    closeAllSheets();
+    openSheet('editProfileSheet');
+  }
+  function saveProfile(){
+    USER.name = $('editNameInput').value.trim() || USER.name;
+    USER.handle = $('editHandleInput').value.trim().replace(/^@/,'') || USER.handle;
+    USER.bio = $('editBioInput').value.trim();
+    closeAllSheets();
+    renderProfile();
+  }
+
+  // ============================================================
+  // FRIENDS
+  // ============================================================
+  function renderFriends(){
+    const accepted = FRIENDS.filter(f=>f.status==='accepted');
+    const pendingIn = FRIENDS.filter(f=>f.status==='pending_in');
+    let html = '';
+    if(pendingIn.length){
+      html += `<div class="sec-label">Requests</div><div class="divider"></div><div style="padding:0 22px;">`;
+      pendingIn.forEach(f=>{ html += `<div class="mbr"><div class="mbr-avatar">${f.avatar}</div><div class="mbr-info"><div class="mbr-name">${f.name}</div><div class="mbr-role">wants to be friends</div></div><button class="tb-word" style="font-size:13px;font-weight:700;" onclick="acceptFriend('${f.name}')">Accept</button></div>`; });
+      html += `</div><div class="divider" style="margin-top:10px;"></div>`;
+    }
+    html += `<div class="sec-label">Friends · ${accepted.length}</div><div class="divider"></div><div style="padding:0 22px;">`;
+    if(accepted.length===0) html += `<div class="empty-state">no friends yet</div>`;
+    accepted.forEach(f=>{ html += `<div class="mbr"><div class="mbr-avatar">${f.avatar}</div><div class="mbr-info"><div class="mbr-name">${f.name}</div><div class="mbr-role">friend</div></div></div>`; });
+    html += `</div>`;
+    $('friendsScroll').innerHTML = html;
+  }
+  function acceptFriend(name){ const f=FRIENDS.find(x=>x.name===name); if(f){f.status='accepted';renderFriends();renderShareSheet();} }
+  function renderAddFriendResults(q){
+    q=(q||'').trim().toLowerCase();
+    const results = q ? FRIENDS.filter(f=>f.name.toLowerCase().includes(q)) : FRIENDS.slice(0,4);
+    const html = results.map(f=>{
+      const label = f.status==='accepted'?'friend':f.status==='pending_in'?'request':'sent';
+      return `<div class="mbr"><div class="mbr-avatar">${f.avatar}</div><div class="mbr-info"><div class="mbr-name">${f.name}</div><div class="mbr-role">${label}</div></div>${f.status!=='accepted'?`<button class="tb-word" style="font-size:13px;font-weight:700;" onclick="sendFriendRequest('${f.name}')">Add</button>`:`<span style="font-size:12px;color:var(--faint);">✓</span>`}</div>`;
+    }).join('');
+    $('addFriendResults').innerHTML = html || '<div class="empty-state">no matches</div>';
+  }
+  function sendFriendRequest(name){ const f=FRIENDS.find(x=>x.name===name); if(f&&f.status!=='accepted'){f.status='pending_out';renderAddFriendResults(document.querySelector('#addFriendSheet .search').value);} }
+
+  // ============================================================
+  // DISCOVER
+  // ============================================================
+  let joinedIsles = new Set();
+  function renderDiscover(){
+    const q = ($('discoverSearch')||{}).value || '';
+    const qq = q.trim().toLowerCase();
+    const filtered = qq ? DISCOVER.filter(d=>d.name.toLowerCase().includes(qq)||d.sub.toLowerCase().includes(qq)) : DISCOVER;
+    $('discoverList').innerHTML = filtered.map((d,i)=>
+      `<div class="discover-row">
+        <div class="dr-hero" style="background:rgba(var(${d.color}),0.12);"><span class="e">${d.emoji}</span></div>
+        <div class="dr-info">
+          <div class="dr-name">${d.name}</div>
+          <div class="dr-sub">${d.sub}</div>
+          <div class="dr-members"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${d.members} members</div>
+        </div>
+        <button class="join-btn ${joinedIsles.has(d.name)?'joined':''}" onclick="toggleJoin('${d.name}')">${joinedIsles.has(d.name)?'Joined':'Join'}</button>
+      </div>`
+    ).join('') || '<div class="empty-state">no matches</div>';
+  }
+  function toggleJoin(name){
+    if(joinedIsles.has(name)) joinedIsles.delete(name);
+    else joinedIsles.add(name);
+    renderDiscover();
+  }
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  function escapeHtml(s){return(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+  // ============================================================
+  // SWIPES on Home (notes ← home → league)
+  // ============================================================
+  let homeIndex=1;
+  let sx=null,sy=null;
+  function initSwipes(){
+    const c=$('homeCanvas');
+    c.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+    c.addEventListener('touchend',function(e){
+      if(sx==null)return; const dx=e.changedTouches[0].clientX-sx; const dy=e.changedTouches[0].clientY-sy;
+      if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)*1.2){
+        if(dx<0&&homeIndex<2){homeIndex++;} if(dx>0&&homeIndex>0){homeIndex--;}
+        go(['notes','home','league'][homeIndex]);
+      }
+      sx=null;sy=null;
+    },{passive:true});
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  renderHome();
+  renderMain(); renderDep(0); renderDep(1);
+  renderTypeGrid();
+  renderRepeatOpts();
+  renderShareSheet();
+  renderAudience();
+  renderAddFriendResults('');
+  initStreakToggle();
+  initSwipes();
+  $('notifToggle').addEventListener('click',function(e){e.stopPropagation();this.classList.toggle('off');});
+  $('notifRow').addEventListener('click',function(e){if(e.target.id==='notifToggle'||e.target.closest('#notifToggle'))return;$('notifToggle').classList.toggle('off');});
+</script>
+</body>
+</html>
