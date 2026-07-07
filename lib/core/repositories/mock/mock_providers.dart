@@ -95,6 +95,20 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
         for (final i in state)
           if (i.id == isleId) i.copyWith(msgs: [...i.msgs, message]) else i,
       ];
+
+  /// Replace a message (matched by id) within an Isle's chat room.
+  void updateMessage(String isleId, Message message) => state = [
+        for (final i in state)
+          if (i.id == isleId)
+            i.copyWith(
+              msgs: [
+                for (final m in i.msgs)
+                  if (m.id == message.id) message else m,
+              ],
+            )
+          else
+            i,
+      ];
 }
 
 // =============================================================================

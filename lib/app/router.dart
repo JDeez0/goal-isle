@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/repositories/mock/mock_providers.dart';
 import '../features/auth/presentation/auth_screen.dart';
+import '../features/chat/presentation/isle_chat_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/app_settings_screen.dart';
 import '../features/isles/presentation/home_screen.dart';
@@ -11,12 +12,16 @@ import '../features/isles/presentation/isles_index_screen.dart';
 import '../features/isles/presentation/create_isle_screen.dart';
 import '../features/isles/presentation/isle_home_screen.dart';
 import '../features/isles/presentation/isle_settings_screen.dart';
+import '../features/discover/presentation/discover_screen.dart';
+import '../features/friends/presentation/friends_screen.dart';
+import '../features/league/presentation/league_screen.dart';
+import '../features/notes/presentation/notes_screen.dart';
+import '../features/posts/presentation/post_composer_screen.dart';
 import '../features/sparks/presentation/spark_details_screen.dart';
 import '../features/sparks/presentation/spark_settings_screen.dart';
 import '../features/sparks/presentation/spark_thread_screen.dart';
 import '../features/sparks/presentation/new_spark_screen.dart';
 import 'bottom_nav.dart';
-import 'widgets/placeholder_screen.dart';
 
 /// The GoRouter for the Goal Isle app.
 ///
@@ -61,8 +66,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/notes',
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Notes'),
+                builder: (context, state) => const NotesScreen(),
               ),
             ],
           ),
@@ -82,8 +86,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/league',
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'League'),
+                builder: (context, state) => const LeagueScreen(),
               ),
             ],
           ),
@@ -117,8 +120,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/chat',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Isle Chat'),
+        builder: (context, state) => const IsleChatScreen(),
       ),
       GoRoute(
         path: '/create',
@@ -130,13 +132,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/post',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Post Composer'),
+        builder: (context, state) => const PostComposerScreen(),
       ),
       GoRoute(
         path: '/discover',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Discover'),
+        builder: (context, state) => const DiscoverScreen(),
       ),
       GoRoute(
         path: '/isle-settings',
@@ -144,8 +144,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/friends',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Friends'),
+        builder: (context, state) => const FriendsScreen(),
       ),
       GoRoute(
         path: '/profile',
