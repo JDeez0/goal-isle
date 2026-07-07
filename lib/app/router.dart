@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/repositories/mock/mock_providers.dart';
+import '../features/auth/presentation/auth_screen.dart';
+import '../features/profile/presentation/profile_screen.dart';
+import '../features/profile/presentation/app_settings_screen.dart';
 import 'bottom_nav.dart';
 import 'widgets/placeholder_screen.dart';
 
@@ -33,8 +36,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // ---------------------------------------------------------------------------
       GoRoute(
         path: '/auth',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Auth'),
+        builder: (context, state) => const AuthScreen(),
       ),
 
       // ---------------------------------------------------------------------------
@@ -147,13 +149,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/profile',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Profile'),
+        builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
         path: '/appsettings',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'App Settings'),
+        builder: (context, state) => const AppSettingsScreen(),
       ),
     ],
   );
