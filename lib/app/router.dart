@@ -11,6 +11,10 @@ import '../features/isles/presentation/isles_index_screen.dart';
 import '../features/isles/presentation/create_isle_screen.dart';
 import '../features/isles/presentation/isle_home_screen.dart';
 import '../features/isles/presentation/isle_settings_screen.dart';
+import '../features/sparks/presentation/spark_details_screen.dart';
+import '../features/sparks/presentation/spark_settings_screen.dart';
+import '../features/sparks/presentation/spark_thread_screen.dart';
+import '../features/sparks/presentation/new_spark_screen.dart';
 import 'bottom_nav.dart';
 import 'widgets/placeholder_screen.dart';
 
@@ -101,18 +105,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/spark',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Spark Details'),
+        builder: (context, state) => const SparkDetailsScreen(),
       ),
       GoRoute(
         path: '/sparkthread',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Spark Thread'),
+        builder: (context, state) => const SparkThreadScreen(),
       ),
       GoRoute(
         path: '/sparksettings',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Spark Settings'),
+        builder: (context, state) => const SparkSettingsScreen(),
       ),
       GoRoute(
         path: '/chat',
@@ -121,8 +122,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/create',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'New Spark'),
+        builder: (context, state) => const NewSparkScreen(),
       ),
       GoRoute(
         path: '/create-isle',
