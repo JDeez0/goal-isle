@@ -232,10 +232,10 @@ ThemeData createAppTheme() {
     ),
 
     // Bottom sheet theme
-    bottomSheetTheme: BottomSheetThemeData(
+    bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: TokenColors.surface,
       elevation: Elevation.lg,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(16),
         ),
