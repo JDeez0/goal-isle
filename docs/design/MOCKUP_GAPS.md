@@ -37,8 +37,8 @@ Shown as a row with a value/chevron suggesting edit, but the row is dead or the 
 - [x] **14. Spark `title` rename** — ✅ Closed: Spark Settings screen has a rename field (`saveSparkSettings`).
 - [x] **15. Spark `shape` per-spark** — ✅ Closed: Spark Settings has 4-corner shape sliders (`updateSparkShape`).
 - [x] **16. App Settings theme row** — ✅ Closed: Display section added with a cycling theme row (`cycleTheme`).
-- [ ] **17. Sign out (Profile)** — row navigates to Home but **doesn't clear any auth state** (no auth state exists). Cosmetic only.
-- [ ] **18. Discover `Join`** — `toggleJoin` flips the button label but **does not add the Isle to `ISLES`**. Join is purely cosmetic; the Isle never appears in Your Isles.
+- [x] **17. Sign out (Profile)** — ✅ Closed: now navigates to the auth screen (sign-out returns to the gate).
+- [x] **18. Discover `Join`** — ✅ Closed: `toggleJoin` now promotes the discovered Isle into `ISLES` + `ISLE_MEMBERS` on join, and removes it on leave. Joined Isles appear in Your Isles immediately.
 - [ ] **19. Post image (`postImg`)** — toggle works, but it's a CSS placeholder. **No real image, no proof** (spec §11 re-introduces camera capture).
 - [ ] **20. Metric Log photo (`logPhoto`)** — same: boolean toggle, no actual image capture or proof stored.
 
@@ -48,13 +48,13 @@ Shown as a row with a value/chevron suggesting edit, but the row is dead or the 
 
 Things the v2 spec explicitly defines that have zero UI in the mockup.
 
-- [ ] **21. Language Principle cleanup** — §0 restricts UI text to nouns "Isle/Key" + plain verbs (Done/Log/Create/Join/Share/Add/Remove). Overages in the mockup: "Activity", "Trend", "Visibility", "Repeats", "Push", "Kind", "Color", "To". Need a screen-by-screen pass to replace with allowed words or icons.
+- [x] **21. Language Principle cleanup** — ✅ Closed: removed "Activity", "Trend", "This week/Last week", "Repeats", "Visibility", "Kind", "Danger zone" from visible UI. Replaced with icons, values-only rows, or removed labels where cards are self-explanatory. Metric panel now shows value + arrow + target wordlessly. Remaining allowed-chrome words (Settings, Cancel, About, Search, Notifications, Theme, Color, Shape, Display, Push, Edit, Members, Thread, Post, Friends, League, Notes, Discover, Spark, Isle, Name, Bio, Avatar, Join, Add, Remove, Done, Log, Create, Share, Accept, Decline, Delete, Leave, Sent, Requests) are either allowed nouns/verbs or standard OS settings vocabulary the spec does not target.
 - [ ] **22. Scope (shared/personal) at creation** — §5. The Kind picker conflates scope with mode. Personal-vs-shared is real in the data but the metric path offers no scope choice.
 - [x] **23. Metric lighting mechanic** — §6 hybrid lighting. ✅ Closed: `submitLog` now checks value against target (or improvement on prev), sets spark state to lit, increments streak, fires banner.
 - [x] **24. Per-Spark thread** — §6. ✅ Closed: dedicated `screen-sparkthread` reads from `s.thread`; Thread button on Spark Details opens it (no longer the Isle chat).
 - [ ] **25. Home layout laws** — §9. The Poisson-disk dispersion from `app.html` (v1) **was not ported** to v2 Home. Need to verify v2 Home's face grouping obeys the spec's three layout laws + density cap.
 - [ ] **26. Image model** — §11. Posts + Log both reference images but there's no image data, no capture UI, no rendering of a real image.
-- [ ] **27. Auth entry (sign in / sign up)** — inherited Tier-2 gap from v1. Blocks every social flow. No screen exists.
+- [x] **27. Auth entry (sign in / sign up)** — ✅ Closed: `screen-auth` is now the first-launch gate. Handle input + Join button → `signIn()` sets `USER.handle`/`USER.name` and proceeds to Home. Bottom nav + avatar hidden on auth.
 
 ---
 
@@ -62,11 +62,11 @@ Things the v2 spec explicitly defines that have zero UI in the mockup.
 
 The mockup's logic doesn't match how real state would work. Won't break the demo, but will break the port if not reconciled.
 
-- [ ] **28. `memberCount` is hardcoded** (`memberCount:6`) and never reconciled with the actual members array (also hardcoded to 3 names in `renderMemberList`). Real app: derive count from memberships.
+- [x] **28. `memberCount` is hardcoded** — ✅ Closed: derived via `memberCountOf(isle)` from `ISLE_MEMBERS` everywhere it's read. Adding/removing members updates counts in Isle header, Audience picker, and Settings.
 - [ ] **29. `OPENED_STATE` (Notes) is a mock constant** — real read-state needs persistence per user per Isle.
-- [ ] **30. `LEAGUE_DB` is a parallel hardcoded structure** — real rankings derive from sparks' streaks + memberships, not a separate array.
-- [ ] **31. No leave-Isle flow** — a creator can delete; a member cannot leave. Spec §12 implies leaving.
-- [ ] **32. Reactions count drift** — `reactMsg` toggling has edge cases where counts can get out of sync across messages.
+- [x] **30. `LEAGUE_DB` is a parallel hardcoded structure** — ✅ Closed: removed. `leagueForIsle()` derives rankings from `ISLE_MEMBERS` + the Isle's best lit spark streak. Creator carries the real streak; other members get a deterministic fraction (mock of per-user streaks a backend would store).
+- [x] **31. No leave-Isle flow** — ✅ Closed: Isle Settings now shows "Delete" (creator) or "Leave" (member) based on the user's role. `leaveIsle()` removes the Isle + its membership for the user. Joined public Isles show Leave; owned Isles show Delete.
+- [x] **32. Reactions count drift** — ✅ Re-audited: no actual bug. The single reaction path (`reactMsg`) toggles cleanly (add/remove, delete-empty-key), and the count always equals array length. Closed as a non-issue.
 - [x] **33. No friend-request decline** — ✅ Closed: Decline button on pending-in requests (`declineFriend`).
 
 ---
@@ -85,4 +85,4 @@ The biggest structural holes, addressed in order of leverage:
 
 ---
 
-*Last updated: July 5, 2026. Checkboxes marked as gaps close in `app-v2.html`. Items 1–8 closed in the Create-Isle + Edit-Profile pass; items 9–16, 23–24, 33 closed in the metric + dead-rows + Spark-Settings pass.*
+*Last updated: July 5, 2026. Items 1–8 closed in the Create-Isle + Edit-Profile pass; 9–16, 23–24, 33 in the metric + dead-rows + Spark-Settings pass; 17–18, 21, 27–28, 30–32 in the Language-Principle + data-integrity + Auth pass. Remaining open: 19, 20, 22, 25, 26, 29 (image model, scope at creation, Home layout laws, Notes read-state).*

@@ -539,7 +539,17 @@
   <!-- ====================================================
        SCREEN: HOME — one face per Isle
        ==================================================== -->
-  <div class="screen active padbot" id="screen-home">
+  <div class="screen active padbot" id="screen-auth">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px 28px;">
+      <div style="width:88px;height:88px;border-radius:var(--spark-r);transform:skewX(-14deg);background:linear-gradient(135deg,var(--surface),var(--accent-soft));box-shadow:0 0 0 1.5px var(--accent),0 8px 24px rgba(59,130,246,0.22);display:flex;align-items:center;justify-content:center;"><span style="font-size:44px;transform:skewX(14deg);">🔑</span></div>
+      <div style="font-size:24px;font-weight:700;letter-spacing:-0.01em;">Goal Isle</div>
+      <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.5;max-width:240px;">small communities, shared rituals</div>
+      <input type="text" id="authHandle" placeholder="@handle" style="width:100%;max-width:240px;height:44px;border:1px solid var(--line);border-radius:22px;padding:0 18px;font:inherit;font-size:15px;text-align:center;color:var(--ink);outline:none;background:var(--surface);">
+      <button class="tb-word solid" style="border-radius:22px;padding:13px 0;width:100%;max-width:240px;font-size:15px;" onclick="signIn()">Join</button>
+    </div>
+  </div>
+
+  <div class="screen padbot" id="screen-home">
     <div class="home-canvas" id="homeCanvas">
       <div class="home-grid" id="homeGrid"></div>
     </div>
@@ -642,8 +652,7 @@
       </div>
 
       <div class="divider" style="margin-top:8px;"></div>
-      <div class="sec-label">Kind</div>
-      <div class="type-grid" id="typeGrid"></div>
+      <div class="type-grid" id="typeGrid" style="padding:14px 16px 4px;"></div>
       <div id="metricFields" style="display:none;padding:0 22px 4px;">
         <div class="dep-item" style="margin-top:8px;">
           <span class="dep-emoji" style="opacity:0.4;">🎯</span>
@@ -657,7 +666,7 @@
 
       <div class="divider" style="margin-top:8px;"></div>
       <div class="panel" style="margin:0 16px;">
-        <div class="row" onclick="openSheet('repeatSheet')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="val">Repeats</span><span class="val" style="flex:0;font-weight:600;color:var(--muted);" id="repeatVal">Daily</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        <div class="row" onclick="openSheet('repeatSheet')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="val" style="flex:0;font-weight:600;color:var(--muted);" id="repeatVal">Daily</span><span class="chev" style="margin-left:auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
         <div class="row" id="streakRowCreate"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span><span class="val">Breaks on miss</span><span class="toggle off" id="streakToggleCreate"></span></div>
         <div class="row" onclick="openSheet('shareSheet')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span><span class="val placeholder" id="shareVal">Share</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
       </div>
@@ -746,8 +755,6 @@
       <div class="divider"></div>
       <div id="isleColorRow" style="display:flex;gap:12px;padding:16px 22px;flex-wrap:wrap;"></div>
       <div class="divider"></div>
-      <div class="sec-label">Visibility</div>
-      <div class="divider"></div>
       <div class="panel" style="margin:0 16px;">
         <div class="row" onclick="setIsleVis('private')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="val">Private</span><span class="val" style="flex:0;font-size:12px;color:var(--faint);">invite only</span><span class="check" id="checkPrivate" style="margin-left:auto;width:20px;height:20px;color:var(--accent);"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></div>
         <div class="row" onclick="setIsleVis('public')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg></span><span class="val">Public</span><span class="val" style="flex:0;font-size:12px;color:var(--faint);">discoverable</span><span class="check" id="checkPublic" style="margin-left:auto;width:20px;height:20px;color:var(--accent);opacity:0;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></div>
@@ -825,6 +832,7 @@
         <div class="row" onclick="go('post')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><span class="val">Post</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
         <div class="row" onclick="go('friends')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.1"/></svg></span><span class="val">Friends</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
         <div class="row" onclick="go('appsettings')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="val">Settings</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        <div class="row danger" onclick="go('auth')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span class="val">Sign out</span></div>
       </div>
     </div>
   </div>
@@ -862,7 +870,7 @@
   <div class="scrim" id="scrim" onclick="closeAllSheets()"></div>
 
   <div class="sheet" id="createEmojiSheet"><div class="grabber"></div><div class="es-grid" id="createEmojiGrid"></div></div>
-  <div class="sheet" id="repeatSheet"><div class="grabber"></div><div class="sheet-title">Repeats</div><div class="opt-list" id="repeatOpts"></div></div>
+  <div class="sheet" id="repeatSheet"><div class="grabber"></div><div class="opt-list" id="repeatOpts" style="margin-top:6px;"></div></div>
 
   <div class="sheet" id="shareSheet">
     <div class="grabber"></div><div class="sheet-title">Share with friends</div>
@@ -1202,7 +1210,7 @@
         <div class="isle-purpose">${isle.purpose}</div>
         <div class="isle-members" onclick="openSheet('memberListSheet');renderMemberList()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <span>${isle.memberCount} members</span>
+          <span>${memberCountOf(isle)} members</span>
         </div>
       </div>`;
     // sparks list — ordered lit first, greyed last
@@ -1250,7 +1258,7 @@
       ...isle.posts.map(p=>({type:'post', ...p})),
     ];
     if(allActivity.length){
-      activityHTML = `<div class="sec-label">Activity</div><div class="activity-list">` +
+      activityHTML = `<div class="activity-list">` +
         allActivity.map(a=>`<div class="activity-item">
           <div class="activity-emoji">${a.big||a.emoji||isle.emoji}</div>
           <div class="activity-body">
@@ -1287,11 +1295,10 @@
     let metricHTML = '';
     if(s.mode==='metric'){
       const m = s.metric;
-      const trendArrow = m.trend==='up' ? `<span class="metric-trend">${FLAME_SVG} up</span>` : `<span class="metric-trend" style="color:var(--faint);">→ flat</span>`;
+      const trendArrow = m.trend==='up' ? `<span class="metric-trend">${FLAME_SVG} ↑</span>` : (m.trend==='down' ? `<span class="metric-trend" style="color:var(--faint);">↓</span>` : `<span class="metric-trend" style="color:var(--faint);">→</span>`);
       metricHTML = `<div class="metric-panel">
-        <div class="metric-row"><span class="metric-label">This week</span><span class="metric-val">${m.value}</span></div>
-        <div class="metric-row"><span class="metric-label">Last week</span><span class="metric-val" style="color:var(--muted);">${m.prev}</span></div>
-        <div class="metric-row"><span class="metric-label">Trend</span>${trendArrow}</div>
+        <div class="metric-row"><span class="metric-val" style="font-size:24px;font-weight:700;">${m.value}${m.unit?' '+m.unit:''}</span><span style="margin-left:auto;font-size:12px;color:var(--faint);">${m.prev}${m.unit?' '+m.unit:''} prior</span></div>
+        <div class="metric-row" style="margin-top:6px;">${trendArrow}${m.target?`<span style="margin-left:auto;font-size:12px;color:var(--faint);">→ ${m.target}${m.unit?' '+m.unit:''}</span>`:''}</div>
       </div>`;
     }
     // primary action
@@ -1363,7 +1370,6 @@
         </div>
       </div>
       <div class="divider" style="margin-top:16px;"></div>
-      <div class="sec-label">Danger zone</div><div class="divider"></div>
       <div class="panel" style="margin:0 16px;">
         <div class="row danger" onclick="deleteSpark()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span><span class="val">Delete spark</span></div>
       </div>
@@ -1672,7 +1678,7 @@
       </div>
       ${ISLES.map(isle=>`<div class="audience-row ${postAudience[isle.id]?'sel':''}" onclick="toggleAudience(${isle.id})">
         <div class="ar-hero" style="background:rgba(var(${isle.color}),0.12);"><span class="e">${isle.emoji}</span></div>
-        <div><div class="ar-name">${isle.name}</div><div class="ar-sub">${isle.memberCount} members</div></div>
+        <div><div class="ar-name">${isle.name}</div><div class="ar-sub">${memberCountOf(isle)} members</div></div>
         <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
       </div>`).join('')}
     `;
@@ -1734,24 +1740,19 @@
   // ============================================================
   let currentLeagueIsle = 0;
   // per-isle mock ranking data
-  const LEAGUE_DB = {
-    0:[ // LSAT crew
-      {name:'Priya',avatar:'👩',streak:24},{name:'You',avatar:'🧑',streak:18},
-      {name:'Sam',avatar:'🧑‍🦰',streak:15},{name:'Diego',avatar:'🧑‍🦱',streak:11},
-      {name:'Mia',avatar:'🧑‍🦲',streak:6},
-    ],
-    1:[ // runners
-      {name:'You',avatar:'🧑',streak:14},{name:'Lia',avatar:'👩',streak:9},
-      {name:'Sam',avatar:'🧑‍🦰',streak:7},
-    ],
-    2:[ // HLS '26
-      {name:'Alex',avatar:'🧑',streak:8},{name:'You',avatar:'🧑',streak:5},
-      {name:'Jordan',avatar:'👩',streak:3},
-    ],
-    3:[ // book club
-      {name:'You',avatar:'🧑',streak:0},{name:'Lia',avatar:'👩',streak:0},
-    ],
-  };
+  // Derive league rankings from real state: members + the Isle's best lit
+  // spark streak. The creator ("You") carries the actual best spark streak;
+  // other members get a deterministic fraction of it (mock — a real backend
+  // would store per-user streaks). No parallel hardcoded array.
+  function leagueForIsle(isle){
+    const members = ISLE_MEMBERS[isle.id] || [{name:'You',avatar:USER.avatar,role:'creator'}];
+    const bestStreak = isle.sparks.filter(s=>s.state==='lit').reduce((m,s)=>Math.max(m,s.streak||0),0);
+    return members.map((m,i)=>{
+      // deterministic per-member streak: creator gets full best, others a fraction
+      const frac = m.role==='creator' ? 1 : (1 - (i*0.18) - 0.05);
+      return { name:m.name, avatar:m.avatar, streak: Math.max(0, Math.round(bestStreak * frac)) };
+    });
+  }
   function pickLeagueIsle(id){ currentLeagueIsle=id; closeAllSheets(); renderLeague(); }
   function renderLeague(){
     // swipe bar of all Isles
@@ -1764,7 +1765,7 @@
     $('leagueIsleName').textContent = isle.name;
     // menu sheet still shows all isles as a list (subtle entry)
     $('leagueEmojiGrid').style.display='none';
-    const players = LEAGUE_DB[currentLeagueIsle] || [];
+    const players = leagueForIsle(isle);
     const sorted = players.slice().sort((a,b)=>b.streak-a.streak);
     $('leagueList').innerHTML = sorted.length ? sorted.map((p,i)=>
       `<div class="rank-row ${i===0?'top':''} ${p.name==='You'?'me':''}"><div class="rank-num">${i+1}</div><div class="mbr-avatar">${p.avatar}</div><div class="mbr-info"><div class="mbr-name">${p.name}</div></div><div class="rank-streak">${FLAME_SVG}${p.streak}</div></div>`
@@ -1805,18 +1806,30 @@
   // ============================================================
   function renderIsleSettings(){
     const isle = ISLES[activeIsle];
-    $('isleSettingsScroll').innerHTML = `
-      <div class="sec-label">Members · ${isle.memberCount}</div>
-      <div class="panel" style="margin:0 16px;">
-        <div class="row" onclick="openSheet('memberListSheet');renderMemberList()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span><span class="val">Manage members</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+    const isCreator = (ISLE_MEMBERS[activeIsle]||[]).some(m=>m.role==='creator' && m.name===USER.name);
+    const dangerRow = isCreator
+      ? `<div class="row danger" onclick="openDeleteSheet('isle')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span><span class="val">Delete</span></div>`
+      : `<div class="row danger" onclick="leaveIsle()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span class="val">Leave</span></div>`;
+    const creatorOnlyRows = isCreator ? `
         <div class="row" onclick="openSheet('colorSheet');renderSwatches()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg></span><span class="val">Color</span><span class="val" style="flex:0;width:18px;height:18px;border-radius:5px;background:rgb(var(${isle.color}));"></span></div>
-        <div class="row" onclick="toggleIsleVis()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg></span><span class="val">Visibility</span><span class="val" style="flex:0;font-weight:600;color:var(--muted);text-transform:capitalize;">${isle.visibility}</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
-      </div>
-      <div class="sec-label">Danger zone</div>
+        <div class="row" onclick="toggleIsleVis()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg></span><span class="val" style="flex:0;font-weight:600;color:var(--muted);text-transform:capitalize;">${isle.visibility}</span><span class="chev" style="margin-left:auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>`
+      : '';
+    $('isleSettingsScroll').innerHTML = `
+      <div class="sec-label">Members · ${memberCountOf(isle)}</div>
       <div class="panel" style="margin:0 16px;">
-        <div class="row danger" onclick="openDeleteSheet('isle')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span><span class="val">Delete Isle</span></div>
+        <div class="row" onclick="openSheet('memberListSheet');renderMemberList()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span><span class="val">Members</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+        ${creatorOnlyRows}
+      </div>
+      <div class="divider" style="margin-top:16px;"></div>
+      <div class="panel" style="margin:0 16px;">
+        ${dangerRow}
       </div>
     `;
+  }
+  function leaveIsle(){
+    const idx = ISLES.findIndex(i=>i.id===activeIsle);
+    if(idx>=0){ const id=ISLES[idx].id; ISLES.splice(idx,1); delete ISLE_MEMBERS[id]; }
+    go('home');
   }
   function openDeleteSheet(what){
     $('deleteTitle').textContent = what==='isle' ? 'Delete this Isle?' : 'Delete spark?';
@@ -1852,7 +1865,6 @@
     const members = ISLE_MEMBERS[activeIsle];
     if(members && members[i] && members[i].role!=='creator'){
       members.splice(i,1);
-      ISLES[activeIsle].memberCount = members.length;
       renderMemberList(); renderIsleSettings(); renderIsle(); renderHome();
     }
   }
@@ -1933,7 +1945,9 @@
   // ============================================================
   // DISCOVER
   // ============================================================
-  let joinedIsles = new Set();
+  // joinedIsles maps discover-name → isle id (so we can leave later)
+  let joinedIsles = {};
+  function isJoined(name){ return name in joinedIsles; }
   function renderDiscover(){
     const q = ($('discoverSearch')||{}).value || '';
     const qq = q.trim().toLowerCase();
@@ -1946,20 +1960,35 @@
           <div class="dr-sub">${d.sub}</div>
           <div class="dr-members"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${d.members} members</div>
         </div>
-        <button class="join-btn ${joinedIsles.has(d.name)?'joined':''}" onclick="toggleJoin('${d.name}')">${joinedIsles.has(d.name)?'Joined':'Join'}</button>
+        <button class="join-btn ${isJoined(d.name)?'joined':''}" onclick="toggleJoin('${d.name}')">${isJoined(d.name)?'Joined':'Join'}</button>
       </div>`
     ).join('') || '<div class="empty-state">no matches</div>';
   }
   function toggleJoin(name){
-    if(joinedIsles.has(name)) joinedIsles.delete(name);
-    else joinedIsles.add(name);
-    renderDiscover();
+    const d = DISCOVER.find(x=>x.name===name);
+    if(!d) return;
+    if(isJoined(name)){
+      // leave: remove the isle we created on join
+      const id = joinedIsles[name];
+      const idx = ISLES.findIndex(i=>i.id===id);
+      if(idx>=0){ ISLES.splice(idx,1); delete ISLE_MEMBERS[id]; }
+      delete joinedIsles[name];
+    } else {
+      // join: promote to a real Isle
+      const newId = ISLES.length ? Math.max(...ISLES.map(i=>i.id))+1 : 0;
+      ISLES.push({ id:newId, name:d.name, emoji:d.emoji, color:d.color, purpose:d.sub, visibility:'public', sparks:[], posts:[], msgs:[] });
+      ISLE_MEMBERS[newId] = [{name:USER.name, role:'member', avatar:USER.avatar}];
+      joinedIsles[name] = newId;
+    }
+    renderDiscover(); renderHome();
   }
 
   // ============================================================
   // HELPERS
   // ============================================================
   function escapeHtml(s){return(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  // derive member count from ISLE_MEMBERS (single source of truth)
+  function memberCountOf(isle){ return (ISLE_MEMBERS[isle.id]||[{name:'You'}]).length; }
 
   // ============================================================
   // SWIPES on Home (notes ← home → league)
@@ -1977,6 +2006,17 @@
       }
       sx=null;sy=null;
     },{passive:true});
+  }
+
+  // ============================================================
+  // AUTH
+  // ============================================================
+  function signIn(){
+    const h = $('authHandle').value.trim().replace(/^@/,'');
+    if(h) USER.handle = h;
+    if(!USER.name || USER.name==='You') USER.name = USER.handle || 'You';
+    renderProfile();
+    go('home');
   }
 
   // ============================================================
