@@ -26,6 +26,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     super.dispose();
   }
 
+  bool _emailSent = false;
+
   Future<void> _submit() async {
     final email = _email.text.trim();
     final password = _password.text.trim();
@@ -40,11 +42,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           setState(() { _error = 'Pick a handle'; _loading = false; });
           return;
         }
-        await SupabaseConfig.client.auth.signUp(
+        final res = await SupabaseConfig.client.auth.signUp(
           email: email,
           password: password,
           data: {'handle': handle},
         );
+        // If email confirmation is required, show feedback
+        if (res.user != null && res.session == null) {
+          setState(() { _emailSent = true; _loading = false; });
+          return;
+        }
       } else {
         await SupabaseConfig.client.auth.signInWithPassword(
           email: email,
@@ -90,6 +97,20 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 const SizedBox(height: 16),
                 const Text('Goal Isle', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 28),
+                if (_emailSent) ...[
+                  const Icon(Icons.mail_outline, size: 48, color: Color(0xFF3B82F6)),
+                  const SizedBox(height: 16),
+                  const Text('Check your email', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  Text('We sent a link to ${_email.text.trim()}. Click it to verify, then sign in.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), height: 1.5)),
+                  const SizedBox(height: 24),
+                  TextButton(
+                    onPressed: () => setState(() { _emailSent = false; _isSignUp = false; }),
+                    child: const Text('Back to sign in'),
+                  ),
+                ] else ...[
                 if (_isSignUp)
                   _input(_handle, 'handle', keyboard: TextInputType.text),
                 _input(_email, 'email', keyboard: TextInputType.emailAddress),
@@ -121,6 +142,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   onPressed: () => setState(() { _isSignUp = !_isSignUp; _error = null; }),
                   child: Text(_isSignUp ? 'Have an account? Sign in' : 'New here? Join'),
                 ),
+                ], // end else (form content)
               ],
             ),
           ),

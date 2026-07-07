@@ -34,13 +34,18 @@ import 'bottom_nav.dart';
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
-    refreshListenable: _SupabaseAuthListenable(),
+    refreshListenable: _SupabaseAuthListenable(ref),
     redirect: (context, state) {
       final session = Supabase.instance.client.auth.currentSession;
       final signedIn = session != null;
       final goingToAuth = state.matchedLocation == '/auth';
       if (!signedIn && !goingToAuth) return '/auth';
-      if (signedIn && goingToAuth) return '/';
+      if (signedIn && goingToAuth) {
+        // Just signed in — reload data from Supabase + load profile
+        ref.read(islesProvider.notifier).refresh();
+        ref.read(currentUserProvider.notifier).loadFromSupabase();
+        return '/';
+      }
       return null;
     },
     routes: [
@@ -171,9 +176,10 @@ final GlobalKey<NavigatorState> _leagueNavKey =
 
 /// Bridges Supabase auth state changes to GoRouter's refreshListenable.
 class _SupabaseAuthListenable extends ChangeNotifier {
-  _SupabaseAuthListenable() {
+  _SupabaseAuthListenable(this._ref) {
     Supabase.instance.client.auth.onAuthStateChange.listen((_) {
       notifyListeners();
     });
   }
+  final Ref _ref;
 }

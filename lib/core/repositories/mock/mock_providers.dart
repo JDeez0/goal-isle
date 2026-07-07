@@ -5,6 +5,7 @@
 /// to Supabase for persistence.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
@@ -102,18 +103,18 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
     state = [...state, isle];
     final uid = SupabaseConfig.client.auth.currentUser?.id;
     if (uid != null) {
-      SupabaseRepository.createIsle(isle, uid).then((_) {}).catchError((_) {});
+      SupabaseRepository.createIsle(isle, uid).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
     }
   }
 
   void updateIsle(Isle isle) {
     state = [for (final i in state) if (i.id == isle.id) isle else i];
-    SupabaseRepository.updateIsle(isle).then((_) {}).catchError((_) {});
+    SupabaseRepository.updateIsle(isle).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void removeIsle(String isleId) {
     state = [for (final i in state) if (i.id != isleId) i];
-    SupabaseRepository.deleteIsle(isleId).then((_) {}).catchError((_) {});
+    SupabaseRepository.deleteIsle(isleId).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void addSpark(String isleId, Spark spark) {
@@ -121,7 +122,7 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
       for (final i in state)
         if (i.id == isleId) i.copyWith(sparks: [...i.sparks, spark]) else i,
     ];
-    SupabaseRepository.createSpark(spark).then((_) {}).catchError((_) {});
+    SupabaseRepository.createSpark(spark).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void updateSpark(String isleId, Spark spark) {
@@ -132,7 +133,7 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
         else
           i,
     ];
-    SupabaseRepository.updateSpark(spark).then((_) {}).catchError((_) {});
+    SupabaseRepository.updateSpark(spark).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void removeSpark(String isleId, String sparkId) {
@@ -143,7 +144,7 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
         else
           i,
     ];
-    SupabaseRepository.deleteSpark(sparkId).then((_) {}).catchError((_) {});
+    SupabaseRepository.deleteSpark(sparkId).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void addPost(String isleId, Post post) {
@@ -151,7 +152,7 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
       for (final i in state)
         if (i.id == isleId) i.copyWith(posts: [...i.posts, post]) else i,
     ];
-    SupabaseRepository.createPost(post).then((_) {}).catchError((_) {});
+    SupabaseRepository.createPost(post).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void addMessage(String isleId, Message message) {
@@ -159,7 +160,7 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
       for (final i in state)
         if (i.id == isleId) i.copyWith(msgs: [...i.msgs, message]) else i,
     ];
-    SupabaseRepository.sendMessage(message).then((_) {}).catchError((_) {});
+    SupabaseRepository.sendMessage(message).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void updateMessage(String isleId, Message message) {
@@ -170,7 +171,7 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
         else
           i,
     ];
-    SupabaseRepository.updateMessage(message).then((_) {}).catchError((_) {});
+    SupabaseRepository.updateMessage(message).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 }
 
@@ -190,7 +191,7 @@ class MemberhipsNotifier extends StateNotifier<Map<String, List<Membership>>> {
     final newState = Map<String, List<Membership>>.from(state);
     newState[isleId] = list;
     state = newState;
-    SupabaseRepository.addMember(m).then((_) {}).catchError((_) {});
+    SupabaseRepository.addMember(m).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void removeMember(String isleId, String userId) {
@@ -199,7 +200,7 @@ class MemberhipsNotifier extends StateNotifier<Map<String, List<Membership>>> {
     final newState = Map<String, List<Membership>>.from(state);
     newState[isleId] = list;
     state = newState;
-    SupabaseRepository.removeMember(isleId, userId).then((_) {}).catchError((_) {});
+    SupabaseRepository.removeMember(isleId, userId).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 }
 
