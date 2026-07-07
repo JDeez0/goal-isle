@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/repositories/supabase/supabase_client.dart';
 import 'edit_profile_sheet.dart';
 
 /// Profile — the account hub. Renders from currentUserProvider.
@@ -125,7 +127,7 @@ class ProfileScreen extends ConsumerWidget {
                     label: 'Sign out',
                     isDanger: true,
                     onTap: () {
-                      ref.read(authStateProvider.notifier).signOut();
+                      SupabaseConfig.client.auth.signOut();
                     },
                   ),
                 ],

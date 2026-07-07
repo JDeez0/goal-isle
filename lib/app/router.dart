@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/repositories/mock/mock_providers.dart';
 import '../features/auth/presentation/auth_screen.dart';
@@ -31,14 +32,12 @@ import 'bottom_nav.dart';
 /// routes (Isles, Spark, Chat, …) are top-level routes pushed on top of the
 /// shell, so they don't render the bottom bar.
 final routerProvider = Provider<GoRouter>((ref) {
-  // Refresh redirects whenever the signed-in flag changes.
-  ref.listen(authStateProvider, (_, __) {});
-
   return GoRouter(
     initialLocation: '/',
-    refreshListenable: _AuthListenable(ref),
+    refreshListenable: _SupabaseAuthListenable(),
     redirect: (context, state) {
-      final signedIn = ref.read(authStateProvider);
+      final session = Supabase.instance.client.auth.currentSession;
+      final signedIn = session != null;
       final goingToAuth = state.matchedLocation == '/auth';
       if (!signedIn && !goingToAuth) return '/auth';
       if (signedIn && goingToAuth) return '/';
@@ -170,12 +169,11 @@ final GlobalKey<NavigatorState> _notesNavKey =
 final GlobalKey<NavigatorState> _leagueNavKey =
     GlobalKey<NavigatorState>(debugLabel: 'league');
 
-/// Bridges [authStateProvider] to GoRouter's [GoRouter.refreshListenable].
-///
-/// GoRouter needs a [Listenable] to know when to re-run redirects; this listens
-/// to the provider and notifies the router whenever auth state changes.
-class _AuthListenable extends ChangeNotifier {
-  _AuthListenable(Ref ref) {
-    ref.listen<bool>(authStateProvider, (_, __) => notifyListeners());
+/// Bridges Supabase auth state changes to GoRouter's refreshListenable.
+class _SupabaseAuthListenable extends ChangeNotifier {
+  _SupabaseAuthListenable() {
+    Supabase.instance.client.auth.onAuthStateChange.listen((_) {
+      notifyListeners();
+    });
   }
 }
