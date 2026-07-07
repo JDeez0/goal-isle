@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/models/enums.dart';
 import '../../../core/models/isle.dart';
 import '../../../core/models/membership.dart';
@@ -52,6 +53,8 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
   void _create() {
     if (!_canCreate) return;
     final me = ref.read(currentUserProvider);
+    // Use the real Supabase auth UUID (not the mock ID)
+    final authId = Supabase.instance.client.auth.currentUser?.id ?? me.id;
     final now = DateTime.now();
     final id = 'is-${now.millisecondsSinceEpoch}';
     final isle = Isle(
@@ -62,7 +65,7 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
           _purposeCtrl.text.trim().isEmpty ? null : _purposeCtrl.text.trim(),
       color: _color,
       visibility: _visibility,
-      createdBy: me.id,
+      createdBy: authId,
       createdAt: now,
     );
     ref.read(islesProvider.notifier).addIsle(isle);
@@ -71,7 +74,7 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
           id,
           Membership(
             isleId: id,
-            userId: me.id,
+            userId: authId,
             userName: me.name,
             userAvatar: me.avatar,
             role: 'creator',
