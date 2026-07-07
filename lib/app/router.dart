@@ -6,6 +6,7 @@ import '../core/repositories/mock/mock_providers.dart';
 import '../features/auth/presentation/auth_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/app_settings_screen.dart';
+import '../features/isles/presentation/home_screen.dart';
 import 'bottom_nav.dart';
 import 'widgets/placeholder_screen.dart';
 
@@ -63,8 +64,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/',
-                builder: (context, state) =>
-                    const PlaceholderScreen(title: 'Home'),
+                builder: (context, state) => const HomeScreen(),
               ),
             ],
           ),
