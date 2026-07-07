@@ -1,9 +1,11 @@
 # Goal Isle — Current Status
 
-**Date:** July 1, 2026
+**Date:** July 4, 2026
 **Project:** `/home/jasper/projects/goal_isle/`
 
-> 🚨 **BIG CHANGE (July 1):** The product has been redesigned around **Isle Sparks**. The full spec is in **[`docs/design/ISLE_SPARKS_SPEC.md`](docs/design/ISLE_SPARKS_SPEC.md)**. The Flutter code below still reflects the **old** model and has **not** been migrated yet. UI design mockups are in **[`docs/design/mockups/`](docs/design/mockups/)**.
+> 🔑 **Rename (July 4):** "Isle Sparks" are now called **Isle Keys**. A key is **"turned"** or **"lit"** when its condition is met — but per the Language Principle, neither word appears in the UI; the user only sees the visual state change. "Spark" remains a fully valid synonym throughout docs and conversation. The governing spec keeps its body text as "spark" with a terminology note at the top; the codebase will standardize on `Key`/`keys` during the Flutter migration.
+
+> 🚨 **BIG CHANGE (July 3):** The spec has been re-locked as **v2**. The product now targets a wedge — **college grads studying for the LSAT** — which added communities, metric keys, posts, and discovery. The governing spec is **[`docs/design/ISLE_SPARKS_SPEC_v2.md`](docs/design/ISLE_SPARKS_SPEC_v2.md)** (v1 retained as history). The Flutter code and the existing HTML mockups still reflect **v1** and have **not** been updated yet.
 
 ---
 
@@ -78,11 +80,12 @@ The doc set was consolidated on June 22. Many older files were moved to `docs/ar
 |---|---|
 | `README.md` | Project root, comprehensive entry point |
 | `CURRENT_STATUS.md` | This file — project state, source of truth |
-| **`docs/design/ISLE_SPARKS_SPEC.md`** | **🔒 THE current system spec — Isle Sparks redesign (read this first)** |
-| **`docs/design/MOCKUPS.md`** | **How to run the design mockups** |
+| **`docs/design/ISLE_SPARKS_SPEC_v2.md`** | **🔒 THE governing spec — Isle Sparks v2 (read this first)** |
+| `docs/design/ISLE_SPARKS_SPEC.md` | v1 spec — historical, superseded by v2 |
+| **`docs/design/MOCKUPS.md`** | **How to run the design mockups** (⚠️ mockups currently reflect v1) |
 | `docs/AUDIT_2026_07_01.md` | Whole-repo vestigial-information audit (what's outdated, what to fix) |
 | `FLUTTER_DEBUG_LOG.md` | Debugging history that got Flutter rendering |
-| `docs/HISTORY.md` | Project timeline + Key Decisions |
+| `docs/HISTORY.md` | Project timeline + Key Decisions (Phase 8 = v2) |
 | `docs/design/TOKENS.md` | Design tokens (colors, typography, spacing, motion). ⚠️ Layout section removed (orphaned). |
 
 ### Archived docs (do not use)
@@ -93,24 +96,32 @@ See `docs/archive/README.md` for the full list. The following were moved there o
 
 ## 🚀 What to Do Next
 
-The redesign spec is locked. The Flutter code has **not** been migrated yet.
+v2 spec is locked. The Flutter code and the existing mockups both reflect **v1** (or older) and need updating. Order matters: mock against the locked v2 spec first, then port to Flutter.
 
-### Immediate — port the redesign into Flutter
-1. **Build the `IsleSpark` widget** from the sparks mockup (`docs/design/mockups/sparks.html`): quasi-circle shape, the four states (dull/lit/streaked/greyed), sparkles, streak badge. (A circumscribing "beach line" was designed and then deferred to `docs/archive/BEACH_LINE.md` — do **not** build it yet.)
-2. **Build `CreateSparkButton`** (dashed silhouette + grey `?`, bottom-right).
-3. **Rebuild Home** to show only floating sparks + Create button (lit float, greyed sink).
+### Immediate — mock the two highest-risk v2 surfaces
+These are the v2 inventions most likely to feel wrong and need iteration before they're worth coding:
+1. **Home with territories** — rebuild the existing floating-sparks Home as sparks-grouped-on-Isle-territories (the three layout laws in v2 §9). The signature screen, now harder.
+2. **New Spark type picker** — the plain-language 2-question flow (v2 §6) that secretly sets mode/scope/template. Hides the metric engine behind friendly choices.
 
-### Short term — migrate the data model (per `ISLE_SPARKS_SPEC.md` §8)
-4. `Isle` → `Spark`: drop `mass`; add `title`, `timerMode`, `streakBreaksOnMiss`, `streak`, `lastCompletedAt`, `cycleDueAt`, `members`, `dependencies`.
-5. `SubPoint` → `Dependency`: drop `goalId`, add `requiredCount`.
-6. **Delete** `goal.dart`, `media.dart`, `content_report.dart`, `user_block.dart`, `mountain_visual.dart`, `sparse_lines_background.dart`.
-7. **Create the `Membership` model** (the biggest structural gap).
-8. Build the **New Spark equation-builder** screen and **Spark Details**.
+### Short term — mock the rest of the v2 delta
+3. **Isle Home** — the community drill-in (its sparks, feed, chat, members).
+4. **Post Composer** — image/text/emoji + audience picker (one/several/all). New mental model.
+5. **Metric Log sheet** + **per-Spark thread** — number + optional photo, off a metric spark.
+6. **Discover/Search** — find public Isles by school/emoji/name; join flow. The network-effect surface.
+7. **Isle Settings** — join policy (public/private), creator-chosen color swatch, member management, delete.
+
+### Before Flutter — de-risk images
+8. **Verify `image_picker` is re-addable on Flutter web.** It was removed (Phase 4 of HISTORY) for causing bootstrap null-checks. v2 needs it for Posts + metric proof. If it can't be re-added on web, scope Posts/images to mobile-first and gate on web.
+
+### Flutter migration (per v2 §14)
+9. Data model: `isle.dart` → community Isle; ➕ new `Spark`, `Post`, `Membership`; delete `goal.dart`, old `media.dart`, `content_report.dart`, `user_block.dart`, `mountain_visual.dart`, `sparse_lines_background.dart`, old `spark_button.dart`, one `main_screen`.
+10. Build the widget library (v2 §15), including new `IsleTerritory`, `MetricLogSheet`, `PostComposer`, `PersonalSparkCluster`, `ConfirmPulse`.
+11. Port screens using the v2 mockups as reference.
 
 ### Long term
-9. Real auth + identity (required for sharing/members). Currently mocked.
-10. Completion-detection logic in the chat (exact emoji match, typed or reacted).
+12. Real auth + identity (required for all social mechanics). Currently mocked.
+13. Moderation loop (report + creator-removes) for public Isles.
 
 ---
 
-*Last updated: July 1, 2026 — Vestigial-information cleanup completed.*
+*Last updated: July 3, 2026 — v2 spec locked; existing docs/mockups now flagged as v1.*

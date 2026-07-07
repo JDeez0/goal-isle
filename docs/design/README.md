@@ -8,7 +8,8 @@ This directory contains the design intent for the Goal Isle Flutter app.
 
 | File | Purpose |
 |---|---|
-| **[`ISLE_SPARKS_SPEC.md`](./ISLE_SPARKS_SPEC.md)** | **🔒 THE current system spec — Isle Sparks redesign. Read this first.** |
+| **[`ISLE_SPARKS_SPEC_v2.md`](./ISLE_SPARKS_SPEC_v2.md)** | **🔒 THE governing spec — Isle Keys v2. Read this first.** (Note: the file keeps the v1 name for stable links; the object is now "Isle Key" — "spark" is a valid synonym. Terminology note at the top of the spec.) |
+| [`ISLE_SPARKS_SPEC.md`](./ISLE_SPARKS_SPEC.md) | v1 (historical, superseded by v2). Retained for the record. |
 | **[`MOCKUPS.md`](./MOCKUPS.md)** | How to run the design mockups (`mockups/sparks.html`, `mockups/buttons.html`). |
 | **[`SCREEN_INVENTORY.md`](./SCREEN_INVENTORY.md)** | Every potential screen, mocked vs. gap, state variations, open questions — the mockup roadmap. |
 | [`VISION.md`](../archive/VISION.md) | ⚠️ Archived — the original vibe doc. Three Words still hold; most concrete examples are outdated. |
@@ -38,10 +39,11 @@ Read [`VISION.md`](./VISION.md) for the full rationale.
 
 ## Status
 
-- [x] Spec locked — Isle Sparks (July 1, 2026)
-- [x] Mockups aligned (app shell, sparks, shape-lab, create-spark, buttons)
+- [x] Spec locked — Isle Sparks v2 (July 3, 2026) — adds communities, metric sparks, posts, discovery
+- [x] Spec v1 (July 1, 2026) — historical, superseded
+- [x] Mockups aligned to v1 (app shell, sparks, shape-lab, create-spark, buttons) — **need v2 updates**
 - [ ] Tokens implemented in `lib/theme/tokens.dart`
-- [ ] Widget library built (`IsleSpark`, `CreateSparkButton`, `ShapePicker`, `SparkDetailsScreen`)
+- [ ] Widget library built (`IsleSpark`, `CreateSparkButton`, `ShapePicker`, `SparkDetailsScreen`, + v2: `IsleTerritory`, `MetricLogSheet`, `PostComposer`, etc.)
 - [ ] Screens implemented in Flutter
 - [ ] Interactions and motion
 - [ ] User testing
@@ -50,4 +52,4 @@ See [`../../UI_DEVELOPMENT_PLAN.md`](../../UI_DEVELOPMENT_PLAN.md) for the full 
 
 ---
 
-*Last updated: July 3, 2026.*
+*Last updated: July 3, 2026 — v2 spec locked as governing.*

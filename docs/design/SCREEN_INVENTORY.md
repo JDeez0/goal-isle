@@ -1,7 +1,17 @@
 # Screen Inventory — Goal Isle
 
-**Date:** July 1, 2026
-**Companion to:** [`ISLE_SPARKS_SPEC.md`](ISLE_SPARKS_SPEC.md) (🔒 locked) — this expands spec § 7 into a full mockup roadmap.
+**Date:** July 1, 2026 *(v1 — see banner)*
+
+> ⚠️ **SUPERSEDED by v2 (July 3, 2026).** This inventory reflects the **v1** spec. The governing spec is now [`ISLE_SPARKS_SPEC_v2.md`](ISLE_SPARKS_SPEC_v2.md), which **adds five new screens** and **rebuilds Home**. This file is retained as a v1 reference but is **no longer accurate** for planning. A v2 inventory should be drafted alongside the v2 mockup work. The v2 deltas at a glance:
+> - **Home** — rebuilt as sparks-grouped-on-Isle-territories (was: floating sparks).
+> - **➕ Isle Home** — community drill-in (its sparks, feed, chat, members).
+> - **➕ Post Composer** — image/text/emoji + audience picker.
+> - **➕ Metric Log sheet** + **per-Spark thread** — off a metric spark.
+> - **➕ Discover/Search** — find public Isles; join flow.
+> - **New Spark** — gains the plain-language type picker.
+> - **Spark Details** — gains the metric panel + Log action + thread entry.
+
+**Companion to:** [`ISLE_SPARKS_SPEC.md`](ISLE_SPARKS_SPEC.md) (🔒 v1, superseded) — this expands spec § 7 into a full mockup roadmap.
 
 The spec § 7 names **8 screens**. A complete app needs more — auth, profile, app-level settings, edge-case flows. This doc enumerates **every** potential screen, marks which already have mockups vs. which are gaps, lists the state variations each screen needs, and flags the open design questions that must be decided before mocking.
 

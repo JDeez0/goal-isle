@@ -1,8 +1,8 @@
 # Isle Sparks — System Specification
 
 **Date:** July 1, 2026
-**Status:** 🔒 LOCKED — single source of truth for the redesign
-**Supersedes:** `docs/design/SCREENS.md`, the goal/sub-point/mass model in `docs/design/VISION.md` and `docs/design/TOKENS.md`, and the "no streaks" principle in `VISION.md`.
+**Status:** 🔒 LOCKED v1 — **SUPERSEDED by [`ISLE_SPARKS_SPEC_v2.md`](./ISLE_SPARKS_SPEC_v2.md)** (July 3, 2026). This v1 spec is retained as the historical record. The v2 spec governs all design and implementation going forward.
+**Supersedes (at v1 lock):** `docs/design/SCREENS.md`, the goal/sub-point/mass model in `docs/design/VISION.md` and `docs/design/TOKENS.md`, and the "no streaks" principle in `VISION.md`.
 
 > 📝 **Change (July 2, 2026):** Removed the per-dependency `requiredCount` concept. Every dependency is now satisfied by a **single occurrence** of its emoji (one typed message or one reaction) — dependencies are binary (not-yet / satisfied), there is no "post N times" option. Affects §2 (Dependencies), §4 (Rules), and §8 (Dependency migration). Decision made while designing the Spark Details mockup: the recipe's grey→fill visualization is cleanest when every ingredient is a simple on/off.
 

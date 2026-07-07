@@ -2,7 +2,7 @@
 
 A calm, minimal habit-ritual Flutter web app. You open it, see your sparks floating on quiet water, you tend to them, you close it.
 
-> **Status:** Spec locked, mockups aligned, Flutter migration pending. The codebase still reflects the old model (Isle/Goal/Sub-point/Mass). See [`CURRENT_STATUS.md`](CURRENT_STATUS.md) for the current state.
+> **Status:** Spec v2 locked (July 3, 2026) — adds communities, metric sparks, posts, discovery for the LSAT-studier wedge. Mockups and Flutter code still reflect v1 and are pending update. See [`CURRENT_STATUS.md`](CURRENT_STATUS.md) for the current state.
 
 ---
 
@@ -69,7 +69,7 @@ flutter test
 - **Literal:** sparks float on water — each spark = one recurring ritual.
 - **Clean / cool:** cool palette (slate water, white surfaces, blue accent), modern sans-serif, subtle depth.
 
-The product was redesigned on July 1, 2026. Read [`docs/design/ISLE_SPARKS_SPEC.md`](docs/design/ISLE_SPARKS_SPEC.md) for the full spec.
+The product was redesigned on July 1, 2026 (v1) and re-locked as **v2 on July 3, 2026** around a wedge (LSAT studiers). Read [`docs/design/ISLE_SPARKS_SPEC_v2.md`](docs/design/ISLE_SPARKS_SPEC_v2.md) for the governing spec (v1 retained as history).
 
 ---
 
@@ -79,7 +79,8 @@ The product was redesigned on July 1, 2026. Read [`docs/design/ISLE_SPARKS_SPEC.
 
 | Doc | Purpose |
 |---|---|
-| [`docs/design/ISLE_SPARKS_SPEC.md`](docs/design/ISLE_SPARKS_SPEC.md) | 🔒 **THE current system spec — Isle Sparks redesign.** Read this first. |
+| [`docs/design/ISLE_SPARKS_SPEC_v2.md`](docs/design/ISLE_SPARKS_SPEC_v2.md) | 🔒 **THE governing spec — Isle Sparks v2.** Read this first. |
+| [`docs/design/ISLE_SPARKS_SPEC.md`](docs/design/ISLE_SPARKS_SPEC.md) | v1 spec — historical, superseded by v2. |
 | [`docs/design/MOCKUPS.md`](docs/design/MOCKUPS.md) | How to run the design mockups (sparks, shape-lab, create-spark, buttons). |
 | [`CURRENT_STATUS.md`](CURRENT_STATUS.md) | What's working, what's broken, what's next. Single source of truth. |
 | [`docs/AUDIT_2026_07_01.md`](docs/AUDIT_2026_07_01.md) | Whole-repo vestigial-information audit — what's outdated, what to fix. |
@@ -128,7 +129,8 @@ goal_isle/
 │   │   └── BEACH_LINE.md           # Beach-line design (deferred)
 │   └── design/                     # Design docs
 │       ├── README.md
-│       ├── ISLE_SPARKS_SPEC.md     # 🔒 THE current spec
+│       ├── ISLE_SPARKS_SPEC_v2.md  # 🔒 THE governing spec (v2)
+│       ├── ISLE_SPARKS_SPEC.md     # v1 spec (historical)
 │       ├── MOCKUPS.md
 │       ├── TOKENS.md
 │       └── mockups/                # HTML/CSS design mockups

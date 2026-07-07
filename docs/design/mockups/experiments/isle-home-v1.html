@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goal Isle — Isle Home (exploration)</title>
+<style>
+  /* ============================================================
+     GOAL ISLE · ISLE HOME — the community screen (drill-in from Home face).
+     NEW screen, doesn't exist yet. First try.
+     What lives here:
+       - Isle identity header (main emoji, name, member count, color)
+       - The Isle's sparks (flat, no tiers, ordered: lit first, greyed last)
+         → STREAKS LIVE HERE (next to each spark)
+       - Chat room entry
+       - Recent activity (posts + completions)
+     Language principle: no "ritual/metric/scope" words.
+     ============================================================ */
+  :root {
+    --bg:#EEF2F5; --water-top:#EEF2F5; --water-bot:#E6ECF1; --surface:#FFFFFF;
+    --ink:#1F2937; --muted:#64748B; --faint:#94A3B8; --line:#ECEFF2;
+    --accent:#3B82F6; --accent-dk:#2563EB; --accent-soft:rgba(59,130,246,0.14);
+    --sparkle:#FBBF24; --dull:#F4F6F8; --frame:#0F172A; --grey:#CBD5E1;
+    --spark-r:40% 22% 40% 22%;
+    --isle-blue:59,130,246;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',Roboto,sans-serif;
+    background:radial-gradient(130% 90% at 50% 0%,#F1F5F9 0%,#E6ECF1 55%,#DCE3EA 100%);
+    color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center;
+    padding:30px 20px 60px;-webkit-font-smoothing:antialiased;}
+  .app-title{font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:6px;}
+  .app-title::before{content:'';display:inline-block;width:18px;height:2px;background:var(--accent);
+    vertical-align:middle;margin-right:8px;}
+  .app-sub{font-size:12px;color:var(--faint);margin-bottom:22px;max-width:332px;text-align:center;line-height:1.4;}
+
+  .phone{width:332px;height:700px;border-radius:46px;border:10px solid var(--frame);
+    background:linear-gradient(180deg,var(--water-top) 0%,var(--water-bot) 100%);
+    box-shadow:0 30px 60px rgba(15,23,42,0.22),0 6px 14px rgba(15,23,42,0.08);
+    position:relative;overflow:hidden;}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:104px;height:24px;
+    background:var(--frame);border-bottom-left-radius:15px;border-bottom-right-radius:15px;z-index:50;}
+
+  /* ===== SPARK (locked treatment) ===== */
+  .spark{position:relative;display:flex;align-items:center;justify-content:center;}
+  .aura{position:absolute;transform:skewX(-14deg);border-radius:var(--spark-r);transition:all 550ms ease-out;z-index:0;}
+  .body{position:relative;transform:skewX(-14deg);border-radius:var(--spark-r);display:flex;
+    align-items:center;justify-content:center;transition:background 400ms ease-out,box-shadow 400ms ease-out;z-index:2;}
+  .e{line-height:1;user-select:none;transform:skewX(14deg);transition:filter 400ms ease-out;z-index:3;position:relative;}
+  .sparkle{position:absolute;color:var(--sparkle);line-height:1;pointer-events:none;z-index:4;opacity:0;
+    transition:opacity 400ms ease-out 150ms;transform:skewX(14deg);}
+  .spark.uncomp .body{background:var(--dull);box-shadow:inset 0 0 0 1px rgba(31,41,55,0.06);}
+  .spark.uncomp .aura{background:radial-gradient(ellipse,rgba(100,116,139,0.10),transparent 70%);filter:blur(10px);}
+  .spark.uncomp .e{filter:saturate(0.3) opacity(0.5);}
+  .spark.lit .body{background:linear-gradient(135deg,var(--surface),var(--accent-soft));
+    box-shadow:0 0 0 1.5px var(--accent),0 6px 22px rgba(59,130,246,0.22);}
+  .spark.lit .aura{background:radial-gradient(ellipse,rgba(59,130,246,0.35),rgba(59,130,246,0.06) 55%,transparent 75%);filter:blur(7px);}
+  .spark.lit .e{filter:saturate(1.15);}
+  .spark.lit .sparkle{opacity:0.65;}
+  .spark.greyed .body{background:#E8EBEF;box-shadow:none;}
+  .spark.greyed .aura{display:none;}
+  .spark.greyed .e{filter:grayscale(1) opacity(0.42);}
+  /* sz-list — slightly smaller than sz-home for the list context */
+  .spark.sz-list{width:52px;height:52px;}
+  .spark.sz-list .aura,.spark.sz-list .body{width:40px;height:40px;}
+  .spark.sz-list .e{font-size:26px;}
+  /* confirm pulse */
+  .spark.confirm-pulse .body{animation:cpulse 1.6s ease-in-out infinite;}
+  @keyframes cpulse{
+    0%,100%{box-shadow:0 0 0 1.5px var(--accent),0 6px 22px rgba(59,130,246,0.22),0 0 0 0 rgba(59,130,246,0.40);}
+    50%{box-shadow:0 0 0 1.5px var(--accent),0 6px 22px rgba(59,130,246,0.30),0 0 0 10px rgba(59,130,246,0);}
+  }
+
+  /* ===== ISLE HEADER ===== */
+  .isle-header{
+    padding:54px 20px 18px;
+    display:flex;align-items:center;gap:14px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(var(--isle),0.06), transparent);
+  }
+  .isle-hero{
+    width:64px;height:64px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    border-radius:var(--spark-r);transform:skewX(-14deg);
+    background:rgba(var(--isle),0.12);border:1.5px solid rgba(var(--isle),0.25);
+  }
+  .isle-hero .e{font-size:34px;transform:skewX(14deg);}
+  .isle-meta{flex:1;min-width:0;}
+  .isle-name{font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-0.01em;line-height:1.2;}
+  .isle-purpose{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.3;}
+  .isle-members{
+    display:flex;align-items:center;gap:5px;margin-top:6px;
+    font-size:11px;color:var(--faint);font-weight:600;cursor:pointer;
+  }
+  .isle-members:hover{color:var(--muted);}
+  .isle-members svg{width:12px;height:12px;}
+  .isle-settings-btn{
+    width:32px;height:32px;border:none;background:none;cursor:pointer;color:var(--faint);
+    display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all 150ms ease-out;
+  }
+  .isle-settings-btn:hover{color:var(--muted);background:rgba(0,0,0,0.04);}
+  .isle-settings-btn svg{width:20px;height:20px;}
+
+  /* ===== SCROLL BODY ===== */
+  .scroll{flex:1;overflow-y:auto;padding-bottom:50px;}
+
+  /* ===== SPARKS LIST (the rituals, ordered lit→greyed) ===== */
+  .section-label{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
+    color:var(--faint);padding:18px 20px 8px;display:flex;align-items:center;gap:8px;}
+  .section-label .count{background:var(--dull);color:var(--muted);padding:1px 7px;border-radius:8px;
+    font-size:10px;font-weight:700;}
+  .spark-list{padding:0 14px;}
+  .spark-row{
+    display:flex;align-items:center;gap:14px;padding:12px 8px;cursor:pointer;
+    border-bottom:1px solid var(--line);transition:background 150ms ease-out;
+  }
+  .spark-row:last-child{border-bottom:none;}
+  .spark-row:hover{background:rgba(255,255,255,0.5);}
+  .spark-row .spark{flex-shrink:0;}
+  .spark-info{flex:1;min-width:0;}
+  .spark-title{font-size:15px;font-weight:600;color:var(--ink);line-height:1.2;
+    display:flex;align-items:center;gap:6px;}
+  .spark-title .pill{
+    font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;
+    padding:2px 6px;border-radius:6px;
+  }
+  .spark-title .pill.daily{background:rgba(var(--isle),0.10);color:rgb(var(--isle));}
+  .spark-sub{font-size:12px;color:var(--faint);margin-top:2px;}
+  .spark-streak{
+    display:flex;align-items:center;gap:3px;flex-shrink:0;
+    font-size:14px;font-weight:800;color:var(--accent);
+  }
+  .spark-streak.missed{color:var(--faint);font-weight:600;}
+  .spark-streak svg{width:13px;height:13px;}
+  .spark-chev{color:var(--faint);flex-shrink:0;}
+  .spark-chev svg{width:16px;height:16px;}
+
+  /* confirm-ready hint on a pulsing spark row */
+  .spark-row.confirm .spark-sub{color:var(--accent-dk);font-weight:600;}
+
+  /* ===== CHAT PREVIEW (entry to the isle room) ===== */
+  .chat-preview{
+    margin:18px 14px 4px;background:var(--surface);border:1px solid var(--line);
+    border-radius:16px;overflow:hidden;cursor:pointer;transition:background 150ms ease-out;
+    box-shadow:0 1px 3px rgba(31,41,55,0.04);
+  }
+  .chat-preview:hover{background:#FAFBFC;}
+  .chat-preview-top{display:flex;align-items:center;gap:10px;padding:14px 16px 8px;}
+  .chat-preview-top .ic{
+    width:28px;height:28px;border-radius:8px;background:rgba(var(--isle),0.12);
+    display:flex;align-items:center;justify-content:center;color:rgb(var(--isle));flex-shrink:0;
+  }
+  .chat-preview-top .ic svg{width:16px;height:16px;}
+  .chat-preview-top .label{font-size:14px;font-weight:600;color:var(--ink);flex:1;}
+  .chat-preview-top .chat-count{font-size:11px;color:var(--faint);font-weight:600;}
+  .chat-preview-msgs{padding:0 16px 12px;display:flex;flex-direction:column;gap:6px;}
+  .cp-msg{display:flex;align-items:baseline;gap:6px;font-size:12px;line-height:1.4;color:var(--muted);}
+  .cp-msg .who{font-weight:700;color:var(--ink);font-size:11px;}
+  .cp-msg .big{font-size:16px;}
+
+  /* ===== ACTIVITY (posts + completions) ===== */
+  .activity-list{padding:0 14px;}
+  .activity-item{
+    display:flex;gap:12px;padding:14px 8px;border-bottom:1px solid var(--line);
+  }
+  .activity-item:last-child{border-bottom:none;}
+  .activity-emoji{
+    width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    font-size:20px;
+  }
+  .activity-body{flex:1;min-width:0;}
+  .activity-who{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:2px;}
+  .activity-who b{color:var(--ink);font-weight:700;}
+  .activity-text{font-size:14px;color:var(--ink);line-height:1.4;}
+  .activity-text .big{font-size:22px;line-height:1;}
+  .activity-time{font-size:10px;color:var(--faint);margin-top:4px;}
+
+  /* ===== CHROME (bottom nav) ===== */
+  .bottom-bar{position:absolute;left:0;right:0;bottom:0;height:50px;background:rgba(255,255,255,0.82);
+    backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;align-items:center;
+    justify-content:center;gap:28px;z-index:20;}
+  .nav-btn{width:32px;height:32px;border:none;background:none;cursor:pointer;color:var(--faint);
+    display:flex;align-items:center;justify-content:center;transition:color 150ms ease-out;}
+  .nav-btn svg{width:22px;height:22px;}
+  .nav-btn.active{color:var(--accent);}
+
+  /* back button */
+  .back-btn{
+    position:absolute;top:46px;left:18px;width:32px;height:32px;border:none;background:var(--surface);
+    border:1px solid var(--line);border-radius:50%;cursor:pointer;color:var(--accent);
+    display:flex;align-items:center;justify-content:center;z-index:30;
+    box-shadow:0 1px 3px rgba(31,41,55,0.08);transition:transform 150ms ease-out;
+  }
+  .back-btn:hover{transform:scale(1.05);}
+  .back-btn svg{width:18px;height:18px;}
+</style>
+</head>
+<body>
+<div class="app-title">Goal Isle · Isle Home</div>
+<div class="app-sub">drill-in from a Home face · the community's sparks, chat, and activity</div>
+
+<div class="phone" style="--isle:var(--isle-blue);">
+  <div class="notch"></div>
+
+  <!-- back to all-of-Home -->
+  <button class="back-btn" onclick="alert('Back to Home')" aria-label="Back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+
+  <!-- ISLE HEADER -->
+  <div class="isle-header">
+    <div class="isle-hero"><span class="e">📈</span></div>
+    <div class="isle-meta">
+      <div class="isle-name">LSAT crew</div>
+      <div class="isle-purpose">crushing the December test together</div>
+      <div class="isle-members" onclick="alert('Member list')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>6 members</span>
+      </div>
+    </div>
+    <button class="isle-settings-btn" onclick="alert('Isle settings — members, color, join policy, delete')" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+    </button>
+  </div>
+
+  <div class="scroll">
+
+    <!-- SPARKS -->
+    <div class="section-label">Sparks <span class="count">4</span></div>
+    <div class="spark-list">
+
+      <!-- weekly avg — main spark, pulsing (confirm), at top -->
+      <div class="spark-row confirm" onclick="alert('Weekly avg — rule met, tap to confirm')">
+        <div class="spark sz-list lit confirm-pulse">
+          <div class="aura"></div><div class="body"><span class="e">📈</span></div>
+          <div class="sparkle" style="top:-2px;left:-2px;">✦</div>
+        </div>
+        <div class="spark-info">
+          <div class="spark-title">Weekly average <span class="pill daily">weekly</span></div>
+          <div class="spark-sub">avg 168 → up from 162 last week</div>
+        </div>
+        <div class="spark-streak">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          4
+        </div>
+      </div>
+
+      <!-- daily study — lit -->
+      <div class="spark-row" onclick="alert('Daily study — details')">
+        <div class="spark sz-list lit">
+          <div class="aura"></div><div class="body"><span class="e">📚</span></div>
+          <div class="sparkle" style="top:-2px;right:-2px;">✦</div>
+        </div>
+        <div class="spark-info">
+          <div class="spark-title">Study <span class="pill daily">daily</span></div>
+          <div class="spark-sub">done today</div>
+        </div>
+        <div class="spark-streak">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          7
+        </div>
+      </div>
+
+      <!-- timed sections — personal, your instance lit -->
+      <div class="spark-row" onclick="alert('Timed sections — details')">
+        <div class="spark sz-list lit">
+          <div class="aura"></div><div class="body"><span class="e">⏱️</span></div>
+          <div class="sparkle" style="top:-2px;right:0;font-size:8px;">✦</div>
+        </div>
+        <div class="spark-info">
+          <div class="spark-title">Timed sections <span class="pill daily">weekly</span></div>
+          <div class="spark-sub">you did 3 this week</div>
+        </div>
+        <div class="spark-streak">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          2
+        </div>
+      </div>
+
+      <!-- LR drilling — greyed (missed) -->
+      <div class="spark-row" onclick="alert('LR drilling — missed')">
+        <div class="spark sz-list greyed">
+          <div class="body"><span class="e">🧩</span></div>
+        </div>
+        <div class="spark-info">
+          <div class="spark-title" style="color:var(--muted);">LR drilling <span class="pill daily">daily</span></div>
+          <div class="spark-sub">missed yesterday</div>
+        </div>
+        <div class="spark-streak missed">0</div>
+      </div>
+
+    </div>
+
+    <!-- CHAT PREVIEW -->
+    <div class="chat-preview" onclick="alert('Open the LSAT crew chat room')">
+      <div class="chat-preview-top">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="label">Chat</div>
+        <div class="chat-count">3 new</div>
+      </div>
+      <div class="chat-preview-msgs">
+        <div class="cp-msg"><span class="who">Priya</span> got a 174 on PT 89 today 🔥</div>
+        <div class="cp-msg"><span class="who">Sam</span> <span class="big">📚</span></div>
+        <div class="cp-msg"><span class="who">Diego</span> anyone doing games tonight?</div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY (posts + completions mixed) -->
+    <div class="section-label">Activity</div>
+    <div class="activity-list">
+      <div class="activity-item">
+        <div class="activity-emoji">🎓</div>
+        <div class="activity-body">
+          <div class="activity-who"><b>Priya</b> posted to LSAT crew</div>
+          <div class="activity-text">Got into Columbia!! <span class="big">🎉</span></div>
+          <div class="activity-time">2h ago</div>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-emoji">📈</div>
+        <div class="activity-body">
+          <div class="activity-who"><b>Weekly average</b></div>
+          <div class="activity-text">avg went up to 168 this week</div>
+          <div class="activity-time">5h ago</div>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-emoji">📚</div>
+        <div class="activity-body">
+          <div class="activity-who"><b>Diego</b> on Study</div>
+          <div class="activity-text"><span class="big">📚</span> <span class="big">💪</span></div>
+          <div class="activity-time">yesterday</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV (Home still active since we're drilled-in from it) -->
+  <div class="bottom-bar">
+    <button class="nav-btn" aria-label="Notes" onclick="alert('Notes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+    <button class="nav-btn active" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></button>
+    <button class="nav-btn" aria-label="League" onclick="alert('League')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.24C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.24C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg></button>
+  </div>
+
+</div>
+</body>
+</html>

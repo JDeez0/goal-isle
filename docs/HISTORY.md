@@ -188,6 +188,46 @@ The product was reimagined from the ground up. The old model (Isles → Goals �
 
 ---
 
+## Phase 8 — The Wedge & v2 Spec (July 3, 2026)
+
+The product gained a **wedge** — college grads studying for the LSAT — which surfaced use cases v1 could not express:
+
+- **Score-tracking rituals** ("our weekly average improved") — cannot be expressed as an emoji match.
+- **One-off outcomes broadcast to cohorts** ("I got into Harvard Law") — not a recurring ritual; needs to reach multiple communities.
+- **Discoverable cohort Isles** ("Harvard Law 2026") — for network effects to work, communities must be findable, not just invite-only.
+- **Camera-image proof** (results pages, faces) — reverses v1's "text + emoji only" chat rule.
+
+### What changed in v2
+
+Fourteen design axes were decided across two design sessions. The foundational shifts:
+
+1. **Isle = community** (was "one spark + members + chat"). A new layer is inserted between Home and Spark: the community that *contains* sparks, posts, chat, and members.
+2. **Two spark modes:** **ritual** (do/confirm — v1's emoji-match) and **metric** (number + rule — calculated lighting for the score-tracking use case).
+3. **Two spark scopes:** **shared** (group progress) and **personal** (per-member instances + streaks — the LSAT hero).
+4. **Hybrid lighting for metric sparks:** at window close, if the rule is met, a **wordless pulse** prompts confirmation (no "Light it!" text — see the Language Principle).
+5. **Posts as a distinct object:** one-off broadcasts with an **audience picker** (one / several / all Isles). Re-introduces images (bounded to Posts + metric proof).
+6. **Per-Isle room + per-Spark thread:** chat gets two surfaces per community (a socializing room + focused ritual threads).
+7. **Public + private Isles:** discoverable cohorts (search by school/emoji/name) + invite-only friend groups.
+8. **Home rebuilt as territories:** sparks grouped on soft tinted Isle regions on the water (creator-chosen color from a fixed swatch row).
+9. **The Language Principle:** only two nouns (Isle, Spark) and plain verbs in UI text; everything else (light, ritual, metric, scope, window, etc.) communicated visually. Banned from UI.
+
+### Artifacts produced
+
+- **`docs/design/ISLE_SPARKS_SPEC_v2.md`** — the new governing spec (v1 retained as historical record).
+- Cross-refs in `docs/design/README.md` updated; status checklist updated.
+- `docs/design/SCREEN_INVENTORY.md` now stale relative to v2 (it describes v1's screens; v2 adds Isle Home, Discover, Post Composer, Metric Log, per-Spark thread, and rebuilds Home).
+
+### Technical risk flagged
+
+`image_picker` was removed during the Flutter-web debugging saga (Phase 4) because its web plugin caused bootstrap null-check errors. v2 re-introduces images for Posts and metric proof. This must be **de-risked early** — verify it's re-addable on web, or scope Posts/images to mobile-first. Not a design blocker; an implementation-plan blocker.
+
+### What's NOT done yet
+
+- **No v2 mockups yet.** The existing `app.html` reflects v1. The two highest-risk new surfaces to mock first: Home-with-territories and the New-Spark type picker.
+- **Flutter code still reflects the old (pre-v1) model** — the entire `lib/` rebuild is pending.
+
+---
+
 ## Key Decisions
 
 | Date | Decision |
@@ -205,6 +245,8 @@ The product was reimagined from the ground up. The old model (Isles → Goals �
 | **July 1** | **Whole-repo vestigial-information audit completed — 19/27 `lib/` files, 6/11 top-level docs, 1 security issue flagged; full plan in `docs/AUDIT_2026_07_01.md`** |
 | **July 1** | **Vestigial-information cleanup completed: Supabase key rotated (fake placeholder), uncommitted Flutter changes reverted, 5 docs moved to archive (VISION, SCREENS, ARCHITECTURE, DEVELOPMENT, UI_DEVELOPMENT_PLAN), old mockup moved to archive, README/CURRENT_STATUS/TOKENS/VISION/TOKENS updated, docs/archive/README updated** |
 | **July 1** | **Full screen inventory documented — 8 spec-named screens + Tier 2/3/4 supporting/edge-case screens + shared components; `docs/design/SCREEN_INVENTORY.md` is the mockup roadmap** |
+| **July 3** | **v2 spec locked — Isle = community; metric + ritual spark modes; shared + personal scope; hybrid (wordless-pulse) lighting; Posts with audience picker; public + private Isles; Home as territories; Language Principle adopted** |
+| **July 4** | **Renamed "Isle Sparks" → "Isle Keys." "Spark" remains a valid synonym. A key is "turned"/"lit" when complete — but per the Language Principle, neither word appears in the UI. Doc body text kept as "spark" with a terminology note; codebase standardizes on `Key`/`keys` at Flutter migration** |
 
 ---
 
@@ -232,4 +274,4 @@ Per `UI_DEVELOPMENT_PLAN.md`:
 
 ---
 
-*Last updated: July 1, 2026.*
+*Last updated: July 3, 2026 — v2 spec locked.*
