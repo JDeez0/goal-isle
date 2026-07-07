@@ -577,7 +577,7 @@
   <div class="screen padbot" id="screen-spark">
     <div class="topbar">
       <button class="tb-btn" onclick="go('isle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-      <div class="title" id="sparkTitle">Spark</div>
+      <div class="title" id="sparkTitle">Key</div>
       <button class="tb-btn" onclick="go('sparksettings')" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
     <div class="scroll" id="sparkScroll"></div>
@@ -641,8 +641,7 @@
       <button class="tb-word solid" id="createBtn" disabled onclick="finishCreate()">Create</button>
     </div>
     <div class="scroll" id="createScroll">
-      <div class="sec-label" style="padding-top:10px;">Spark</div>
-      <div class="equation">
+      <div class="equation" style="padding-top:14px;">
         <div class="main-row">
           <div class="main-spark" id="mainSpark" onclick="pickMainEmoji()"><div class="aura"></div><div class="body"><span class="placeholder-q">?</span></div></div>
           <input type="text" class="main-label" id="mainLabel" placeholder="Name (optional)">
@@ -1286,7 +1285,7 @@
         </div>`).join('') + `</div>`;
     }
     $('isleScroll').innerHTML = `
-      <div class="sec-label">Sparks ${sorted.length?`<span class="count">${sorted.length}</span>`:''}</div>
+      <div class="sec-label">Keys ${sorted.length?`<span class="count">${sorted.length}</span>`:''}</div>
       <div class="spark-list">${sparkHTML}</div>
       ${chatPreview}
       ${activityHTML}
