@@ -138,7 +138,9 @@
   /* ===== HOME — one face per Isle ===== */
   .home-canvas{flex:1;position:relative;overflow:hidden;}
   .home-grid{position:absolute;inset:0;}
-  .home-cell{position:absolute;cursor:pointer;transform:translate(-50%,-50%);}
+  /* law #1: tinted territory region — soft rounded wash, no hard coastline */
+  .isle-region{position:absolute;width:120px;height:120px;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;z-index:0;}
+  .home-cell{position:absolute;cursor:pointer;transform:translate(-50%,-50%);z-index:1;}
   .home-bob{animation:bob 6s ease-in-out infinite;transition:transform 150ms ease-out;display:block;}
   .home-cell:active .home-bob{transform:scale(0.95);}
   @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
@@ -662,6 +664,13 @@
           <span class="dep-emoji" style="opacity:0.4;">📏</span>
           <input type="text" class="dep-label" id="metricUnitInput" placeholder="Unit (optional)" style="font-size:14px;" oninput="createMetricUnit=this.value">
         </div>
+        <div class="dep-item" style="margin-top:10px;gap:10px;">
+          <span class="dep-emoji" style="opacity:0.4;font-size:18px;">👥</span>
+          <div id="metricScopeToggle" style="display:inline-flex;background:var(--dull);border-radius:8px;padding:3px;">
+            <button type="button" id="scopePersonalBtn" style="font:inherit;font-size:12px;font-weight:600;padding:6px 12px;border:none;background:#fff;color:var(--ink);border-radius:6px;box-shadow:0 1px 2px rgba(31,41,55,0.08);cursor:pointer;" onclick="setMetricScope('personal')">Just me</button>
+            <button type="button" id="scopeSharedBtn" style="font:inherit;font-size:12px;font-weight:600;padding:6px 12px;border:none;background:none;color:var(--muted);border-radius:6px;cursor:pointer;" onclick="setMetricScope('shared')">Together</button>
+          </div>
+        </div>
       </div>
 
       <div class="divider" style="margin-top:8px;"></div>
@@ -1123,7 +1132,7 @@
   }
   function openIsle(id){ activeIsle=id; go('isle'); }
   function openSpark(isleId, sparkId){ activeIsle=isleId; activeSpark=sparkId; go('spark'); }
-  function openChat(isleId){ activeIsle=isleId; go('chat'); }
+  function openChat(isleId){ activeIsle=isleId; lastOpened[isleId]=Date.now(); go('chat'); }
   function openSparkThread(){ go('sparkthread'); }
 
   // ============================================================
@@ -1147,9 +1156,11 @@
   // ============================================================
   let homeLayout = null;
   function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
-  function computeHomeLayout(){
-    const n = ISLES.length;
-    const rng = mulberry32(11);
+  function computeHomeLayout(activeList){
+    const list = activeList || ISLES.filter(i=>i.sparks.length>0);
+    const n = list.length;
+    if(n===0){ homeLayout=[]; return; }
+    const rng = mulberry32(11 + n);
     const xMin=20, xMax=80, yMin=14, yMax=72;
     const uW=xMax-xMin, uH=yMax-yMin, area=uW*uH;
     let D=Math.sqrt(area/(n*1.8));
@@ -1158,17 +1169,17 @@
     const pos=[];
     const tooClose=(x,y)=>{
       if(x-xMin<edgeD||xMax-x<edgeD||y-yMin<edgeD||yMax-y<edgeD)return true;
-      for(const p of pos){if(dist(x,y,p.x,p.y)<D)return true;}
+      for(const p of pos){if(p&&dist(x,y,p.x,p.y)<D)return true;}
       return false;
     };
     // place lit/uncomp in top band, greyed in bottom band
-    const litCount = ISLES.filter(i=>getIsleFaceState(i)!=='greyed').length;
+    const litCount = list.filter(i=>getIsleFaceState(i)!=='greyed').length;
     const splitY = yMin + uH*(litCount/n);
-    ISLES.filter(i=>getIsleFaceState(i)!=='greyed').forEach((i,idx)=>{
-      for(let t=0;t<2000;t++){const x=xMin+edgeD+rng()*(uW-edgeD*2),y=yMin+edgeD+rng()*(splitY-yMin-edgeD*2);if(!tooClose(x,y)){pos[idx]={x,y};break;}}
+    list.filter(i=>getIsleFaceState(i)!=='greyed').forEach((i,idx)=>{
+      for(let t=0;t<2000;t++){const x=xMin+edgeD+rng()*(uW-edgeD*2),y=yMin+edgeD+rng()*Math.max(1,splitY-yMin-edgeD*2);if(!tooClose(x,y)){pos[idx]={x,y};break;}}
     });
-    ISLES.filter(i=>getIsleFaceState(i)==='greyed').forEach(i=>{
-      for(let t=0;t<2000;t++){const x=xMin+edgeD+rng()*(uW-edgeD*2),y=splitY+edgeD+rng()*(yMax-splitY-edgeD*2);if(!tooClose(x,y)){pos.push({x,y});break;}}
+    list.filter(i=>getIsleFaceState(i)==='greyed').forEach(i=>{
+      for(let t=0;t<2000;t++){const x=xMin+edgeD+rng()*(uW-edgeD*2),y=splitY+edgeD+rng()*Math.max(1,yMax-splitY-edgeD*2);if(!tooClose(x,y)){pos.push({x,y});break;}}
     });
     while(pos.length<n) pos.push({x:50,y:50});
     homeLayout = pos;
@@ -1183,16 +1194,21 @@
     return main ? main.emoji : isle.emoji;
   }
   function renderHome(){
-    if(!homeLayout) computeHomeLayout();
-    let html = ISLES.map((isle,i)=>{
+    // law #2: only active Isles (≥1 spark) appear on Home
+    const active = ISLES.filter(i=>i.sparks.length>0);
+    if(!homeLayout || homeLayout.length !== active.length) computeHomeLayout(active);
+    let html = active.map((isle,i)=>{
       const state = getIsleFaceState(isle);
       const emoji = getIsleFaceEmoji(isle);
       const p = homeLayout[i]||{x:50,y:50};
-      return `<div class="home-cell" style="left:${p.x.toFixed(1)}%;top:${p.y.toFixed(1)}%;" onclick="openIsle(${isle.id})">
+      // law #1: tinted territory region — soft rounded wash of the Isle color
+      const region = `<div class="isle-region" style="left:${p.x.toFixed(1)}%;top:${p.y.toFixed(1)}%;background:radial-gradient(circle, rgba(var(${isle.color}),0.10) 0%, rgba(var(${isle.color}),0.03) 55%, transparent 72%);"></div>`;
+      const face = `<div class="home-cell" style="left:${p.x.toFixed(1)}%;top:${p.y.toFixed(1)}%;" onclick="openIsle(${isle.id})">
         <div class="home-bob" style="animation-delay:${(i*0.8).toFixed(1)}s;">${sparkEl(emoji, state, 'sz-home')}</div>
       </div>`;
+      return region + face;
     }).join('');
-    html += `<div class="create-pin"><button class="create-btn" onclick="openIsle(0);go('create')"><span>?</span></button></div>`;
+    html += `<div class="create-pin"><button class="create-btn" onclick="go('isles')"><span>?</span></button></div>`;
     $('homeGrid').innerHTML = html;
   }
 
@@ -1264,6 +1280,7 @@
           <div class="activity-body">
             <div class="activity-who"><b>${a.author}</b> posted</div>
             <div class="activity-text">${escapeHtml(a.text||'')}${a.big?` <span class="big">${a.big}</span>`:''}</div>
+            ${a.img ? `<div style="margin-top:6px;height:100px;border-radius:8px;background:url('${typeof a.img==='string'?a.img:'https://picsum.photos/seed/'+escapeHtml(a.author)+'/280/120'}') center/cover;"></div>` : ''}
             <div class="activity-time">${a.time}</div>
           </div>
         </div>`).join('') + `</div>`;
@@ -1344,9 +1361,10 @@
     $('sparkThreadTitle').textContent = s.title;
     const thread = s.thread || [];
     $('sparkThreadList').innerHTML = thread.length ? thread.map(m=>{
-      const me = m.sender==='You';
+      const me = m.sender===USER.name || m.sender==='You';
       const content = m.big ? `<span class="big">${m.big}</span>` : escapeHtml(m.text);
-      return `<div class="msg ${me?'me':'them'}">${!me?`<div class="sender">${m.sender}</div>`:''}<div class="bubble">${content}</div></div>`;
+      const imgHTML = m.img ? `<div style="margin-top:6px;height:90px;border-radius:6px;background:url('${m.img}') center/cover;"></div>` : '';
+      return `<div class="msg ${me?'me':'them'}">${!me?`<div class="sender">${m.sender}</div>`:''}<div class="bubble">${content}${imgHTML}</div></div>`;
     }).join('') : '<div class="empty-state" style="margin-top:40px;">no logs yet</div>';
     $('sparkThreadList').scrollTop = $('sparkThreadList').scrollHeight;
   }
@@ -1430,9 +1448,10 @@
       s.metric.value = v;
       s.metric.trend = v > s.metric.prev ? 'up' : (v < s.metric.prev ? 'down' : 'flat');
     }
-    // push to the per-spark thread
+    // push to the per-spark thread (with image if photo attached)
     if(!s.thread) s.thread = [];
-    s.thread.push({ sender:'You', text:String(v) + (s.metric&&s.metric.unit?(' '+s.metric.unit):''), big:null, time:'just now' });
+    const imgUrl = logPhoto ? 'https://picsum.photos/seed/'+v+Math.random().toString(36).slice(2,5)+'/200/100' : null;
+    s.thread.push({ sender:USER.name, text:String(v) + (s.metric&&s.metric.unit?(' '+s.metric.unit):''), big:null, time:'just now', img:imgUrl });
     // metric lighting: hit target (or improved on prev) → lit
     const hitTarget = s.metric && s.metric.target ? v >= s.metric.target : (s.metric && v > s.metric.prev);
     if(hitTarget && !wasLit){
@@ -1509,7 +1528,16 @@
     { id:'metric', emoji:'📈', title:'Track a number', sub:'log a score' },
   ];
   let createMain=null, createDeps=[null,null], pickTarget=null, createType=null;
-  let createMetricTarget='', createMetricUnit='';
+  let createMetricTarget='', createMetricUnit='', createMetricScope='personal';
+  function setMetricScope(s){
+    createMetricScope=s;
+    $('scopePersonalBtn').style.background = s==='personal'?'#fff':'none';
+    $('scopePersonalBtn').style.color = s==='personal'?'var(--ink)':'var(--muted)';
+    $('scopePersonalBtn').style.boxShadow = s==='personal'?'0 1px 2px rgba(31,41,55,0.08)':'none';
+    $('scopeSharedBtn').style.background = s==='shared'?'#fff':'none';
+    $('scopeSharedBtn').style.color = s==='shared'?'var(--ink)':'var(--muted)';
+    $('scopeSharedBtn').style.boxShadow = s==='shared'?'0 1px 2px rgba(31,41,55,0.08)':'none';
+  }
   let repeatIdx=1;
   const REPEATS=['Instant','Daily','Weekly','Monthly'];
 
@@ -1572,6 +1600,7 @@
       const target = createMetricTarget ? parseFloat(createMetricTarget) : 0;
       const unit = createMetricUnit.trim();
       newSpark = Object.assign({}, baseSpark, {
+        scope: createMetricScope,
         mode:'metric',
         metric:{ value:0, prev:0, target, unit, trend:'flat' },
         thread:[],
@@ -1584,7 +1613,7 @@
     }
     isle.sparks.push(newSpark);
     // reset
-    createMain=null; createDeps=[null,null]; createType=null; createMetricTarget=''; createMetricUnit='';
+    createMain=null; createDeps=[null,null]; createType=null; createMetricTarget=''; createMetricUnit=''; createMetricScope='personal';
     $('mainLabel').value=''; $('metricTargetInput').value=''; $('metricUnitInput').value='';
     renderMain(); for(let i=0;i<2;i++)renderDep(i); renderTypeGrid(); selectType(null);
     $('metricFields').style.display='none'; $('depsContainer').style.display='block';
@@ -1703,9 +1732,11 @@
   function finishPost(){
     const text = $('postText').value.trim();
     const targetIsles = postAudience.all ? ISLES.map(i=>i.id) : Object.keys(postAudience).map(k=>parseInt(k));
+    // store a real image URL when a photo is attached (mock of camera capture)
+    const imgUrl = postImg ? 'https://picsum.photos/seed/'+Math.random().toString(36).slice(2,8)+'/280/120' : null;
     targetIsles.forEach(id=>{
       const isle = ISLES[id]; if(!isle) return;
-      isle.posts.push({ author:'You', avatar:'🧑', text:text, big:null, img:postImg, time:'just now' });
+      isle.posts.push({ author:USER.name, avatar:USER.avatar, text:text, big:null, img:imgUrl, time:'just now' });
     });
     // reset
     $('postText').value=''; postImg=false; postAudience={};
@@ -1714,16 +1745,37 @@
   }
 
   // ============================================================
-  // NOTES (bare chat list — no previews, just name + status)
+  // NOTES — dynamic read-state. lastOpened[isleId] = ms timestamp of last open.
+  // A chat is "new" if it has never been opened, or has messages newer than lastOpened.
   // ============================================================
-  const OPENED_STATE = {0:'5m',1:'1h',2:'yesterday',3:'never'}; // mock last-opened
+  let lastOpened = {}; // isleId -> ms (0 = never)
+  function isleUnread(isle){
+    if(!isle.msgs || !isle.msgs.length) return false;
+    const lo = lastOpened[isle.id] || 0;
+    // for mock purposes, a message is "unread" if isle was never opened OR
+    // it has any msgs (since we don't track per-msg timestamps in seed data)
+    return lo === 0;
+  }
+  function fmtOpened(ms){
+    if(!ms) return '';
+    const diff = Date.now() - ms;
+    if(diff < 60000) return 'now';
+    if(diff < 3600000) return Math.floor(diff/60000) + 'm';
+    if(diff < 86400000) return Math.floor(diff/3600000) + 'h';
+    return Math.floor(diff/86400000) + 'd';
+  }
   function renderNotes(){
-    // sorted: unopened/new first, then by last-opened
-    const rows = ISLES.slice().sort((a,b)=>((OPENED_STATE[a.id]==='never'?-1:0))-((OPENED_STATE[b.id]==='never'?-1:0)));
+    // sorted: unopened first, then by last-opened (most recent first)
+    const rows = ISLES.slice().filter(i=>i.msgs && i.msgs.length).sort((a,b)=>{
+      const au = isleUnread(a), bu = isleUnread(b);
+      if(au && !bu) return -1;
+      if(!au && bu) return 1;
+      return (lastOpened[b.id]||0) - (lastOpened[a.id]||0);
+    });
     $('notesScroll').innerHTML = `<div class="notes-list">` + rows.map(isle=>{
-      const status = OPENED_STATE[isle.id];
-      const isNew = status==='never';
-      const subText = isNew ? 'New chat' : 'Opened ' + status;
+      const isNew = isleUnread(isle);
+      const openedMs = lastOpened[isle.id]||0;
+      const subText = isNew ? 'New' : (openedMs ? 'Opened ' + fmtOpened(openedMs) : 'New');
       const subCls = isNew ? 'new' : '';
       return `<div class="note-row" onclick="openChat(${isle.id})">
         <div class="nr-spark">${sparkEl(isle.emoji, getIsleFaceState(isle), 'sz-rc')}</div>
@@ -1732,7 +1784,7 @@
           <div class="nr-sub ${subCls}">${subText}</div>
         </div>
       </div>`;
-    }).join('') + `</div>`;
+    }).join('') + `<div class="empty-state" style="margin-top:30px;">${rows.length?'':'no chats yet'}</div></div>`;
   }
 
   // ============================================================

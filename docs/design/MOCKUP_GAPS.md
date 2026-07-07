@@ -39,8 +39,8 @@ Shown as a row with a value/chevron suggesting edit, but the row is dead or the 
 - [x] **16. App Settings theme row** — ✅ Closed: Display section added with a cycling theme row (`cycleTheme`).
 - [x] **17. Sign out (Profile)** — ✅ Closed: now navigates to the auth screen (sign-out returns to the gate).
 - [x] **18. Discover `Join`** — ✅ Closed: `toggleJoin` now promotes the discovered Isle into `ISLES` + `ISLE_MEMBERS` on join, and removes it on leave. Joined Isles appear in Your Isles immediately.
-- [ ] **19. Post image (`postImg`)** — toggle works, but it's a CSS placeholder. **No real image, no proof** (spec §11 re-introduces camera capture).
-- [ ] **20. Metric Log photo (`logPhoto`)** — same: boolean toggle, no actual image capture or proof stored.
+- [x] **19. Post image (`postImg`)** — ✅ Closed: `finishPost` now stores a real image URL when photo is attached; the feed renders the image (not just a boolean). Mock uses picsum placeholders for the actual capture (a Flutter camera-plugin concern).
+- [x] **20. Metric Log photo (`logPhoto`)** — ✅ Closed: `submitLog` stores an image URL when the photo toggle is on; the per-spark thread renders it.
 
 ---
 
@@ -49,11 +49,11 @@ Shown as a row with a value/chevron suggesting edit, but the row is dead or the 
 Things the v2 spec explicitly defines that have zero UI in the mockup.
 
 - [x] **21. Language Principle cleanup** — ✅ Closed: removed "Activity", "Trend", "This week/Last week", "Repeats", "Visibility", "Kind", "Danger zone" from visible UI. Replaced with icons, values-only rows, or removed labels where cards are self-explanatory. Metric panel now shows value + arrow + target wordlessly. Remaining allowed-chrome words (Settings, Cancel, About, Search, Notifications, Theme, Color, Shape, Display, Push, Edit, Members, Thread, Post, Friends, League, Notes, Discover, Spark, Isle, Name, Bio, Avatar, Join, Add, Remove, Done, Log, Create, Share, Accept, Decline, Delete, Leave, Sent, Requests) are either allowed nouns/verbs or standard OS settings vocabulary the spec does not target.
-- [ ] **22. Scope (shared/personal) at creation** — §5. The Kind picker conflates scope with mode. Personal-vs-shared is real in the data but the metric path offers no scope choice.
+- [x] **22. Scope (shared/personal) at creation** — §5. ✅ Closed: metric Kind now shows a scope toggle (Just me / Together) within the metric fields; `finishCreate` reads `createMetricScope`. Scope is no longer conflated — it's an explicit choice orthogonal to mode.
 - [x] **23. Metric lighting mechanic** — §6 hybrid lighting. ✅ Closed: `submitLog` now checks value against target (or improvement on prev), sets spark state to lit, increments streak, fires banner.
 - [x] **24. Per-Spark thread** — §6. ✅ Closed: dedicated `screen-sparkthread` reads from `s.thread`; Thread button on Spark Details opens it (no longer the Isle chat).
-- [ ] **25. Home layout laws** — §9. The Poisson-disk dispersion from `app.html` (v1) **was not ported** to v2 Home. Need to verify v2 Home's face grouping obeys the spec's three layout laws + density cap.
-- [ ] **26. Image model** — §11. Posts + Log both reference images but there's no image data, no capture UI, no rendering of a real image.
+- [x] **25. Home layout laws** — §9. ✅ Closed: v2 Home now obeys all three laws — (1) tinted territory regions (soft radial wash of each Isle's color behind its face), (2) active-Isles-only filter (empty Isles don't appear), (3) Poisson-disk dispersion with lit/greyed banding within the active set. Layout is seeded/stable.
+- [x] **26. Image model** — §11. ✅ Closed: posts and logs now carry real image URLs (mock placeholders); the feed and per-spark thread render them. Real camera capture is the Flutter-port concern (camera plugin), but the data model + rendering path are honest in-mockup.
 - [x] **27. Auth entry (sign in / sign up)** — ✅ Closed: `screen-auth` is now the first-launch gate. Handle input + Join button → `signIn()` sets `USER.handle`/`USER.name` and proceeds to Home. Bottom nav + avatar hidden on auth.
 
 ---
@@ -63,7 +63,7 @@ Things the v2 spec explicitly defines that have zero UI in the mockup.
 The mockup's logic doesn't match how real state would work. Won't break the demo, but will break the port if not reconciled.
 
 - [x] **28. `memberCount` is hardcoded** — ✅ Closed: derived via `memberCountOf(isle)` from `ISLE_MEMBERS` everywhere it's read. Adding/removing members updates counts in Isle header, Audience picker, and Settings.
-- [ ] **29. `OPENED_STATE` (Notes) is a mock constant** — real read-state needs persistence per user per Isle.
+- [x] **29. `OPENED_STATE` (Notes) is a mock constant** — ✅ Closed: replaced with a dynamic `lastOpened` map; `openChat` stamps the open time; Notes sorts unopened-first and shows relative "opened Xm/h/d" derived from the stamp. A chat you've opened drops out of the "New" group.
 - [x] **30. `LEAGUE_DB` is a parallel hardcoded structure** — ✅ Closed: removed. `leagueForIsle()` derives rankings from `ISLE_MEMBERS` + the Isle's best lit spark streak. Creator carries the real streak; other members get a deterministic fraction (mock of per-user streaks a backend would store).
 - [x] **31. No leave-Isle flow** — ✅ Closed: Isle Settings now shows "Delete" (creator) or "Leave" (member) based on the user's role. `leaveIsle()` removes the Isle + its membership for the user. Joined public Isles show Leave; owned Isles show Delete.
 - [x] **32. Reactions count drift** — ✅ Re-audited: no actual bug. The single reaction path (`reactMsg`) toggles cleanly (add/remove, delete-empty-key), and the count always equals array length. Closed as a non-issue.
@@ -85,4 +85,4 @@ The biggest structural holes, addressed in order of leverage:
 
 ---
 
-*Last updated: July 5, 2026. Items 1–8 closed in the Create-Isle + Edit-Profile pass; 9–16, 23–24, 33 in the metric + dead-rows + Spark-Settings pass; 17–18, 21, 27–28, 30–32 in the Language-Principle + data-integrity + Auth pass. Remaining open: 19, 20, 22, 25, 26, 29 (image model, scope at creation, Home layout laws, Notes read-state).*
+*Last updated: July 5, 2026. **All 33 gaps closed.** Items 1–8 in the Create-Isle + Edit-Profile pass; 9–16, 23–24, 33 in the metric + dead-rows + Spark-Settings pass; 17–18, 21, 27–28, 30–32 in the Language-Principle + data-integrity + Auth pass; 19–20, 22, 25–26, 29 in the final image/scope/Home/Notes pass. The mockup is now substantively complete and ready for the Flutter port.*
