@@ -150,7 +150,7 @@ class _FeedCard extends StatelessWidget {
                         end: Alignment.bottomRight,
                         colors: [
                           isleColor,
-                          isleColor.withOpacity(0.6),
+                          isleColor.withValues(alpha: 0.6),
                         ],
                       ),
                     ),

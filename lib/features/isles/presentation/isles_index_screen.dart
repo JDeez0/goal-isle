@@ -165,8 +165,8 @@ class _MiniIsleHero extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(11),
-          color: _isleColor(color).withOpacity(0.16),
-          border: Border.all(color: _isleColor(color).withOpacity(0.5)),
+          color: _isleColor(color).withValues(alpha: 0.16),
+          border: Border.all(color: _isleColor(color).withValues(alpha: 0.5)),
         ),
         child: Transform(
           alignment: Alignment.center,

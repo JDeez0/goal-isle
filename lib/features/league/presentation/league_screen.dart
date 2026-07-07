@@ -141,7 +141,7 @@ class _IsleChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.fromLTRB(6, 6, 14, 6),
         decoration: BoxDecoration(
-          color: selected ? accent.withOpacity(0.10) : Colors.white,
+          color: selected ? accent.withValues(alpha: 0.10) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selected ? accent : const Color(0xFFECEFF2),
@@ -279,13 +279,13 @@ class _RankRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isMe ? accent.withOpacity(0.08) : Colors.white,
+        color: isMe ? accent.withValues(alpha: 0.08) : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isMe
-              ? accent.withOpacity(0.5)
+              ? accent.withValues(alpha: 0.5)
               : isTop
-                  ? accent.withOpacity(0.35)
+                  ? accent.withValues(alpha: 0.35)
                   : const Color(0xFFECEFF2),
           width: isMe ? 1.5 : 1,
         ),
@@ -320,7 +320,7 @@ class _RankRow extends StatelessWidget {
               color: const Color(0xFFF4F6F8),
               shape: BoxShape.circle,
               border: isTop
-                  ? Border.all(color: accent.withOpacity(0.6), width: 1.5)
+                  ? Border.all(color: accent.withValues(alpha: 0.6), width: 1.5)
                   : null,
             ),
             child: Center(

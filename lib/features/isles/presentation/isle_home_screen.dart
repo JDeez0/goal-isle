@@ -452,8 +452,8 @@ class _SkewedEmojiTile extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15),
-          color: color.withOpacity(0.16),
-          border: Border.all(color: color.withOpacity(0.5)),
+          color: color.withValues(alpha: 0.16),
+          border: Border.all(color: color.withValues(alpha: 0.5)),
         ),
         child: Transform(
           alignment: Alignment.center,

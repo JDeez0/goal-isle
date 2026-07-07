@@ -298,8 +298,8 @@ class _EmojiTile extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(11),
-          color: color.withOpacity(0.16),
-          border: Border.all(color: color.withOpacity(0.5)),
+          color: color.withValues(alpha: 0.16),
+          border: Border.all(color: color.withValues(alpha: 0.5)),
         ),
         child: Transform(
           alignment: Alignment.center,
@@ -350,7 +350,7 @@ class _PhotoSlot extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.35),
+                          color: Colors.black.withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text('Remove',

@@ -156,7 +156,7 @@ class _TerritoryFace extends StatelessWidget {
                 width: 120, height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: color.withOpacity(0.045),
+                  color: color.withValues(alpha: 0.045),
                 ),
               ),
             ),
@@ -212,12 +212,10 @@ class _HomeLayout {
     if (n == 0) return [];
 
     final rng = _SeededRng(11 + n);
-    final w = constraints.maxWidth;
-    final h = constraints.maxHeight - 80; // leave space for create button
 
     // Usable area (leave margins for territories)
-    final xMin = 0.15, xMax = 0.85;
-    final yMin = 0.10, yMax = 0.78;
+    const xMin = 0.15, xMax = 0.85;
+    const yMin = 0.10, yMax = 0.78;
     final uW = xMax - xMin;
     final uH = yMax - yMin;
 
