@@ -7,6 +7,10 @@ import '../features/auth/presentation/auth_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/app_settings_screen.dart';
 import '../features/isles/presentation/home_screen.dart';
+import '../features/isles/presentation/isles_index_screen.dart';
+import '../features/isles/presentation/create_isle_screen.dart';
+import '../features/isles/presentation/isle_home_screen.dart';
+import '../features/isles/presentation/isle_settings_screen.dart';
 import 'bottom_nav.dart';
 import 'widgets/placeholder_screen.dart';
 
@@ -89,13 +93,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       // ---------------------------------------------------------------------------
       GoRoute(
         path: '/isles',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Your Isles'),
+        builder: (context, state) => const IslesIndexScreen(),
       ),
       GoRoute(
         path: '/isle',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Isle Home'),
+        builder: (context, state) => const IsleHomeScreen(),
       ),
       GoRoute(
         path: '/spark',
@@ -124,8 +126,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/create-isle',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Create Isle'),
+        builder: (context, state) => const CreateIsleScreen(),
       ),
       GoRoute(
         path: '/post',
@@ -139,8 +140,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/isle-settings',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Isle Settings'),
+        builder: (context, state) => const IsleSettingsScreen(),
       ),
       GoRoute(
         path: '/friends',
