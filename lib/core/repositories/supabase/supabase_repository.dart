@@ -27,7 +27,7 @@ class SupabaseRepository {
 
     // Get isle IDs from memberships
     final memberRows = await _db.from('memberships').select('isle_id').eq('user_id', _uid!);
-    final isleIds = (memberRows as List).map((r) => r['isle_id'] as String).toList();
+    final isleIds = (memberRows as List).map((r) => (r as Map)['isle_id'] as String).toList();
 
     if (isleIds.isEmpty) return [];
 
@@ -342,7 +342,8 @@ class SupabaseRepository {
     if (isleIds.isEmpty) return {};
     final rows = await _db.from('memberships').select().inFilter('isle_id', isleIds);
     final map = <String, List<Membership>>{};
-    for (final r in rows) {
+    for (final raw in rows) {
+      final r = raw as Map<String, dynamic>;
       final isleId = r['isle_id'] as String;
       map.putIfAbsent(isleId, () => []);
       map[isleId]!.add(Membership(
