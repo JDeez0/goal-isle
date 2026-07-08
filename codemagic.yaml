@@ -1,5 +1,5 @@
 # Codemagic CI/CD for Goal Isle iOS
-# Docs: https://docs.codemagic.io/yaml-basic-configuration/yaml-getting-started/
+# Simplified — uses Codemagic's native signing block
 
 workflows:
   ios-workflow:
@@ -8,30 +8,33 @@ workflows:
     max_build_duration: 30
     environment:
       flutter: stable
-      vars:
-        APP_STORE_CONNECT_ISSUER_ID: c0820edb-f931-4829-85b2-4a89532cee90
-        APP_STORE_CONNECT_KEY_IDENTIFIER: 8N59492275
-        # APP_STORE_CONNECT_PRIVATE_KEY — set as secret in app settings
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.jasperdeen.goalisle
     scripts:
       - name: Get Flutter packages
         script: |
           flutter packages pub get
       - name: Build iOS IPA
         script: |
-          # Write the private key to a temp file for Codemagic signing
-          if [ -n "$APP_STORE_CONNECT_PRIVATE_KEY" ]; then
-            echo "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/auth_key.p8
-            keychain initialize
-            app-store-connect fetch-signing-files "com.jasperdeen.goalisle" \
-              --platform IOS \
-              --type APP_STORE \
-              --create
-            keychain add-certificates
-          else
-            echo "WARNING: APP_STORE_CONNECT_PRIVATE_KEY not set — building unsigned"
+          flutter build ipa --release --no-codesign
+      - name: Sign and export IPA
+        script: |
+          # Find the Xcode archive produced by flutter build
+          ARCHIVE=$(ls -d build/ios/archive/*.xcarchive 2>/dev/null | head -1)
+          if [ -z "$ARCHIVE" ]; then
+            echo "No archive found — flutter build ipa may have failed"
+            exit 1
           fi
-          # Build the IPA
-          flutter build ipa --release
+          echo "Found archive: $ARCHIVE"
+
+          # Export unsigned IPA from the archive
+          xcodebuild -exportArchive \
+            -archivePath "$ARCHIVE" \
+            -exportPath build/ios/ipa/ \
+            -exportOptionsPlist ios/exportOptions.plist \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
     artifacts:
       - build/ios/ipa/*.ipa
-      - build/ios/ipa/*.dSYM.zip
+      - build/ios/archive/*.xcarchive
