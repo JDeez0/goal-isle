@@ -57,6 +57,8 @@ v1 said *"An Isle = one spark + its members + its chat."* **v2 separates the Isl
 
 An Isle contains: its **Members**, its **Sparks**, its **Posts**, one **Isle chat room**, and its **feed** (posts + spark activity for this Isle).
 
+**Auto-seed rule.** Every Isle is created with **exactly one key** (the "seed"), so it is active on Home from the moment of creation. The seed inherits the Isle's `mainEmoji`, runs in `ritual` mode with `shared` scope, repeats on the `daily` cycle, starts in `dull` state with `streak: 0`, and is marked `isMain: true` so the Home face matches the Isle's identity. The user can rename, change the emoji, change the mode, or delete the seed from the Isle Home. The seed is the Isle's reason to exist on Home — without it the territory would be empty. **Joining a public Isle does not create a new key** — the joiner inherits the existing keys.
+
 ### Spark (ritual)
 
 | Field | Notes |
@@ -242,10 +244,7 @@ Home shows **all the user's active sparks, grouped by Isle, on the water.**
 ### The three layout laws (what keeps it calm)
 
 1. **Territories are regions, not shapes.** Each Isle owns a soft **tinted region** of the water — a faint rounded wash of the Isle's `color`, no hard coastline, no landmass drawn. Sparks float *within* their Isle's region.
-2. **Every Isle the user belongs to appears — both active and dormant.**
-   - *Active Isle* (≥1 key): renders in its full state (full-size face, normal territory wash, streak/glow as the spec describes).
-   - *Dormant Isle* (0 keys): renders as a **smaller face (40px) inside a fainter territory wash (≈1.8% alpha)** with a subtle "tap to add a key" hint underneath the territory. The face uses the Isle's own emoji in a muted state, framed by a faint ring to signal "draft / needs first key" without breaking the "no hard coastline" law. Tapping a dormant Isle opens its Isle Home so the user can add the first key.
-   - **Why this changed from v2:** hiding newly created isles on Home created a confirmation gap — the user created an Isle and saw no immediate visual confirmation. The fix is to show every Isle on Home with a visual treatment that makes the dormant state unambiguous. The Isles index remains as the full list view. The density cap (below) still applies.
+2. **Only active Isles (≥1 key) appear on Home.** An Isle with zero keys is reached via the **Isles index** (the full-list view), not Home. Because every Isle is created with an auto-seed key (see §2), all of the user's isles are active by design — none is ever empty on Home.
 3. **Within a region, float/sink physics apply unchanged.** Lit sparks rise to the top of their region; greyed ones sink to the bottom of their region. Poisson-disk dispersion places them without overlap, constrained to the region's bounding box. Regions are laid out once (deterministic packed layout) and stay stable across sessions; a new active Isle animates its region in.
 
 ### Density cap

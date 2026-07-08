@@ -72,6 +72,7 @@ class SupabaseRepository {
   }
 
   static Future<Isle> createIsle(Isle isle, String creatorId) async {
+    // 1. Insert the Isle row.
     final row = await _db.from('isles').insert({
       'name': isle.name,
       'main_emoji': isle.emoji,
@@ -83,14 +84,37 @@ class SupabaseRepository {
 
     final newId = row['id'] as String;
 
-    // Auto-create creator membership
+    // 2. Insert the creator's membership (role = 'creator').
     await _db.from('memberships').insert({
       'isle_id': newId,
       'user_id': creatorId,
       'role': 'creator',
     });
 
-    return isle.copyWith(id: newId, createdBy: creatorId);
+    // 3. Auto-seed the first key. Per spec §2 (Isle): every Isle is
+    //    created with one key so it appears on Home immediately as an
+    //    active territory. The user can rename, change emoji, or delete
+    //    this key from the Isle Home.
+    final autoKey = Spark(
+      id: 'sp-seed-pending', // replaced by createSpark with the Supabase id
+      isleId: newId,
+      emoji: isle.emoji, // same emoji as the isle — face on Home matches
+      title: null,
+      mode: SparkMode.ritual,
+      scope: SparkScope.shared,
+      state: SparkState.dull,
+      streak: 0,
+      timerMode: TimerMode.daily,
+      isMain: true,
+      createdAt: DateTime.now(),
+    );
+    final realAutoKey = await createSpark(autoKey);
+
+    return isle.copyWith(
+      id: newId,
+      createdBy: creatorId,
+      sparks: [realAutoKey],
+    );
   }
 
   static Future<void> updateIsle(Isle isle) async {

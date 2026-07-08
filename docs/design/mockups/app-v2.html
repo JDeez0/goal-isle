@@ -1653,10 +1653,21 @@
   function finishCreateIsle(){
     if(!newIsleEmoji || !$('isleNameInput').value.trim()) return;
     const newId = ISLES.length ? Math.max(...ISLES.map(i=>i.id))+1 : 0;
+    // Auto-seed key (spec §2): every Isle is created with one key so it
+    // is active on Home from the moment of creation. The seed inherits
+    // the Isle's emoji, runs in ritual mode with shared scope, repeats
+    // on the daily cycle, starts in dull state with streak 0, and is
+    // marked isMain so the Home face matches the Isle's identity.
+    const seedId = 0;
+    const seedSpark = {
+      id:seedId, emoji:newIsleEmoji, title:null, mode:'ritual', scope:'shared',
+      state:'uncomp', streak:0, window:'daily', isMain:true,
+      deps:[], sat:{}
+    };
     ISLES.push({
       id:newId, name:$('isleNameInput').value.trim(), emoji:newIsleEmoji, color:newIsleColor,
       purpose:$('islePurposeInput').value.trim(), visibility:newIsleVis, memberCount:1,
-      sparks:[], posts:[], msgs:[]
+      sparks:[seedSpark], posts:[], msgs:[]
     });
     ISLE_MEMBERS[newId] = [{name:USER.name, role:'creator', avatar:USER.avatar}];
     activeIsle=newId;
@@ -2003,7 +2014,15 @@
     } else {
       // join: promote to a real Isle
       const newId = ISLES.length ? Math.max(...ISLES.map(i=>i.id))+1 : 0;
-      ISLES.push({ id:newId, name:d.name, emoji:d.emoji, color:d.color, purpose:d.sub, visibility:'public', sparks:[], posts:[], msgs:[] });
+      // Auto-seed key (spec §2): every Isle is created with one key so
+      // it is active on Home. The seed inherits the Isle's emoji, runs
+      // in ritual mode with shared scope, repeats on the daily cycle.
+      const seedSpark = {
+        id:0, emoji:d.emoji, title:null, mode:'ritual', scope:'shared',
+        state:'uncomp', streak:0, window:'daily', isMain:true,
+        deps:[], sat:{}
+      };
+      ISLES.push({ id:newId, name:d.name, emoji:d.emoji, color:d.color, purpose:d.sub, visibility:'public', sparks:[seedSpark], posts:[], msgs:[] });
       ISLE_MEMBERS[newId] = [{name:USER.name, role:'member', avatar:USER.avatar}];
       joinedIsles[name] = newId;
     }
