@@ -65,11 +65,17 @@ jobs:
           # Replace CODE_SIGN_IDENTITY (the sdk-conditional one)
           sed -i '' 's/"iPhone Developer"/"iPhone Distribution"/g' Runner.xcodeproj/project.pbxproj
           # Add DEVELOPMENT_TEAM + PROVISIONING_PROFILE after each CODE_SIGN_STYLE = Manual line
-          sed -i '' '/CODE_SIGN_STYLE = Manual;/a\
-\t\t\t\tDEVELOPMENT_TEAM = 3X37886R5C;\
-\t\t\t\tPROVISIONING_PROFILE = '"$PROFILE_UUID"';\
-\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "GoalIsle Distribution";\
-\t\t\t\tCODE_SIGN_IDENTITY = "iPhone Distribution";' Runner.xcodeproj/project.pbxproj
+          # Using a temp script to avoid YAML multiline sed issues
+          cat > /tmp/patch_sed.sh << 'PATCH_EOF'
+#!/bin/bash
+sed -i '' '/CODE_SIGN_STYLE = Manual;/a\
+				DEVELOPMENT_TEAM = 3X37886R5C;\
+				PROVISIONING_PROFILE = '"$1"';\
+				PROVISIONING_PROFILE_SPECIFIER = "GoalIsle Distribution";\
+				CODE_SIGN_IDENTITY = "iPhone Distribution";' Runner.xcodeproj/project.pbxproj
+PATCH_EOF
+          chmod +x /tmp/patch_sed.sh
+          /tmp/patch_sed.sh "$PROFILE_UUID"
           cd ..
 
           # Verify the patch
