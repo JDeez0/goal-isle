@@ -7,12 +7,17 @@ import '../../../core/models/enums.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
 import '../../../app/widgets/spark_widget.dart';
 
-/// Home — the signature screen. Shows active Isles as tinted territories
-/// on the water, each with its main-key face floating inside.
+/// Home — the signature screen. Shows all of the user's Isles as tinted
+/// territories on the water, each with its main-key face floating inside.
 ///
-/// Three layout laws (spec §9):
+/// Layout laws (spec §9):
 /// 1. Territories are soft tinted regions (no hard coastline).
-/// 2. Only active Isles (≥1 key) appear.
+/// 2. Every Isle the user belongs to appears — both active (≥1 key) and
+///    dormant (0 keys). Dormant Isles render as a smaller, fainter face
+///    inside a fainter territory, signalling "needs a first key." This
+///    replaces the prior v2 rule that hid empty Isles; new isles must be
+///    visible on Home immediately after creation so the user can confirm
+///    the action and tap to add their first key.
 /// 3. Poisson-disk dispersion — stable, evenly spaced, no overlaps.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -20,7 +25,10 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isles = ref.watch(islesProvider);
-    final activeIsles = isles.where((i) => i.isActive).toList();
+    // Show every Isle the user is a member of, including newly created
+    // ones with zero keys. The visual treatment in _TerritoryFace makes
+    // the dormant state unambiguous.
+    final activeIsles = isles;
 
     return Scaffold(
       body: SafeArea(
@@ -134,8 +142,11 @@ class _TerritoryFace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _isleColor(isle.color);
-    final faceState = _faceState(isle);
+    final isDormant = isle.sparks.isEmpty;
+    final faceState = isDormant ? SparkState.dull : _faceState(isle);
     final faceEmoji = isle.emoji;
+    final faceSize = isDormant ? 40.0 : 64.0;
+    final territoryAlpha = isDormant ? 0.018 : 0.045;
     final streak = isle.sparks.where((s) => s.isMain).fold<int>(0,
         (prev, s) => s.streak > prev ? s.streak : prev);
 
@@ -147,8 +158,9 @@ class _TerritoryFace extends StatelessWidget {
         final py = y * h;
 
         return Stack(
+          clipBehavior: Clip.none,
           children: [
-            // Territory region — soft radial wash
+            // Territory region — soft radial wash (fainter for dormant isles)
             Positioned(
               left: px - 60,
               top: py - 60,
@@ -156,27 +168,47 @@ class _TerritoryFace extends StatelessWidget {
                 width: 120, height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: color.withValues(alpha: 0.045),
+                  color: color.withValues(alpha: territoryAlpha),
                 ),
               ),
             ),
-            // Face — the Isle's main spark emoji
+            // Face — the Isle's main spark emoji (smaller for dormant isles)
             Positioned(
-              left: px - 32,
-              top: py - 32,
+              left: px - faceSize / 2,
+              top: py - faceSize / 2,
               child: GestureDetector(
                 onTap: onTap,
-                child: SparkWidget(
-                  emoji: faceEmoji,
-                  state: faceState,
-                  size: 64,
-                  streak: faceState == SparkState.lit ||
-                          faceState == SparkState.streaked
-                      ? streak
-                      : null,
-                ),
+                child: isDormant
+                    ? _DormantFace(emoji: faceEmoji, size: faceSize)
+                    : SparkWidget(
+                        emoji: faceEmoji,
+                        state: faceState,
+                        size: faceSize,
+                        streak: faceState == SparkState.lit ||
+                                faceState == SparkState.streaked
+                            ? streak
+                            : null,
+                      ),
               ),
             ),
+            // "No keys" hint under dormant faces, tap to add a first key
+            if (isDormant)
+              Positioned(
+                left: px - 60,
+                top: py + 28,
+                width: 120,
+                child: Center(
+                  child: Text(
+                    'tap to add a key',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.2,
+                      color: color.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ),
+              ),
           ],
         );
       },
@@ -204,8 +236,60 @@ class _TerritoryFace extends StatelessWidget {
   }
 }
 
+/// The face for a dormant Isle (zero keys). Smaller and more transparent
+/// than a SparkWidget in `dull` state, with a faint dashed ring to signal
+/// "this Isle exists but has no key yet." Tapping opens the Isle Home so
+/// the user can add the first key.
+class _DormantFace extends StatelessWidget {
+  const _DormantFace({required this.emoji, required this.size});
+
+  final String emoji;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Faint dashed ring — signals "draft" without breaking the
+          // "no hard coastline" spec rule (it lives inside the territory,
+          // not on its border).
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(
+                color: const Color(0x331F2937),
+                width: 1,
+                style: BorderStyle.solid,
+              ),
+            ),
+          ),
+          // The isle's emoji — soft, desaturated.
+          Text(
+            emoji,
+            style: TextStyle(
+              fontSize: size * 0.55,
+              height: 1,
+              color: const Color(0x551F2937),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Poisson-disk dispersion layout for Home.
-/// Computes stable, evenly-spaced positions for active Isles.
+/// Computes stable, evenly-spaced positions for all of the user's
+/// Isles (active and dormant). All territories use the same 120×120 size
+/// for layout purposes; the visual treatment of dormant isles is handled
+/// inside _TerritoryFace (smaller face, fainter wash, "tap to add" hint).
 class _HomeLayout {
   static List<Offset> compute(List<Isle> isles, BoxConstraints constraints) {
     final n = isles.length;

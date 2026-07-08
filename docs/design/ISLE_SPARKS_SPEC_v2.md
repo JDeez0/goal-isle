@@ -242,7 +242,10 @@ Home shows **all the user's active sparks, grouped by Isle, on the water.**
 ### The three layout laws (what keeps it calm)
 
 1. **Territories are regions, not shapes.** Each Isle owns a soft **tinted region** of the water — a faint rounded wash of the Isle's `color`, no hard coastline, no landmass drawn. Sparks float *within* their Isle's region.
-2. **Only active Isles appear.** Home shows only Isles that have at least one spark (active or greyed). An Isle with zero sparks is reached via the Isles index, not Home. This caps visual density to "however many communities you're actively ritualling in" — for most users, 2–4.
+2. **Every Isle the user belongs to appears — both active and dormant.**
+   - *Active Isle* (≥1 key): renders in its full state (full-size face, normal territory wash, streak/glow as the spec describes).
+   - *Dormant Isle* (0 keys): renders as a **smaller face (40px) inside a fainter territory wash (≈1.8% alpha)** with a subtle "tap to add a key" hint underneath the territory. The face uses the Isle's own emoji in a muted state, framed by a faint ring to signal "draft / needs first key" without breaking the "no hard coastline" law. Tapping a dormant Isle opens its Isle Home so the user can add the first key.
+   - **Why this changed from v2:** hiding newly created isles on Home created a confirmation gap — the user created an Isle and saw no immediate visual confirmation. The fix is to show every Isle on Home with a visual treatment that makes the dormant state unambiguous. The Isles index remains as the full list view. The density cap (below) still applies.
 3. **Within a region, float/sink physics apply unchanged.** Lit sparks rise to the top of their region; greyed ones sink to the bottom of their region. Poisson-disk dispersion places them without overlap, constrained to the region's bounding box. Regions are laid out once (deterministic packed layout) and stay stable across sessions; a new active Isle animates its region in.
 
 ### Density cap
