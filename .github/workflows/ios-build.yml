@@ -115,17 +115,25 @@ jobs:
         run: |
           mkdir -p ~/.private_keys
           # altool requires the private key as an unencrypted PEM file named
-          # AuthKey_<KEY_ID>.p8 in ~/.private_keys (or --apiKeyDirectory).
-          printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" > ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
+          # AuthKey_<KEY_ID>.p8 in ~/.private_keys. Use printf with explicit
+          # trailing newline — GitHub secrets UI can strip trailing newlines,
+          # and altool fails on a key without a final newline.
+          printf '%s\n' "$APP_STORE_CONNECT_PRIVATE_KEY" > ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
           chmod 600 ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
+
+          # Diagnostic: verify the key file is well-formed (without leaking it)
+          echo "Key file size: $(wc -c < ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8) bytes"
+          echo "Key first line: $(head -1 ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8)"
+          echo "Key last line:  $(tail -1 ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8)"
+          echo "Issuer ID: $APP_STORE_CONNECT_ISSUER_ID"
+          echo "Key ID:    $APP_STORE_CONNECT_KEY_ID"
 
           IPA_PATH=$(ls build/ios/ipa/*.ipa | head -1)
           echo "Uploading $IPA_PATH to TestFlight..."
-          echo "Key file: $(ls -la ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8)"
 
           xcrun altool --upload-app \
             --type ios \
             --file "$IPA_PATH" \
             --apiKey "$APP_STORE_CONNECT_KEY_ID" \
             --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID" \
-            --output-format json
+            --output-format normal
