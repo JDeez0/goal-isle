@@ -50,7 +50,7 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
     });
   }
 
-  void _create() {
+  Future<void> _create() async {
     if (!_canCreate) return;
     final me = ref.read(currentUserProvider);
     // Use the real Supabase auth UUID (not the mock ID)
@@ -68,12 +68,25 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
       createdBy: authId,
       createdAt: now,
     );
-    // addIsle/createIsle inserts the isle AND the creator's membership
-    // (with the real Supabase UUID). No separate addMember call needed.
-    ref.read(islesProvider.notifier).addIsle(isle);
-    ref.read(activeIsleIdProvider.notifier).state = id;
+    // addIsle returns the real Supabase-UUID Isle. We then register the
+    // creator's membership in the local memberships provider so Your Isles
+    // and the chat work without a full reload.
+    final realIsle =
+        await ref.read(islesProvider.notifier).addIsle(isle);
+    ref.read(membershipsProvider.notifier).addMember(
+          realIsle.id,
+          Membership(
+            isleId: realIsle.id,
+            userId: authId,
+            userName: me.name,
+            userAvatar: me.avatar,
+            role: 'creator',
+            joinedAt: now,
+          ),
+        );
+    ref.read(activeIsleIdProvider.notifier).state = realIsle.id;
     _reset();
-    context.go('/isle');
+    if (mounted) context.go('/isle');
   }
 
   @override

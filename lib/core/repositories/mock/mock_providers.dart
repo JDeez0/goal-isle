@@ -99,19 +99,24 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
 
   void refresh() => _loadFromSupabase();
 
-  void addIsle(Isle isle) {
+  /// Returns the real (Supabase-UUID) Isle. If no Supabase user, returns
+  /// the local isle unchanged. Callers can await this and then add the
+  /// creator's membership to the local memberships provider using the real id.
+  Future<Isle> addIsle(Isle isle) async {
     state = [...state, isle];
     final uid = SupabaseConfig.client.auth.currentUser?.id;
-    if (uid != null) {
-      SupabaseRepository.createIsle(isle, uid).then((realIsle) {
-        debugPrint('addIsle: SUCCESS, real id=${realIsle.id}');
-        // Replace the local isle with the real one (correct UUID id)
-        state = [
-          for (final i in state)
-            if (i.id == isle.id) realIsle else i,
-        ];
-        // createIsle already inserts the creator membership in Supabase
-      }).catchError((e, s) { debugPrint("Supabase error: $e"); });
+    if (uid == null) return isle;
+    try {
+      final realIsle = await SupabaseRepository.createIsle(isle, uid);
+      debugPrint('addIsle: SUCCESS, real id=${realIsle.id}');
+      state = [
+        for (final i in state)
+          if (i.id == isle.id) realIsle else i,
+      ];
+      return realIsle;
+    } catch (e, s) {
+      debugPrint('Supabase error: $e');
+      return isle;
     }
   }
 
