@@ -60,16 +60,21 @@ jobs:
 
           # Patch Xcode project: switch to manual signing with distribution cert
           cd ios
+          # Replace CODE_SIGN_STYLE
           sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/' Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/"iPhone Developer"/"iPhone Distribution"/' Runner.xcodeproj/project.pbxproj
-          # Set the team ID
-          sed -i '' 's/DEVELOPMENT_TEAM = "";/DEVELOPMENT_TEAM = 3X37886R5C;/' Runner.xcodeproj/project.pbxproj
-          # Add provisioning profile settings to all build configs
+          # Replace CODE_SIGN_IDENTITY (the sdk-conditional one)
+          sed -i '' 's/"iPhone Developer"/"iPhone Distribution"/g' Runner.xcodeproj/project.pbxproj
+          # Add DEVELOPMENT_TEAM + PROVISIONING_PROFILE after each CODE_SIGN_STYLE = Manual line
           sed -i '' '/CODE_SIGN_STYLE = Manual;/a\
-            \t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "GoalIsle Distribution";\
-            \t\t\t\tPROVISIONING_PROFILE = "'"$PROFILE_UUID"'";\
-            \t\t\t\tCODE_SIGN_IDENTITY = "iPhone Distribution";' Runner.xcodeproj/project.pbxproj
+\t\t\t\tDEVELOPMENT_TEAM = 3X37886R5C;\
+\t\t\t\tPROVISIONING_PROFILE = '"$PROFILE_UUID"';\
+\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "GoalIsle Distribution";\
+\t\t\t\tCODE_SIGN_IDENTITY = "iPhone Distribution";' Runner.xcodeproj/project.pbxproj
           cd ..
+
+          # Verify the patch
+          echo "=== patched signing settings ==="
+          grep -n 'CODE_SIGN_STYLE\|CODE_SIGN_IDENTITY\|PROVISIONING_PROFILE\|DEVELOPMENT_TEAM' ios/Runner.xcodeproj/project.pbxproj
 
           # Create exportOptions.plist
           cat > ios/exportOptions.plist << EOF
