@@ -85,8 +85,30 @@ jobs:
           </plist>
           EOF
 
-      - name: Build iOS (signed)
-        run: flutter build ipa --release
+      - name: Build iOS (signed, manual signing)
+        env:
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+        run: |
+          # Get the cert name and profile UUID
+          CERT_NAME=$(security find-certificate -a login.keychain -p | openssl x509 -noout -subject | sed 's/subject= //;s/CN=//' | head -1)
+          PROFILE_UUID=$(security cms -D -i profile.mobileprovision | plutil -extract UUID raw -)
+
+          # Set manual signing in the Xcode project
+          cd ios
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/' Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/"iPhone Developer"/"iPhone Distribution"/' Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/DEVELOPMENT_TEAM = "";/DEVELOPMENT_TEAM = "3X37886R5C";/' Runner.xcodeproj/project.pbxproj
+
+          # Add provisioning profile + code signing identity to the project
+          /usr/libexec/PlistBuddy -c "Set :objects:97:buildSettings:PROVISIONING_PROFILE_SPECIFIER" "GoalIsle Distribution" Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Set :objects:97:buildSettings:CODE_SIGN_IDENTITY" "iPhone Distribution" Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Set :objects:97:buildSettings:PROVISIONING_PROFILE" "$PROFILE_UUID" Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+
+          cd ..
+
+          # Build with explicit signing
+          flutter build ipa --release \
+            --export-options ios/exportOptions.plist
 
       - name: Upload to TestFlight
         env:
