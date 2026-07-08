@@ -103,7 +103,15 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
     state = [...state, isle];
     final uid = SupabaseConfig.client.auth.currentUser?.id;
     if (uid != null) {
-      SupabaseRepository.createIsle(isle, uid).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
+      SupabaseRepository.createIsle(isle, uid).then((realIsle) {
+        debugPrint('addIsle: SUCCESS, real id=${realIsle.id}');
+        // Replace the local isle with the real one (correct UUID id)
+        state = [
+          for (final i in state)
+            if (i.id == isle.id) realIsle else i,
+        ];
+        // createIsle already inserts the creator membership in Supabase
+      }).catchError((e, s) { debugPrint("Supabase error: $e"); });
     }
   }
 

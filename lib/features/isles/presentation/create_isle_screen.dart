@@ -68,19 +68,9 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
       createdBy: authId,
       createdAt: now,
     );
+    // addIsle/createIsle inserts the isle AND the creator's membership
+    // (with the real Supabase UUID). No separate addMember call needed.
     ref.read(islesProvider.notifier).addIsle(isle);
-    // Creator becomes the first member.
-    ref.read(membershipsProvider.notifier).addMember(
-          id,
-          Membership(
-            isleId: id,
-            userId: authId,
-            userName: me.name,
-            userAvatar: me.avatar,
-            role: 'creator',
-            joinedAt: now,
-          ),
-        );
     ref.read(activeIsleIdProvider.notifier).state = id;
     _reset();
     context.go('/isle');

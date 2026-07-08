@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/models/enums.dart';
 import '../../../core/models/isle.dart';
 import '../../../core/models/membership.dart';
@@ -48,31 +49,23 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   }
 
   void _join(Map<String, dynamic> row) {
+    // The isle already exists in Supabase (it's a public listing).
+    // We just need to add a membership for the current user.
     final me = ref.read(currentUserProvider);
     final now = DateTime.now();
-    final id = 'is-${now.millisecondsSinceEpoch}';
-    final isle = Isle(
-      id: id,
-      name: row['name'] as String,
-      emoji: row['emoji'] as String,
-      color: row['color'] as String,
-      visibility: IsleVisibility.public,
-      createdBy: me.id,
-      createdAt: now,
-    );
-    ref.read(islesProvider.notifier).addIsle(isle);
+    final isleId = row['id'] as String;
     ref.read(membershipsProvider.notifier).addMember(
-          id,
+          isleId,
           Membership(
-            isleId: id,
-            userId: me.id,
+            isleId: isleId,
+            userId: Supabase.instance.client.auth.currentUser?.id ?? me.id,
             userName: me.name,
             userAvatar: me.avatar,
             role: 'member',
             joinedAt: now,
           ),
         );
-    setState(() {}); // refresh Join → Joined
+    setState(() {});
   }
 
   void _leave(String name, String emoji) {
