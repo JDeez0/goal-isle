@@ -56,6 +56,13 @@ class IsleHomeScreen extends ConsumerWidget {
         ),
         title: Text(isle.name),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Color(0xFF3B82F6)),
+            onPressed: () {
+              ref.read(activeIsleIdProvider.notifier).state = isle.id;
+              context.go('/create');
+            },
+          ),
           if (isCreator)
             IconButton(
               icon: const Icon(Icons.settings, color: Color(0xFF3B82F6)),

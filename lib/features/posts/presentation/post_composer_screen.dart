@@ -69,7 +69,7 @@ class _PostComposerScreenState extends ConsumerState<PostComposerScreen> {
     final now = DateTime.now();
     final post = Post(
       id: 'p-${now.millisecondsSinceEpoch}',
-      authorId: me.id,
+      authorId: currentAuthId() ?? me.id,
       authorName: me.name,
       authorAvatar: me.avatar,
       text: _textCtrl.text.trim().isEmpty ? null : _textCtrl.text.trim(),

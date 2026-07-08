@@ -92,7 +92,7 @@ class _MetricLogSheetState extends ConsumerState<MetricLogSheet> {
     final msg = Message(
       id: '${spark.id}-t${now.millisecondsSinceEpoch}',
       chatId: 'thread-${spark.id}',
-      senderId: me.id,
+      senderId: currentAuthId() ?? me.id,
       senderName: me.name,
       senderAvatar: me.avatar,
       content: logText,

@@ -128,6 +128,10 @@ class ProfileScreen extends ConsumerWidget {
                     isDanger: true,
                     onTap: () {
                       SupabaseConfig.client.auth.signOut();
+                      ref.read(currentUserProvider.notifier).reset();
+                      ref.read(islesProvider.notifier).reset();
+                      ref.read(membershipsProvider.notifier).reset();
+                      ref.read(friendsProvider.notifier).reset();
                     },
                   ),
                 ],

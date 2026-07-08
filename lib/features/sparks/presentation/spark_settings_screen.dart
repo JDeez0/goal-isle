@@ -19,7 +19,7 @@ class SparkSettingsScreen extends ConsumerStatefulWidget {
 
 class _SparkSettingsScreenState extends ConsumerState<SparkSettingsScreen> {
   final _nameCtrl = TextEditingController();
-  bool _loaded = false;
+  String? _loadedSparkId;
   double _tl = 0.4, _tr = 0.12, _br = 0.4, _bl = 0.12;
 
   @override
@@ -29,13 +29,15 @@ class _SparkSettingsScreenState extends ConsumerState<SparkSettingsScreen> {
   }
 
   void _ensureLoaded(Spark? spark) {
-    if (_loaded || spark == null) return;
+    if (spark == null) return;
+    // Re-seed whenever the spark changes (handles screen reuse)
+    if (_loadedSparkId == spark.id) return;
     _nameCtrl.text = spark.title ?? '';
     _tl = spark.shape.tl;
     _tr = spark.shape.tr;
     _br = spark.shape.br;
     _bl = spark.shape.bl;
-    _loaded = true;
+    _loadedSparkId = spark.id;
   }
 
   void _save(Spark spark) {

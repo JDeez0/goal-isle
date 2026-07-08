@@ -20,21 +20,39 @@ import '../supabase/supabase_repository.dart';
 import 'mock_data.dart';
 
 // =============================================================================
-// Current user
+// Current user — ALWAYS uses the real Supabase auth UUID when signed in.
+// Falls back to MockData only when not authenticated.
 // =============================================================================
 
 final currentUserProvider =
     StateNotifierProvider<UserNotifier, User>((ref) => UserNotifier());
 
 class UserNotifier extends StateNotifier<User> {
-  UserNotifier() : super(MockData.instance.currentUser);
+  UserNotifier() : super(MockData.instance.currentUser) {
+    // If already signed in (e.g. app restart), load immediately.
+    _syncFromAuth();
+  }
+
+  /// Returns the real Supabase auth UUID (or null if not signed in).
+  /// Use this instead of state.id for any Supabase write.
+  String? get authId => SupabaseConfig.client.auth.currentUser?.id;
+
+  void _syncFromAuth() {
+    final uid = authId;
+    if (uid != null) {
+      // Immediately set the state with the real UUID (even before profile loads).
+      // This prevents the mock ID from leaking into Supabase writes.
+      state = state.copyWith(id: uid);
+      loadFromSupabase();
+    }
+  }
 
   void updateUser(User user) {
-    state = user;
-    // Persist to Supabase
-    if (SupabaseConfig.client.auth.currentUser != null) {
+    final uid = authId;
+    state = uid != null ? user.copyWith(id: uid) : user;
+    if (uid != null) {
       SupabaseConfig.client.from('profiles').upsert({
-        'id': SupabaseConfig.client.auth.currentUser!.id,
+        'id': uid,
         'name': user.name,
         'handle': user.handle,
         'avatar': user.avatar,
@@ -46,7 +64,7 @@ class UserNotifier extends StateNotifier<User> {
 
   /// Load profile from Supabase after auth.
   Future<void> loadFromSupabase() async {
-    final uid = SupabaseConfig.client.auth.currentUser?.id;
+    final uid = authId;
     if (uid == null) return;
     try {
       final row = await SupabaseConfig.client
@@ -62,8 +80,18 @@ class UserNotifier extends StateNotifier<User> {
           avatar: row['avatar'] ?? '🧑',
           bio: row['bio'],
         );
+      } else if (mounted) {
+        // Profile doesn't exist yet — create from current state + real UUID
+        state = state.copyWith(id: uid);
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('loadFromSupabase error: $e');
+    }
+  }
+
+  /// Reset to mock state (for sign-out).
+  void reset() {
+    state = MockData.instance.currentUser;
   }
 }
 
@@ -75,6 +103,10 @@ class UserNotifier extends StateNotifier<User> {
 final authStateProvider = StateProvider<bool>((ref) {
   return SupabaseConfig.client.auth.currentSession != null;
 });
+
+/// Returns the real Supabase auth UUID for the current session, or null.
+/// Use this for any Supabase write that requires a user ID (RLS checks auth.uid()).
+String? currentAuthId() => SupabaseConfig.client.auth.currentUser?.id;
 
 // =============================================================================
 // Isles
@@ -97,6 +129,11 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
   }
 
   void refresh() => _loadFromSupabase();
+
+  /// Reset to mock seed (for sign-out).
+  void reset() {
+    state = List<Isle>.of(MockData.instance.isles);
+  }
 
   /// Returns the real (Supabase-UUID) Isle. If no Supabase user, returns
   /// the local isle unchanged. Callers can await this and then add the
@@ -219,6 +256,10 @@ class MemberhipsNotifier extends StateNotifier<Map<String, List<Membership>>> {
 
   void refresh() => _loadFromSupabase();
 
+  void reset() {
+    state = Map<String, List<Membership>>.of(MockData.instance.memberships);
+  }
+
   /// Local-state-only membership add. Use this when the membership has
   /// *already* been inserted into Supabase by another code path (e.g.
   /// `createIsle` inserts the creator's membership as part of the
@@ -273,6 +314,10 @@ class FriendsNotifier extends StateNotifier<List<Friend>> {
   }
 
   void refresh() => _loadFromSupabase();
+
+  void reset() {
+    state = List<Friend>.of(MockData.instance.friends);
+  }
 
   void acceptFriend(String friendId) {
     final target = state.where((f) => f.friendId == friendId).firstOrNull;

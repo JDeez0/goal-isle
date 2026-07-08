@@ -72,7 +72,14 @@ class _IsleChatScreenState extends ConsumerState<IsleChatScreen> {
         recipeOpen: _recipeOpen,
         onToggleRecipe: () => setState(() => _recipeOpen = !_recipeOpen),
         onBack: () => context.go('/isle'),
-        onInfo: () => context.go('/spark'),
+        onInfo: () {
+          // Set activeSparkId to the isle's main spark before navigating
+          final mainSpark = isle.sparks.where((s) => s.isMain).firstOrNull;
+          if (mainSpark != null) {
+            ref.read(activeSparkIdProvider.notifier).state = mainSpark.id;
+          }
+          context.go('/spark');
+        },
       ),
       body: Column(
         children: [
@@ -117,7 +124,7 @@ class _IsleChatScreenState extends ConsumerState<IsleChatScreen> {
     final message = Message(
       id: 'm-${DateTime.now().millisecondsSinceEpoch}',
       chatId: isleId,
-      senderId: me.id,
+      senderId: currentAuthId() ?? me.id,
       senderName: me.name,
       senderAvatar: me.avatar,
       content: isEmojiOnly ? null : text,

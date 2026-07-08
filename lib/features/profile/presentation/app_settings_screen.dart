@@ -21,7 +21,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
-          onPressed: () => context.go('/'),
+          onPressed: () => context.go('/profile'),
         ),
         title: const Text('Settings'),
       ),
