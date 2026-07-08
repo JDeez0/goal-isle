@@ -18,17 +18,64 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build iOS (no codesign)
-        run: flutter build ios --release --no-codesign
-
-      - name: Create unsigned IPA
+      - name: Set up code signing
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
         run: |
-          mkdir -p build/ipa
-          cd build/ios/iphoneos
-          zip -r ../../ipa/GoalIsle-unsigned.ipa Runner.app
+          # Write the private key to a file
+          mkdir -p ~/.private_keys
+          echo "$APP_STORE_CONNECT_PRIVATE_KEY" > ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
+
+          # Install fastlane for code signing
+          gem install fastlane
+
+          # Create a temporary keychain
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+
+          # Fetch signing certificate and provisioning profile
+          fastlane match appstore \
+            --bundle_identifier com.jasperdeen.goalisle \
+            --readonly \
+            --api_key_path ~/.private_keys/api_key.json \
+            --keychain_name build.keychain
+
+          # Generate the API key JSON for fastlane
+          cat > ~/.private_keys/api_key.json << EOF
+          {
+            "key_id": "$APP_STORE_CONNECT_KEY_ID",
+            "issuer_id": "$APP_STORE_CONNECT_ISSUER_ID",
+            "key": "$(cat ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8 | sed 's/-----BEGIN PRIVATE KEY-----//;s/-----END PRIVATE KEY-----//;s/\\n//g')",
+            "in_house": false
+          }
+          EOF
+
+      - name: Build iOS (signed)
+        run: flutter build ipa --release
+
+      - name: Upload to TestFlight
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          # Upload to TestFlight using xcrun altool
+          IPA_PATH=$(ls build/ios/ipa/*.ipa | head -1)
+          echo "Uploading $IPA_PATH to TestFlight..."
+
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$IPA_PATH" \
+            --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID" \
+            --private-key ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: GoalIsle-iOS
-          path: build/ipa/*.ipa
+          path: build/ios/ipa/*.ipa
