@@ -50,3 +50,4 @@ app.*.map.json
 *.mobileprovision
 *.csr
 distribution.pem
+GoalIsle_new.p12
