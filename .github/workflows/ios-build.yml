@@ -99,26 +99,33 @@ jobs:
       - name: Build iOS (signed)
         run: flutter build ipa --release --export-options-plist=ios/exportOptions.plist
 
+      - name: Upload IPA artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: GoalIsle-iOS
+          path: build/ios/ipa/*.ipa
+
       - name: Upload to TestFlight
+        if: success()
         env:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.private_keys
+          # altool requires the private key as an unencrypted PEM file named
+          # AuthKey_<KEY_ID>.p8 in ~/.private_keys (or --apiKeyDirectory).
           printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" > ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
+          chmod 600 ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
 
           IPA_PATH=$(ls build/ios/ipa/*.ipa | head -1)
           echo "Uploading $IPA_PATH to TestFlight..."
+          echo "Key file: $(ls -la ~/.private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8)"
 
           xcrun altool --upload-app \
             --type ios \
             --file "$IPA_PATH" \
             --apiKey "$APP_STORE_CONNECT_KEY_ID" \
-            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
-
-      - name: Upload IPA artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: GoalIsle-iOS
-          path: build/ios/ipa/*.ipa
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID" \
+            --output-format json
