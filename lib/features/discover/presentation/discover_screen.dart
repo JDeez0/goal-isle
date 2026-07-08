@@ -2,20 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../core/models/enums.dart';
-import '../../../core/models/isle.dart';
 import '../../../core/models/membership.dart';
-import '../../../core/repositories/mock/mock_data.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/repositories/supabase/supabase_repository.dart';
 
 /// Discover — browse discoverable public Isles and join them.
 ///
-/// Reads [MockData.instance.discover] (raw rows: name, emoji, color, members,
-/// sub). Each row shows a skewed tinted emoji tile, the name, a sub-description,
-/// the member count, and a Join button. Joining adds the Isle to
-/// [islesProvider] plus a membership for the current user; the button toggles
-/// to "Joined" (tap again to leave). A search field filters rows by name or
-/// sub.
+/// Loads real public isles from Supabase. Each row shows a skewed tinted
+/// emoji tile, the name, the purpose (if set), the member count (from
+/// the memberships provider), and a Join button. Joining adds a membership
+/// for the current user; the button toggles to "Joined" (tap again to leave).
+/// A search field filters rows by name or purpose.
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
 
@@ -26,6 +23,29 @@ class DiscoverScreen extends ConsumerStatefulWidget {
 class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
+  List<Map<String, dynamic>> _publicIsles = const [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    setState(() => _loading = true);
+    try {
+      final rows = await SupabaseRepository.fetchPublicIsles();
+      if (mounted) {
+        setState(() {
+          _publicIsles = rows;
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -33,24 +53,22 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     super.dispose();
   }
 
-  /// Whether the current user has already joined the discover row. We match
-  /// on name + emoji since discover rows have no stable id.
-  bool _isJoined(String name, String emoji) {
-    final isles = ref.read(islesProvider);
-    final meId = ref.read(currentUserProvider).id;
-    final memberships = ref.read(membershipsProvider);
-    for (final isle in isles) {
-      if (isle.name == name && isle.emoji == emoji) {
-        final members = memberships[isle.id] ?? const <Membership>[];
-        if (members.any((m) => m.userId == meId)) return true;
-      }
-    }
-    return false;
+  /// Whether the current user has already joined the discover row.
+  bool _isJoined(String isleId) {
+    final meId = Supabase.instance.client.auth.currentUser?.id ??
+        ref.read(currentUserProvider).id;
+    final members = ref.read(membershipsProvider)[isleId] ??
+        const <Membership>[];
+    return members.any((m) => m.userId == meId);
+  }
+
+  int _memberCount(String isleId) {
+    final members = ref.read(membershipsProvider)[isleId] ??
+        const <Membership>[];
+    return members.length;
   }
 
   void _join(Map<String, dynamic> row) {
-    // The isle already exists in Supabase (it's a public listing).
-    // We just need to add a membership for the current user.
     final me = ref.read(currentUserProvider);
     final now = DateTime.now();
     final isleId = row['id'] as String;
@@ -68,30 +86,21 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     setState(() {});
   }
 
-  void _leave(String name, String emoji) {
-    final isles = ref.read(islesProvider);
-    final meId = ref.read(currentUserProvider).id;
-    for (final isle in isles) {
-      if (isle.name == name && isle.emoji == emoji) {
-        final members =
-            ref.read(membershipsProvider)[isle.id] ?? const <Membership>[];
-        if (members.any((m) => m.userId == meId)) {
-          ref.read(membershipsProvider.notifier).removeMember(isle.id, meId);
-        }
-      }
-    }
-    setState(() {}); // refresh Joined → Join
+  void _leave(String isleId) {
+    final meId = Supabase.instance.client.auth.currentUser?.id ??
+        ref.read(currentUserProvider).id;
+    ref.read(membershipsProvider.notifier).removeMember(isleId, meId);
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final discover = MockData.instance.discover;
     final q = _query.toLowerCase().trim();
-    final rows = discover.where((row) {
+    final rows = _publicIsles.where((row) {
       if (q.isEmpty) return true;
       final name = (row['name'] as String).toLowerCase();
-      final sub = (row['sub'] as String).toLowerCase();
-      return name.contains(q) || sub.contains(q);
+      final purpose = (row['purpose'] as String?)?.toLowerCase() ?? '';
+      return name.contains(q) || purpose.contains(q);
     }).toList();
 
     return Scaffold(
@@ -102,6 +111,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           onPressed: () => context.go('/isles'),
         ),
         title: const Text('Discover'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Color(0xFF3B82F6)),
+            onPressed: _refresh,
+          ),
+        ],
       ),
       body: ListView(
         children: [
@@ -133,11 +148,19 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          if (rows.isEmpty)
+          if (_loading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 48),
               child: Center(
-                child: Text('No Isles match your search',
+                child: CircularProgressIndicator(
+                    color: Color(0xFF3B82F6), strokeWidth: 2),
+              ),
+            )
+          else if (rows.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 48),
+              child: Center(
+                child: Text('No public Isles yet',
                     style: TextStyle(
                         fontSize: 13, color: Color(0xFF94A3B8))),
               ),
@@ -146,11 +169,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             for (int i = 0; i < rows.length; i++) ...[
               _DiscoverRow(
                 row: rows[i],
-                joined: _isJoined(rows[i]['name'] as String,
-                    rows[i]['emoji'] as String),
+                joined: _isJoined(rows[i]['id'] as String),
+                memberCount: _memberCount(rows[i]['id'] as String),
                 onJoin: () => _join(rows[i]),
-                onLeave: () => _leave(rows[i]['name'] as String,
-                    rows[i]['emoji'] as String),
+                onLeave: () => _leave(rows[i]['id'] as String),
               ),
               if (i < rows.length - 1) const SizedBox(height: 10),
             ],
@@ -167,12 +189,14 @@ class _DiscoverRow extends StatelessWidget {
   const _DiscoverRow({
     required this.row,
     required this.joined,
+    required this.memberCount,
     required this.onJoin,
     required this.onLeave,
   });
 
   final Map<String, dynamic> row;
   final bool joined;
+  final int memberCount;
   final VoidCallback onJoin;
   final VoidCallback onLeave;
 
@@ -180,8 +204,8 @@ class _DiscoverRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final emoji = row['emoji'] as String;
     final name = row['name'] as String;
-    final sub = row['sub'] as String;
-    final members = row['members'] as int;
+    final sub = (row['purpose'] as String?) ?? '';
+    final members = memberCount;
     final color = _isleColor(row['color'] as String);
 
     return Padding(

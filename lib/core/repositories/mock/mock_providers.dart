@@ -114,7 +114,7 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
           if (i.id == isle.id) realIsle else i,
       ];
       return realIsle;
-    } catch (e, s) {
+    } catch (e) {
       debugPrint('Supabase error: $e');
       return isle;
     }
@@ -197,7 +197,28 @@ final membershipsProvider = StateNotifierProvider<MemberhipsNotifier, Map<String
 );
 
 class MemberhipsNotifier extends StateNotifier<Map<String, List<Membership>>> {
-  MemberhipsNotifier() : super(Map<String, List<Membership>>.of(MockData.instance.memberships));
+  MemberhipsNotifier() : super(Map<String, List<Membership>>.of(MockData.instance.memberships)) {
+    _loadFromSupabase();
+  }
+
+  Future<void> _loadFromSupabase() async {
+    final uid = SupabaseConfig.client.auth.currentUser?.id;
+    if (uid == null) return;
+    try {
+      final map = await SupabaseRepository.fetchMembershipsByUser(uid);
+      if (mounted && map.isNotEmpty) {
+        // Merge: Supabase rows are authoritative for the signed-in user.
+        // Keep mock entries for any isle the user isn't (yet) a real member of.
+        final merged = Map<String, List<Membership>>.of(state);
+        for (final entry in map.entries) {
+          merged[entry.key] = entry.value;
+        }
+        state = merged;
+      }
+    } catch (_) {}
+  }
+
+  void refresh() => _loadFromSupabase();
 
   void addMember(String isleId, Membership m) {
     final list = [...(state[isleId] ?? <Membership>[]), m];
@@ -226,7 +247,20 @@ final friendsProvider = StateNotifierProvider<FriendsNotifier, List<Friend>>(
 );
 
 class FriendsNotifier extends StateNotifier<List<Friend>> {
-  FriendsNotifier() : super(List<Friend>.of(MockData.instance.friends));
+  FriendsNotifier() : super(List<Friend>.of(MockData.instance.friends)) {
+    _loadFromSupabase();
+  }
+
+  Future<void> _loadFromSupabase() async {
+    final uid = SupabaseConfig.client.auth.currentUser?.id;
+    if (uid == null) return;
+    try {
+      final list = await SupabaseRepository.fetchFriends(uid);
+      if (mounted && list.isNotEmpty) state = list;
+    } catch (_) {}
+  }
+
+  void refresh() => _loadFromSupabase();
 
   void acceptFriend(String name) {
     state = [for (final f in state) if (f.friendName == name) f.copyWith(status: 'accepted') else f];

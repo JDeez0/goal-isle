@@ -358,6 +358,42 @@ class SupabaseRepository {
     return map;
   }
 
+  /// Fetch all memberships for a single user, grouped by isle_id.
+  /// Used to populate the memberships provider on sign-in / cold start.
+  static Future<Map<String, List<Membership>>> fetchMembershipsByUser(String userId) async {
+    final rows = await _db.from('memberships').select().eq('user_id', userId);
+    final map = <String, List<Membership>>{};
+    for (final raw in rows) {
+      final r = raw as Map<String, dynamic>;
+      final isleId = r['isle_id'] as String;
+      map.putIfAbsent(isleId, () => []);
+      map[isleId]!.add(Membership(
+        isleId: isleId,
+        userId: r['user_id'],
+        userName: r['user_name'] ?? '',
+        userAvatar: r['user_avatar'] ?? '🧑',
+        role: r['role'] ?? 'member',
+        joinedAt: DateTime.parse(r['joined_at']),
+      ));
+    }
+    return map;
+  }
+
+  /// Fetch all public isles (for Discover).
+  static Future<List<Map<String, dynamic>>> fetchPublicIsles() async {
+    final rows = await _db.from('isles')
+        .select()
+        .eq('visibility', 'public')
+        .order('created_at', ascending: false);
+    return rows.map<Map<String, dynamic>>((r) => {
+      'id': r['id'] as String,
+      'name': r['name'] as String? ?? '',
+      'emoji': r['main_emoji'] as String? ?? '📈',
+      'color': r['color'] as String? ?? 'blue',
+      'purpose': r['purpose'] as String?,
+    }).toList();
+  }
+
   static Future<void> addMember(Membership m) async {
     await _db.from('memberships').insert({
       'isle_id': m.isleId,

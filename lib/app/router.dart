@@ -41,9 +41,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       final goingToAuth = state.matchedLocation == '/auth';
       if (!signedIn && !goingToAuth) return '/auth';
       if (signedIn && goingToAuth) {
-        // Just signed in — reload data from Supabase + load profile
-        ref.read(islesProvider.notifier).refresh();
+        // Just signed in — reload all data from Supabase.
         ref.read(currentUserProvider.notifier).loadFromSupabase();
+        ref.read(islesProvider.notifier).refresh();
+        ref.read(membershipsProvider.notifier).refresh();
+        ref.read(friendsProvider.notifier).refresh();
         return '/';
       }
       return null;
