@@ -54,3 +54,4 @@ GoalIsle_new.p12
 cert.pem
 key.pem
 distribution.pem
+cert.enc

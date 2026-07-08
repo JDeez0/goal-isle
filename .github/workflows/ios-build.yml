@@ -18,35 +18,51 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Decrypt signing files
+      - name: Rebuild P12 on macOS and set up signing
         env:
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
         run: |
-          openssl enc -aes-256-cbc -d -in cert.enc -out cert.p12 -pass pass:"$CERT_PASSWORD"
-          openssl enc -aes-256-cbc -d -in profile.enc -out profile.mobileprovision -pass pass:"$CERT_PASSWORD"
+          # Decrypt raw key + cert
+          openssl enc -aes-256-cbc -d -in key.enc -out ios_key.pem -pass pass:"$CERT_PASSWORD"
+          openssl enc -aes-256-cbc -d -in cer.enc -out ios_cert.cer -pass pass:"$CERT_PASSWORD"
+
+          # Convert cer to pem
+          openssl x509 -in ios_cert.cer -inform DER -out ios_cert.pem -outform PEM
+
+          # Build P12 ON macOS (uses macOS's openssl, which produces macOS-compatible format)
+          openssl pkcs12 -export \
+            -out cert.p12 \
+            -inkey ios_key.pem \
+            -in ios_cert.pem \
+            -passout pass:"$CERT_PASSWORD" \
+            -name "GoalIsle Distribution"
+
           echo "cert.p12: $(wc -c < cert.p12) bytes"
-          echo "profile: $(wc -c < profile.mobileprovision) bytes"
           openssl pkcs12 -in cert.p12 -noout -passin pass:"$CERT_PASSWORD" && echo "P12 OK" || echo "P12 FAIL"
 
-      - name: Import certificate to keychain
-        env:
-          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
-        run: |
+          # Decrypt provisioning profile
+          openssl enc -aes-256-cbc -d -in profile.enc -out profile.mobileprovision -pass pass:"$CERT_PASSWORD"
+
+          # Create keychain and import
           security create-keychain -p "goalisle" build.keychain-db
           security default-keychain -s build.keychain-db
           security unlock-keychain -p "goalisle" build.keychain-db
           security set-keychain-settings -t 3600 -u build.keychain-db
+
           security import cert.p12 -k build.keychain-db -P "$CERT_PASSWORD" -A -T /usr/bin/codesign -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "goalisle" build.keychain-db
 
+          # Install provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
 
+          # Get cert CN and profile UUID
           CERT_NAME=$(security find-certificate -a build.keychain-db -p | openssl x509 -noout -subject | sed 's/subject= //;s/CN=//' | head -1)
           PROFILE_UUID=$(security cms -D -i profile.mobileprovision | plutil -extract UUID raw -)
           echo "CERT_NAME=$CERT_NAME"
           echo "PROFILE_UUID=$PROFILE_UUID"
 
+          # Write exportOptions.plist
           cat > ios/exportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
