@@ -34,14 +34,20 @@ jobs:
           security set-keychain-settings -t 3600 -u build.keychain-db
 
           # Decode and import the .p12 certificate
-          echo "$IOS_P12_BASE64" | base64 --decode > cert.p12
+          # Use printf to avoid echo adding newlines, and -D for macOS base64
+          printf '%s' "$IOS_P12_BASE64" | base64 -D > cert.p12
+          echo "cert.p12 size: $(wc -c < cert.p12) bytes"
+
+          # Verify the P12 password locally before importing
+          openssl pkcs12 -in cert.p12 -noout -passin pass:"$IOS_P12_PASSWORD" 2>&1 || true
+
           security import cert.p12 -k build.keychain-db -P "$IOS_P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
 
           # Allow codesign to access the key
           security set-key-partition-list -S apple-tool:,apple: -s -k "goalisle" build.keychain-db
 
           # Decode and install the provisioning profile
-          echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 --decode > GoalIsle.mobileprovision
+          printf '%s' "$IOS_PROVISIONING_PROFILE_BASE64" | base64 -D > GoalIsle.mobileprovision
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp GoalIsle.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
 
