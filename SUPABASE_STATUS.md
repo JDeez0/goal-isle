@@ -24,8 +24,18 @@ These screens read from providers but writes are local-only or partially wired:
 - **Sparks (keys):** create / rename / shape / delete → `islesProvider` mutates, then fire-and-forget to Supabase. Read-back from Supabase on app launch works.
 - **Posts:** composer writes to `islesProvider`, then `createPost` posts to Supabase.
 - **Chat messages:** send works, persisted to `messages` table.
-- **Friends:** local-only (no `friends` writes are wired yet).
+- **Friends (write paths):** accept/decline/unfriend are local-only. Read-back now works.
 - **Profile edit:** writes to `profiles` table.
+
+## Read-from-Supabase matrix
+
+| Provider | On sign-in | On cold start |
+| --- | --- | --- |
+| `currentUser` | ✅ | — (default) |
+| `isles` | ✅ | ✅ |
+| `memberships` | ✅ | ✅ |
+| `friends` | ✅ | ✅ |
+| `discover` (public isles) | ✅ (on screen open) | ✅ (on screen open) |
 
 ## Schema
 
