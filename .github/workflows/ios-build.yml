@@ -60,22 +60,18 @@ jobs:
 
           # Patch Xcode project: switch to manual signing with distribution cert
           cd ios
-          # Replace CODE_SIGN_STYLE
           sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/' Runner.xcodeproj/project.pbxproj
-          # Replace CODE_SIGN_IDENTITY (the sdk-conditional one)
           sed -i '' 's/"iPhone Developer"/"iPhone Distribution"/g' Runner.xcodeproj/project.pbxproj
-          # Add DEVELOPMENT_TEAM + PROVISIONING_PROFILE after each CODE_SIGN_STYLE = Manual line
-          # Using a temp script to avoid YAML multiline sed issues
-          cat > /tmp/patch_sed.sh << 'PATCH_EOF'
-#!/bin/bash
-sed -i '' '/CODE_SIGN_STYLE = Manual;/a\
-				DEVELOPMENT_TEAM = 3X37886R5C;\
-				PROVISIONING_PROFILE = '"$1"';\
-				PROVISIONING_PROFILE_SPECIFIER = "GoalIsle Distribution";\
-				CODE_SIGN_IDENTITY = "iPhone Distribution";' Runner.xcodeproj/project.pbxproj
-PATCH_EOF
-          chmod +x /tmp/patch_sed.sh
-          /tmp/patch_sed.sh "$PROFILE_UUID"
+          # Use python to add DEVELOPMENT_TEAM + PROVISIONING_PROFILE (avoids sed/YAML issues)
+          python3 -c "
+          import re
+          with open('Runner.xcodeproj/project.pbxproj', 'r') as f:
+              content = f.read()
+          insert = '\n\t\t\t\tDEVELOPMENT_TEAM = 3X37886R5C;\n\t\t\t\tPROVISIONING_PROFILE = \"${PROFILE_UUID}\";\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"GoalIsle Distribution\";\n\t\t\t\tCODE_SIGN_IDENTITY = \"iPhone Distribution\";'
+          content = content.replace('CODE_SIGN_STYLE = Manual;', 'CODE_SIGN_STYLE = Manual;' + insert)
+          with open('Runner.xcodeproj/project.pbxproj', 'w') as f:
+              f.write(content)
+          "
           cd ..
 
           # Verify the patch
