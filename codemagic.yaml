@@ -1,6 +1,5 @@
 # Codemagic CI/CD for Goal Isle iOS
-# This config embeds Apple credentials as variables — no UI setup needed.
-# Just add the PRIVATE_KEY as a secret in Codemagic → Global variables and secrets.
+# Docs: https://docs.codemagic.io/yaml-basic-configuration/yaml-getting-started/
 
 workflows:
   ios-workflow:
@@ -12,18 +11,16 @@ workflows:
       vars:
         APP_STORE_CONNECT_ISSUER_ID: c0820edb-f931-4829-85b2-4a89532cee90
         APP_STORE_CONNECT_KEY_IDENTIFIER: 8N59492275
-        # APP_STORE_CONNECT_PRIVATE_KEY must be added as a SECRET in:
-        # Personal account settings → Global variables and secrets → Add
+        # APP_STORE_CONNECT_PRIVATE_KEY — set as secret in app settings
     scripts:
       - name: Get Flutter packages
         script: |
           flutter packages pub get
-      - name: Set up iOS code signing from API key
+      - name: Build iOS IPA
         script: |
           # Write the private key to a temp file for Codemagic signing
           if [ -n "$APP_STORE_CONNECT_PRIVATE_KEY" ]; then
             echo "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/auth_key.p8
-            # Use Codemagic's keychain integration
             keychain initialize
             app-store-connect fetch-signing-files "com.jasperdeen.goalisle" \
               --platform IOS \
@@ -31,11 +28,10 @@ workflows:
               --create
             keychain add-certificates
           else
-            echo "WARNING: APP_STORE_CONNECT_PRIVATE_KEY not set — building without signing"
+            echo "WARNING: APP_STORE_CONNECT_PRIVATE_KEY not set — building unsigned"
           fi
-      - name: Build iOS
-        script: |
-          flutter build ipa --release \
-            --export-options ios/exportOptions.plist
+          # Build the IPA
+          flutter build ipa --release
     artifacts:
       - build/ios/ipa/*.ipa
+      - build/ios/ipa/*.dSYM.zip
