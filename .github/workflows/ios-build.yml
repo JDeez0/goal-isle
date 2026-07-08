@@ -22,63 +22,82 @@ jobs:
         env:
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
         run: |
-          # Decrypt raw key + cert
+          # ---- Decrypt signing materials ----
           openssl enc -aes-256-cbc -d -in key.enc -out ios_key.pem -pass pass:"$CERT_PASSWORD"
           openssl enc -aes-256-cbc -d -in cer.enc -out ios_cert.cer -pass pass:"$CERT_PASSWORD"
+          openssl enc -aes-256-cbc -d -in profile.enc -out profile.mobileprovision -pass pass:"$CERT_PASSWORD"
 
-          # Convert cer to pem
+          # Convert DER cert -> PEM, then build a macOS-compatible P12
           openssl x509 -in ios_cert.cer -inform DER -out ios_cert.pem -outform PEM
-
-          # Build P12 on macOS
           openssl pkcs12 -export \
             -out cert.p12 \
             -inkey ios_key.pem \
             -in ios_cert.pem \
             -passout pass:"$CERT_PASSWORD" \
-            -name "GoalIsle Distribution"
+            -name "Apple Distribution: JASPER HOLIMAN DEEN (3X37886R5C)"
 
           echo "cert.p12: $(wc -c < cert.p12) bytes"
-          openssl pkcs12 -in cert.p12 -noout -passin pass:"$CERT_PASSWORD" && echo "P12 OK" || echo "P12 FAIL"
+          openssl pkcs12 -in cert.p12 -noout -passin pass:"$CERT_PASSWORD" && echo "P12 OK" || { echo "P12 FAIL"; exit 1; }
 
-          # Decrypt provisioning profile
-          openssl enc -aes-256-cbc -d -in profile.enc -out profile.mobileprovision -pass pass:"$CERT_PASSWORD"
+          # ---- Create a DEDICATED keychain (canonical CI approach) ----
+          # login.keychain on GitHub runners has an unreliable password and
+          # set-key-partition-list often fails silently. A dedicated keychain
+          # with a known password eliminates that flakiness entirely.
+          KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain-db
+          KEYCHAIN_PASS=ci-keychain-pass
+          security create-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
 
-          # Unlock login keychain
-          security unlock-keychain -p "" login.keychain
+          # ---- Import cert + allow codesign to use the private key ----
+          security import cert.p12 -k "$KEYCHAIN_PATH" -P "$CERT_PASSWORD" -A -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
 
-          # Import cert into login keychain
-          security import cert.p12 -k login.keychain -P "$CERT_PASSWORD" -A -T /usr/bin/codesign -T /usr/bin/security
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" login.keychain || true
-
-          # Install provisioning profile
+          # ---- Install provisioning profile ----
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
-
-          # Get profile UUID
           PROFILE_UUID=$(security cms -D -i profile.mobileprovision | plutil -extract UUID raw -)
           echo "PROFILE_UUID=$PROFILE_UUID"
 
-          # Patch Xcode project: switch to manual signing with distribution cert
+          # ---- Verify the signing identity is usable BEFORE the build ----
+          echo "=== available signing identities ==="
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
+          # ---- Patch Xcode project for manual signing ----
+          # CRITICAL: the certificate is "Apple Distribution" (NOT "iPhone
+          # Distribution" — Apple renamed it years ago). Using the old name
+          # causes "No valid code signing certificates were found" because
+          # codesign cannot match "iPhone Distribution" against the actual
+          # identity "Apple Distribution: JASPER HOLIMAN DEEN (3X37886R5C)".
           cd ios
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/' Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/"iPhone Developer"/"iPhone Distribution"/g' Runner.xcodeproj/project.pbxproj
-          # Use python to add DEVELOPMENT_TEAM + PROVISIONING_PROFILE (avoids sed/YAML issues)
-          python3 -c "
-          import re
+          PROFILE_UUID="$PROFILE_UUID" python3 << 'PYEOF'
+          import os
+          uuid = os.environ['PROFILE_UUID']
           with open('Runner.xcodeproj/project.pbxproj', 'r') as f:
               content = f.read()
-          insert = '\n\t\t\t\tDEVELOPMENT_TEAM = 3X37886R5C;\n\t\t\t\tPROVISIONING_PROFILE = \"${PROFILE_UUID}\";\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"GoalIsle Distribution\";\n\t\t\t\tCODE_SIGN_IDENTITY = \"iPhone Distribution\";'
+          # Switch to manual signing
+          content = content.replace('CODE_SIGN_STYLE = Automatic;', 'CODE_SIGN_STYLE = Manual;')
+          # Fix identity name (catches old "iPhone Developer" / "iPhone Distribution")
+          content = content.replace('"iPhone Developer"', '"Apple Distribution"')
+          content = content.replace('"iPhone Distribution"', '"Apple Distribution"')
+          # Insert team + profile after each build config's CODE_SIGN_STYLE line
+          insert = (
+              '\n\t\t\t\tDEVELOPMENT_TEAM = 3X37886R5C;'
+              '\n\t\t\t\tPROVISIONING_PROFILE = "' + uuid + '";'
+              '\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "GoalIsle Distribution";'
+              '\n\t\t\t\tCODE_SIGN_IDENTITY = "Apple Distribution";'
+          )
           content = content.replace('CODE_SIGN_STYLE = Manual;', 'CODE_SIGN_STYLE = Manual;' + insert)
           with open('Runner.xcodeproj/project.pbxproj', 'w') as f:
               f.write(content)
-          "
+          PYEOF
           cd ..
 
-          # Verify the patch
           echo "=== patched signing settings ==="
           grep -n 'CODE_SIGN_STYLE\|CODE_SIGN_IDENTITY\|PROVISIONING_PROFILE\|DEVELOPMENT_TEAM' ios/Runner.xcodeproj/project.pbxproj
 
-          # Create exportOptions.plist
+          # ---- Export options (uses the CORRECT identity name) ----
           cat > ios/exportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -92,7 +111,7 @@ jobs:
               <string>${PROFILE_UUID}</string>
             </dict>
             <key>signingCertificate</key>
-            <string>iPhone Distribution</string>
+            <string>Apple Distribution</string>
             <key>uploadBitcode</key>
             <false/>
             <key>uploadSymbols</key>
