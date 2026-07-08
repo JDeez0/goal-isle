@@ -51,3 +51,6 @@ app.*.map.json
 *.csr
 distribution.pem
 GoalIsle_new.p12
+cert.pem
+key.pem
+distribution.pem
