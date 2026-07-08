@@ -160,6 +160,26 @@ returns boolean as $$
   );
 $$ language sql security definer stable;
 
+-- SECURITY DEFINER bypass for the isle-creator check. Policies that need
+-- to verify "am I the creator of this isle?" call this instead of reading
+-- the isles table directly — a direct read would be blocked by
+-- isles_read for a brand-new isle, because the creator is not yet a
+-- member (chicken-and-egg). Same pattern as is_member above.
+create or replace function public.is_isle_creator(p_isle_id text)
+returns boolean
+language sql
+security definer
+stable
+as $$
+  select exists(
+    select 1 from public.isles
+    where id = p_isle_id
+    and created_by = auth.uid()
+  );
+$$;
+
+grant execute on function public.is_isle_creator(text) to anon, authenticated;
+
 -- PROFILES: read all, update own
 create policy "profiles_read" on public.profiles for select using (true);
 create policy "profiles_update_own" on public.profiles for update using (auth.uid() = id);
@@ -175,23 +195,22 @@ create policy "isles_delete" on public.isles for delete using (created_by = auth
 -- MEMBERSHIPS: read if member of that isle; insert by isle creator or self-join; delete by creator or self-leave
 create policy "memberships_read" on public.memberships for select using (public.is_member(isle_id));
 create policy "memberships_insert" on public.memberships for insert with check (
-  user_id = auth.uid() or exists(
-    select 1 from public.isles where id = isle_id and created_by = auth.uid()
-  )
+  user_id = auth.uid() or public.is_isle_creator(isle_id)
 );
 create policy "memberships_delete" on public.memberships for delete using (
-  user_id = auth.uid() or exists(
-    select 1 from public.isles where id = isle_id and created_by = auth.uid()
-  )
+  user_id = auth.uid() or public.is_isle_creator(isle_id)
 );
 
 -- SPARKS: read if member of parent isle; insert/update/delete by isle creator
 create policy "sparks_read" on public.sparks for select using (public.is_member(isle_id));
 create policy "sparks_insert" on public.sparks for insert with check (
-  exists(select 1 from public.isles where id = isle_id and created_by = auth.uid())
+  public.is_isle_creator(isle_id)
 );
 create policy "sparks_update" on public.sparks for update using (
-  exists(select 1 from public.isles i where i.id = sparks.isle_id and i.created_by = auth.uid())
+  public.is_isle_creator(isle_id)
+);
+create policy "sparks_delete" on public.sparks for delete using (
+  public.is_isle_creator(isle_id)
 );
 
 -- DEPENDENCIES: same as sparks (through parent spark → isle)
@@ -199,13 +218,25 @@ create policy "deps_read" on public.dependencies for select using (
   exists(select 1 from public.sparks s, public.isles i where s.id = dependencies.spark_id and i.id = s.isle_id and public.is_member(i.id))
 );
 create policy "deps_insert" on public.dependencies for insert with check (
-  exists(select 1 from public.sparks s, public.isles i where s.id = dependencies.spark_id and i.id = s.isle_id and i.created_by = auth.uid())
+  exists(
+    select 1 from public.sparks s
+    where s.id = dependencies.spark_id
+    and public.is_isle_creator(s.isle_id)
+  )
 );
 create policy "deps_update" on public.dependencies for update using (
-  exists(select 1 from public.sparks s, public.isles i where s.id = dependencies.spark_id and i.id = s.isle_id and i.created_by = auth.uid())
+  exists(
+    select 1 from public.sparks s
+    where s.id = dependencies.spark_id
+    and public.is_isle_creator(s.isle_id)
+  )
 );
 create policy "deps_delete" on public.dependencies for delete using (
-  exists(select 1 from public.sparks s, public.isles i where s.id = dependencies.spark_id and i.id = s.isle_id and i.created_by = auth.uid())
+  exists(
+    select 1 from public.sparks s
+    where s.id = dependencies.spark_id
+    and public.is_isle_creator(s.isle_id)
+  )
 );
 
 -- MESSAGES: read if any member of any isle (chat_id = isle_id for isle rooms);
@@ -227,8 +258,10 @@ create policy "posts_read" on public.posts for select using (
 );
 create policy "posts_insert" on public.posts for insert with check (author_id = auth.uid());
 
--- FRIENDS: read your own; insert your own; update/delete your own
-create policy "friends_read" on public.friends for select using (user_id = auth.uid());
+-- FRIENDS: read both directions so you see incoming requests; insert/update/delete your own row only
+create policy "friends_read" on public.friends for select using (
+  user_id = auth.uid() or friend_id = auth.uid()
+);
 create policy "friends_insert" on public.friends for insert with check (user_id = auth.uid());
 create policy "friends_update" on public.friends for update using (user_id = auth.uid());
 create policy "friends_delete" on public.friends for delete using (user_id = auth.uid());

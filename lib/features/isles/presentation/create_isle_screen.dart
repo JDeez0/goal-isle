@@ -68,12 +68,14 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
       createdBy: authId,
       createdAt: now,
     );
-    // addIsle returns the real Supabase-UUID Isle. We then register the
-    // creator's membership in the local memberships provider so Your Isles
-    // and the chat work without a full reload.
+    // addIsle returns the real Supabase-UUID Isle. The creator's
+    // membership is inserted inside `createIsle` as part of the
+    // Isle-creation flow, so we only update the *local* memberships
+    // provider here. Using the full `addMember` would fire a duplicate
+    // Supabase insert and collide on `memberships_pkey` (23505).
     final realIsle =
         await ref.read(islesProvider.notifier).addIsle(isle);
-    ref.read(membershipsProvider.notifier).addMember(
+    ref.read(membershipsProvider.notifier).addMemberLocal(
           realIsle.id,
           Membership(
             isleId: realIsle.id,

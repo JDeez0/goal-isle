@@ -438,16 +438,86 @@ class SupabaseRepository {
   // FRIENDS
   // ============================================================
 
+  /// Fetch all friend relationships both directions (outgoing + incoming).
+  /// Rows where I am the `friend_id` are mapped to my perspective so the
+  /// caller always sees a unified list where `userId` is the current user.
+  /// Dedup key is the other user's UUID — my own rows take precedence.
   static Future<List<Friend>> fetchFriends(String userId) async {
-    final rows = await _db.from('friends').select().eq('user_id', userId);
-    return rows.map<Friend>((r) => Friend(
-      id: r['id'],
-      userId: r['user_id'],
-      friendId: r['friend_id'] ?? '',
-      friendName: r['friend_name'] ?? '',
-      friendAvatar: r['friend_avatar'] ?? '🧑',
-      status: r['status'] ?? 'pending_out',
-      createdAt: DateTime.parse(r['created_at']),
-    )).toList();
+    final rows = await _db.from('friends').select().or(
+      'user_id.eq.$userId,friend_id.eq.$userId',
+    );
+
+    final dedup = <String, Friend>{};
+
+    for (final raw in rows) {
+      final r = raw as Map<String, dynamic>;
+      final rowUserId = r['user_id'] as String;
+      final rowFriendId = r['friend_id'] as String? ?? '';
+      final rowStatus = r['status'] as String? ?? 'pending_out';
+
+      if (rowUserId == userId) {
+        // My own row — use directly.
+        final other = rowFriendId;
+        dedup[other] = Friend(
+          id: r['id'],
+          userId: rowUserId,
+          friendId: rowFriendId,
+          friendName: r['friend_name'] ?? '',
+          friendAvatar: r['friend_avatar'] ?? '🧑',
+          status: rowStatus,
+          createdAt: DateTime.parse(r['created_at']),
+        );
+      } else {
+        // Someone else's row where I am the friend_id — map to my perspective.
+        final other = rowUserId;
+        if (dedup.containsKey(other)) continue; // my own row takes precedence
+        final mappedStatus = rowStatus == 'pending_out' ? 'pending_in' : rowStatus;
+        dedup[other] = Friend(
+          id: r['id'],
+          userId: userId,
+          friendId: rowUserId,
+          friendName: r['friend_name'] ?? '',
+          friendAvatar: r['friend_avatar'] ?? '🧑',
+          status: mappedStatus,
+          createdAt: DateTime.parse(r['created_at']),
+        );
+      }
+    }
+
+    return dedup.values.toList();
+  }
+
+  /// Send a friend request. Inserts a row where user_id = current user,
+  /// status = 'pending_out'.
+  static Future<void> createFriend(Friend f) async {
+    await _db.from('friends').insert({
+      'user_id': _uid,
+      'friend_id': f.friendId,
+      'friend_name': f.friendName,
+      'friend_avatar': f.friendAvatar,
+      'status': 'pending_out',
+    });
+  }
+
+  /// Accept an incoming friend request. Inserts my own row with status
+  /// 'accepted'. The other person's row (where they are user_id) remains
+  /// untouched — a refresh on their side will pick up my accepted row.
+  static Future<void> acceptFriend(String friendId, String friendName, String friendAvatar) async {
+    await _db.from('friends').insert({
+      'user_id': _uid,
+      'friend_id': friendId,
+      'friend_name': friendName,
+      'friend_avatar': friendAvatar,
+      'status': 'accepted',
+    });
+  }
+
+  /// Decline a friend request or unfriend. Only deletes rows where the
+  /// current user is the owner (user_id). Incoming requests from the other
+  /// side cannot be deleted by RLS.
+  static Future<void> deleteFriend(String friendId) async {
+    await _db.from('friends').delete()
+        .eq('user_id', _uid!)
+        .eq('friend_id', friendId);
   }
 }

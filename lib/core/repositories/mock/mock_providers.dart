@@ -7,7 +7,6 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../models/friend.dart';
 import '../../models/isle.dart';
@@ -220,11 +219,24 @@ class MemberhipsNotifier extends StateNotifier<Map<String, List<Membership>>> {
 
   void refresh() => _loadFromSupabase();
 
-  void addMember(String isleId, Membership m) {
+  /// Local-state-only membership add. Use this when the membership has
+  /// *already* been inserted into Supabase by another code path (e.g.
+  /// `createIsle` inserts the creator's membership as part of the
+  /// Isle-creation flow). Calling the full `addMember` in that case would
+  /// fire a duplicate Supabase insert and collide on `memberships_pkey`.
+  void addMemberLocal(String isleId, Membership m) {
     final list = [...(state[isleId] ?? <Membership>[]), m];
     final newState = Map<String, List<Membership>>.from(state);
     newState[isleId] = list;
     state = newState;
+  }
+
+  /// Full membership add: updates local state AND fires a Supabase insert.
+  /// Use this for flows where the membership is NOT already inserted by
+  /// another path — e.g. Discover Join (the user joins an existing public
+  /// Isle, no `createIsle` involved).
+  void addMember(String isleId, Membership m) {
+    addMemberLocal(isleId, m);
     SupabaseRepository.addMember(m).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
@@ -262,20 +274,41 @@ class FriendsNotifier extends StateNotifier<List<Friend>> {
 
   void refresh() => _loadFromSupabase();
 
-  void acceptFriend(String name) {
-    state = [for (final f in state) if (f.friendName == name) f.copyWith(status: 'accepted') else f];
+  void acceptFriend(String friendId) {
+    final target = state.where((f) => f.friendId == friendId).firstOrNull;
+    if (target == null) return;
+
+    state = state.map((f) {
+      if (f.friendId == friendId) return f.copyWith(status: 'accepted');
+      return f;
+    }).toList();
+
+    SupabaseRepository.acceptFriend(
+      friendId,
+      target.friendName,
+      target.friendAvatar,
+    ).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
-  void declineFriend(String name) {
-    state = [for (final f in state) if (f.friendName != name) f];
+  void declineFriend(String friendId) {
+    final target = state.where((f) => f.friendId == friendId).firstOrNull;
+    state = [for (final f in state) if (f.friendId != friendId) f];
+    if (target != null) {
+      SupabaseRepository.deleteFriend(friendId)
+          .then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
+    }
   }
 
-  void unfriend(String name) {
-    state = [for (final f in state) if (f.friendName != name) f];
+  void unfriend(String friendId) {
+    state = [for (final f in state) if (f.friendId != friendId) f];
+    SupabaseRepository.deleteFriend(friendId)
+        .then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void sendRequest(Friend f) {
     state = [...state, f];
+    SupabaseRepository.createFriend(f)
+        .then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 }
 
