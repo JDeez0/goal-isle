@@ -43,9 +43,14 @@ jobs:
           # Decrypt provisioning profile
           openssl enc -aes-256-cbc -d -in profile.enc -out profile.mobileprovision -pass pass:"$CERT_PASSWORD"
 
-          # Import into the DEFAULT login keychain (Xcode looks here, not custom keychains)
+          # Unlock login keychain (GitHub runner has no password by default)
+          security unlock-keychain -p "" login.keychain
+
+          # Import cert into login keychain
           security import cert.p12 -k login.keychain -P "$CERT_PASSWORD" -A -T /usr/bin/codesign -T /usr/bin/security
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" login.keychain
+
+          # Set partition list with the login keychain password (empty on GitHub runners)
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" login.keychain || true
 
           # Install provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
