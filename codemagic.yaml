@@ -1,0 +1,32 @@
+# Codemagic CI/CD configuration for Goal Isle
+# Docs: https://docs.codemagic.io/yaml-basic-configuration/yaml-getting-started/
+
+workflows:
+  ios-workflow:
+    name: Goal Isle iOS
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      flutter: stable
+      groups:
+        - apple_credentials  # Create this group in Codemagic UI with your App Store Connect API key
+      vars:
+        BUNDLE_ID: com.jasperdeen.goalisle
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter packages pub get
+      - name: Build iOS (no codesign — Codemagic handles signing)
+        script: |
+          flutter build ipa --release \
+            --no-codesign
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/ipa/*.dSYM.zip
+    publishing:
+      # Optional: auto-publish to TestFlight if credentials are set
+      # app_store_connect:
+      #   api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+      #   key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+      #   issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+      #   submit_to_testflight: true
