@@ -18,6 +18,14 @@ jobs:
           # Find the newest Xcode 26.x installed on the runner and select it.
           sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | head -1)/Contents/Developer"
           echo "Selected: $(xcodebuild -version)"
+          # Accept the license + run first-launch setup. This installs/links
+          # the iOS 26 platform components that the storyboard compiler and
+          # xcodebuild need. Without it, builds fail with:
+          #   "iOS 26.0 Platform Not Installed"
+          sudo xcodebuild -license accept
+          sudo xcodebuild -runFirstLaunch
+          echo "=== available SDKs ==="
+          xcodebuild -showsdks | grep -i ios || echo "NO iOS SDK FOUND"
 
       - uses: subosito/flutter-action@v2
         with:
