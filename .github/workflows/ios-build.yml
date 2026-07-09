@@ -67,23 +67,27 @@ jobs:
           openssl pkcs12 -in cert.p12 -noout -passin pass:"$CERT_PASSWORD" && echo "P12 OK" || { echo "P12 FAIL"; exit 1; }
 
           # ---- Dedicated keychain (canonical CI approach) ----
-          # On macOS 26, codesign/xcodebuild only search the keychain search
-          # list — NOT just the default keychain. We must explicitly add our
-          # custom keychain to the list (and keep login.keychain too, so the
-          # runner's other tooling still works).
-          KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain-db
+          # Put the keychain in a STABLE path (not $RUNNER_TEMP which can vary
+          # between steps) so the build step can re-unlock it.
+          KEYCHAIN_PATH="$HOME/build.keychain-db"
           KEYCHAIN_PASS=ci-keychain-pass
           echo "--- creating keychain at $KEYCHAIN_PATH ---"
+          # Remove any stale keychain from a prior run
+          security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
           security create-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+          # No auto-lock during the build
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          # Add to the search list (codesign searches the LIST, not default)
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
           security default-keychain -s "$KEYCHAIN_PATH"
-          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user)
           security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
 
           # Import cert + allow codesign to use the private key.
           echo "--- importing cert into keychain ---"
           security import cert.p12 -k "$KEYCHAIN_PATH" -P "$CERT_PASSWORD" -A -T /usr/bin/codesign -T /usr/bin/security
           echo "--- setting partition list ---"
+          # -s makes the keychain prompt for access; since we're non-interactive
+          # the -k provides the password. This grants codesign access to the key.
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
 
           # ---- Install provisioning profile ----
@@ -93,21 +97,25 @@ jobs:
           echo "PROFILE_UUID=$PROFILE_UUID"
 
           # ---- Verify the signing identity is usable BEFORE the build ----
-          # find-identity exits 0 even with 0 identities, so grep for a real
-          # identity and fail loudly if none is present. This catches the
-          # "signing step succeeds but build can't find cert" failure mode.
           echo "=== keychain search list ==="
           security list-keychains -d user
-          echo "=== available signing identities ==="
+          echo "=== default keychain ==="
+          security default-keychain
+          echo "=== available signing identities (all keychains) ==="
           security find-identity -v -p codesigning
+          echo "=== available signing identities (build keychain only) ==="
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
           IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | awk -F'"' '{print $2}')
           if [ -z "$IDENTITY" ]; then
             echo "ERROR: No 'Apple Distribution' signing identity found in any keychain."
-            echo "Dumping all identities in $KEYCHAIN_PATH:"
-            security find-identity -v -p codesigning "$KEYCHAIN_PATH"
             exit 1
           fi
           echo "Will sign with: $IDENTITY"
+
+          # Save keychain path + pass for the build step
+          echo "$KEYCHAIN_PATH" > /tmp/keychain_path
+          echo "$KEYCHAIN_PASS" > /tmp/keychain_pass
 
           # ---- Export options ----
           cat > ios/exportOptions.plist << EOF
@@ -133,7 +141,16 @@ jobs:
           EOF
 
       - name: Build iOS (signed)
-        run: flutter build ipa --release --export-options-plist=ios/exportOptions.plist
+        run: |
+          set -e
+          # Re-unlock the keychain in THIS step's shell — keychain lock state
+          # can reset between steps on macOS 26.
+          KEYCHAIN_PATH=$(cat /tmp/keychain_path)
+          KEYCHAIN_PASS=$(cat /tmp/keychain_pass)
+          security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
+          flutter build ipa --release --export-options-plist=ios/exportOptions.plist
 
       - name: Upload IPA artifact
         if: always()
