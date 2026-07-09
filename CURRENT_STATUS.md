@@ -1,127 +1,189 @@
 # Goal Isle — Current Status
 
-**Date:** July 4, 2026
+**Last updated:** July 9, 2026
 **Project:** `/home/jasper/projects/goal_isle/`
-
-> 🔑 **Rename (July 4):** "Isle Sparks" are now called **Isle Keys**. A key is **"turned"** or **"lit"** when its condition is met — but per the Language Principle, neither word appears in the UI; the user only sees the visual state change. "Spark" remains a fully valid synonym throughout docs and conversation. The governing spec keeps its body text as "spark" with a terminology note at the top; the codebase will standardize on `Key`/`keys` during the Flutter migration.
-
-> 🚨 **BIG CHANGE (July 3):** The spec has been re-locked as **v2**. The product now targets a wedge — **college grads studying for the LSAT** — which added communities, metric keys, posts, and discovery. The governing spec is **[`docs/design/ISLE_SPARKS_SPEC_v2.md`](docs/design/ISLE_SPARKS_SPEC_v2.md)** (v1 retained as history). The Flutter code and the existing HTML mockups still reflect **v1** and have **not** been updated yet.
+**Repo:** `git@github.com:JDeez0/goal-isle.git` (branch: `main`)
 
 ---
 
 ## ✅ What Works Right Now
 
-### 1. Flutter Web App — RENDERS IN BROWSER
-- **Run it:**
-  ```bash
-  cd /home/jasper/projects/goal_isle
-  flutter run -d chrome
-  # Or serve the existing build:
-  cd build/web && python3 -m http.server 8094
-  ```
-- **Open:** http://localhost:8094/index.html
-- **Status:** ✅ Verified rendering in Firefox
-- **Theme:** Light mode with slate water background (`#EEF2F5`)
+### 1. Flutter App — v2, fully ported (20 screens)
+A complete rewrite of the v2 spec: 44 Dart files, 20 screens, all wired
+to Supabase. Riverpod state management (manual StateNotifier — no codegen).
+GoRouter with StatefulShellRoute (3 bottom-nav branches: Home / Notes / League).
+
+- **Run it (web):** `flutter run -d chrome`
+- **Run it (iOS):** install via **TestFlight** (see below)
 - **Build:** `flutter build web --no-tree-shake-icons` ✅
-- **Test:** `flutter test` ✅ passes
+- **iOS build:** signed IPA + TestFlight upload via GitHub Actions ✅
 
-### 2. HTML/CSS/JS Mockup — Archived
-- **File:** `goal_isle_working_mockup.html`
-- **Status:** Kept in repo as an archive of an earlier design exploration. **No longer the visual reference for the Flutter app.** The Flutter codebase defines its own look and feel independently.
-- **Run it (only if you want to see the archive):**
-  ```bash
-  cd /home/jasper/projects/goal_isle
-  python3 -m http.server 9999
-  ```
-- **Open:** http://localhost:9999/goal_isle_working_mockup.html
+### 2. iOS on TestFlight 🎉
+Every push to `main` triggers `.github/workflows/ios-build.yml` on a
+`macos-26` runner (Xcode 26 / iOS 26 SDK, required by Apple since April 2026).
+The workflow:
+1. Decrypts committed signing materials (`key.enc`, `cer.enc`, `profile.enc`)
+2. Builds a SHA1-MAC PKCS12 (macOS-`security`-compatible) + imports to a
+   dedicated keychain in the search list
+3. Downloads the iOS 26 platform, selects Xcode 26
+4. `flutter build ipa --release` → signed IPA
+5. Uploads the IPA as a GitHub artifact (always, even if TestFlight fails)
+6. Uploads to TestFlight via `xcrun altool` (App Store Connect API key)
 
-### 3. Local Git Repo
+**Bundle ID:** `com.jasperdeen.goalisle` · **Team:** `3X37886R5C`
+**Profile:** "GoalIsle Distribution" (App Store Connect type)
+**Cert:** "Apple Distribution: JASPER HOLIMAN DEEN (3X37886R5C)"
+
+### 3. Supabase Backend — Auth + Postgres + RLS
+- **Auth:** email/password (real Supabase sessions, no mock IDs leak through)
+- **Tables:** `isles`, `memberships`, `sparks`, `messages`, `posts`, `friends`,
+  `metric_logs`, `profiles` — with row-level security policies
+- **Client:** `lib/core/repositories/supabase/supabase_client.dart`
+  (URL: `https://mjnitlwhpqylivplkkxu.supabase.co`)
+- **Hybrid providers:** optimistic local state + fire-and-forget Supabase
+  writes (`lib/core/repositories/mock/mock_providers.dart`)
+- **Schema:** `supabase_schema.sql` + `supabase_rls_fix.sql`
+
+### 4. Local Git Repo
 - Remote: `git@github.com:JDeez0/goal-isle.git`
 - Branch: `main`
-- Latest commit: `194c34a` (pushed)
+- Latest commit: `5f19908` (pushed)
 
 ---
 
-## 🔧 The Final Fix
+## 🏗️ Architecture
 
-The Flutter app now renders in the browser. The root cause was a **null check failing during web plugin bootstrap**. Resolution steps:
+```
+lib/
+├── main.dart                    # App entry, Supabase init, router
+├── core/
+│   ├── models/                  # Plain Dart (no freezed) — Isle, Spark,
+│   │                            #   Post, Membership, Message, Friend...
+│   ├── repositories/
+│   │   ├── mock/mock_providers.dart      # Riverpod providers + Supabase
+│   │   └── supabase/                     # supabase_client + repository
+│   ├── theme/                   # Design tokens (parallelogram spark shape)
+│   └── widgets/                 # Reusable widgets
+└── features/
+    ├── auth/                    # Sign in / sign up
+    ├── isles/                   # Home, create isle, isle home, settings
+    ├── sparks/                  # New spark, spark details, metric log,
+    │                            #   spark thread, spark settings
+    ├── chat/                    # Isle chat with recipe dropdown card
+    ├── posts/                   # Post composer (image/text/emoji)
+    ├── discover/                # Find public isles
+    ├── friends/                 # Friend list
+    ├── league/                  # League/leaderboard
+    ├── notes/                   # Personal notes
+    └── profile/                 # Profile, edit profile, app settings
+```
 
-1. Fixed Riverpod state mutation during build (move mock data init into `IsleNotifier()` constructor).
-2. Removed the following plugins from `pubspec.yaml`:
-   - `permission_handler` (mobile only)
-   - `image_picker` (problematic web plugin)
-   - `video_player` (problematic web plugin)
-   - `connectivity_plus` (WASM incompatible)
-   - `supabase_flutter` (pulls in many web plugins: `ua_client_hints`, `url_launcher_web`, `passkeys_web`, etc.)
-3. Cleaned dead imports and unused fields.
-4. Ran `flutter clean && flutter pub get && flutter build web --no-tree-shake-icons`.
-
-The combination of these removed plugins' web registration code (particularly the transitive `ua_client_hints` from `supabase_flutter`) was throwing a null check error during the Flutter engine bootstrap.
-
-See `FLUTTER_DEBUG_LOG.md` for the full attempt-by-attempt record.
+**Key conventions:**
+- **No codegen.** Dart 3.12's analyzer breaks `freezed`/`json_serializable`,
+  so all models are hand-written `fromJson`/`toJson`/`copyWith`.
+- **No real-time yet.** Reads are pull-based; writes are fire-and-forget.
+- **Sign-out resets all providers** (prevents data leak between users).
 
 ---
 
-## ⚠️ Remaining Issues
+## 🔑 Code Signing Materials (committed, encrypted)
 
-- **Lint warnings remain.** `flutter analyze` reports info-level issues — deprecated `withOpacity`, missing `const` constructors, leftover `print()` calls. No errors or warnings.
-- **Dead code still present.** Lots of commented-out Supabase code is left as documentation of intent. Can be removed later.
-- **Feature gaps:** Chat, friends, auth, offline queue, and real-time collaboration exist as files but are mocked/disabled.
+These live in the repo root, AES-256-CBC encrypted with password "goalisle"
+(stored as GitHub secret `CERT_PASSWORD`):
+
+| File | Contains |
+|---|---|
+| `key.enc` | Raw RSA private key (distribution cert) |
+| `cer.enc` | `distribution.cer` (DER) |
+| `profile.enc` | `GoalIsle_Distribution.mobileprovision` |
+
+The P12 is **rebuilt on the macOS runner** (not committed) because
+macOS-`security` requires SHA1 MAC PKCS12, which OpenSSL 3.6.2 doesn't
+produce by default.
+
+**Sensitive files (gitignored):** `*.p8`, `*.cer`, `*.p12`, `*.key`,
+`*.mobileprovision`, `*.csr`, `*.pem`. The App Store Connect API key
+(`AuthKey_8N59492275.p8`) is gitignored and stored as GitHub secret
+`APP_STORE_CONNECT_PRIVATE_KEY`.
 
 ---
 
-## 📚 Documentation Notes
-
-The doc set was consolidated on June 22. Many older files were moved to `docs/archive/`.
-
-### Current docs (use these)
+## 📚 Documentation
 
 | Doc | Purpose |
 |---|---|
-| `README.md` | Project root, comprehensive entry point |
-| `CURRENT_STATUS.md` | This file — project state, source of truth |
-| **`docs/design/ISLE_SPARKS_SPEC_v2.md`** | **🔒 THE governing spec — Isle Sparks v2 (read this first)** |
-| `docs/design/ISLE_SPARKS_SPEC.md` | v1 spec — historical, superseded by v2 |
-| **`docs/design/MOCKUPS.md`** | **How to run the design mockups** (⚠️ mockups currently reflect v1) |
-| `docs/AUDIT_2026_07_01.md` | Whole-repo vestigial-information audit (what's outdated, what to fix) |
-| `FLUTTER_DEBUG_LOG.md` | Debugging history that got Flutter rendering |
-| `docs/HISTORY.md` | Project timeline + Key Decisions (Phase 8 = v2) |
-| `docs/design/TOKENS.md` | Design tokens (colors, typography, spacing, motion). ⚠️ Layout section removed (orphaned). |
+| `README.md` | Project root, entry point |
+| `CURRENT_STATUS.md` | **This file** — current state, source of truth |
+| **`docs/design/ISLE_SPARKS_SPEC_v2.md`** | **🔒 THE governing spec** |
+| `docs/HISTORY.md` | Project timeline + key decisions |
+| `docs/AUDIT_2026_07_01.md` | Vestigial-information audit |
+| `SUPABASE_STATUS.md` | Supabase schema + RLS details |
+| `.github/workflows/ios-build.yml` | iOS build + TestFlight pipeline |
 
-### Archived docs (do not use)
+---
 
-See `docs/archive/README.md` for the full list. The following were moved there on 2026-07-01 as part of a vestigial-information cleanup: `VISION.md`, `SCREENS.md`, `ARCHITECTURE.md`, `DEVELOPMENT.md`, `UI_DEVELOPMENT_PLAN.md`, and the old `goal_isle_working_mockup.html`.
+## 📝 iOS Build — Lessons Learned
+
+The iOS pipeline took ~10 commits to get working. Each failure taught
+something worth recording:
+
+1. **Cert name:** Apple renamed "iPhone Distribution" → "Apple Distribution"
+   years ago. Hardcode the new name, not the old one.
+2. **pbxproj targets:** Signing settings must go in the **Runner app target**
+   configs (Debug/Release/Profile), not just RunnerTests. Flutter's default
+   template has no signing settings on the Runner target.
+3. **Dedicated keychain + search list:** Don't use `login.keychain` on CI —
+   create a dedicated keychain AND add it to the search list with
+   `security list-keychains -d user -s`. Re-establish the list in the build
+   step (it can reset between steps on macOS 26).
+4. **PKCS12 MAC:** OpenSSL 3.x defaults to SHA256 MAC; macOS `security` needs
+   SHA1. Use `-certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1`.
+5. **iOS 26 SDK (April 2026 requirement):** Use `macos-26` runner (Xcode 26).
+   Run `xcodebuild -downloadPlatform iOS` — the SDK ships with Xcode but the
+   platform package must be downloaded separately.
+6. **No storyboards:** Removed `Main.storyboard` + `LaunchScreen.storyboard`
+   entirely. The app uses `SceneDelegate.swift` (FlutterSceneDelegate) for a
+   programmatic launch, avoiding ibtool platform issues. `UILaunchScreen`
+   (empty dict) replaces the launch storyboard in Info.plist.
 
 ---
 
 ## 🚀 What to Do Next
 
-v2 spec is locked. The Flutter code and the existing mockups both reflect **v1** (or older) and need updating. Order matters: mock against the locked v2 spec first, then port to Flutter.
+### Immediate — harden + ship a usable beta
+1. **Re-enable RLS on `isles` + `memberships`.** RLS is currently disabled on
+   those two tables (to get the build working). Run `supabase_rls_fix.sql` in
+   the Supabase SQL Editor to re-enable with correct policies.
+2. **Test the TestFlight build on a real device.** Verify auth, isle creation,
+   spark creation, chat, and posts work end-to-end.
+3. **Add test notes + screenshots** to the TestFlight build for internal testers.
 
-### Immediate — mock the two highest-risk v2 surfaces
-These are the v2 inventions most likely to feel wrong and need iteration before they're worth coding:
-1. **Home with territories** — rebuild the existing floating-sparks Home as sparks-grouped-on-Isle-territories (the three layout laws in v2 §9). The signature screen, now harder.
-2. **New Spark type picker** — the plain-language 2-question flow (v2 §6) that secretly sets mode/scope/template. Hides the metric engine behind friendly choices.
+### Short term — fix known bugs
+4. **Metric-log thread persistence (Bug #5):** metric logs don't persist to
+   Supabase yet (local-only).
+5. **Friends table unique constraint (Bugs #8, #9, #10):** add
+   `UNIQUE(user_id, friend_id)` to prevent duplicate friend rows.
+6. **Real-time chat subscription:** chat requires pull-to-refresh; add a
+   Supabase real-time subscription so messages appear live.
 
-### Short term — mock the rest of the v2 delta
-3. **Isle Home** — the community drill-in (its sparks, feed, chat, members).
-4. **Post Composer** — image/text/emoji + audience picker (one/several/all). New mental model.
-5. **Metric Log sheet** + **per-Spark thread** — number + optional photo, off a metric spark.
-6. **Discover/Search** — find public Isles by school/emoji/name; join flow. The network-effect surface.
-7. **Isle Settings** — join policy (public/private), creator-chosen color swatch, member management, delete.
-
-### Before Flutter — de-risk images
-8. **Verify `image_picker` is re-addable on Flutter web.** It was removed (Phase 4 of HISTORY) for causing bootstrap null-checks. v2 needs it for Posts + metric proof. If it can't be re-added on web, scope Posts/images to mobile-first and gate on web.
-
-### Flutter migration (per v2 §14)
-9. Data model: `isle.dart` → community Isle; ➕ new `Spark`, `Post`, `Membership`; delete `goal.dart`, old `media.dart`, `content_report.dart`, `user_block.dart`, `mountain_visual.dart`, `sparse_lines_background.dart`, old `spark_button.dart`, one `main_screen`.
-10. Build the widget library (v2 §15), including new `IsleTerritory`, `MetricLogSheet`, `PostComposer`, `PersonalSparkCluster`, `ConfirmPulse`.
-11. Port screens using the v2 mockups as reference.
+### Medium term — polish + release
+7. **App icon + launch screen:** the current icon is the default Flutter
+   template. Design a Goal Isle icon. The launch screen is blank (`UILaunchScreen`
+   empty dict) — could add a branded splash.
+8. **Privacy manifest:** Apple now requires `PrivacyInfo.xcprivacy` for
+   TestFlight/App Store. Add it before the next review.
+9. **App Store Connect metadata:** description, keywords, screenshots,
+   support URL, privacy policy URL — all needed for external testing/review.
+10. **Versioning:** the workflow uses `FLUTTER_BUILD_NAME` (2.0.0) from
+    Generated.xcconfig. Consider explicit versioning per TestFlight build.
 
 ### Long term
-12. Real auth + identity (required for all social mechanics). Currently mocked.
-13. Moderation loop (report + creator-removes) for public Isles.
+11. **Push notifications** (spark reminders, chat, friend activity).
+12. **Offline queue** for writes when offline (currently fire-and-forget fails
+    silently if offline).
+13. **Moderation** (report + creator-removes) for public Isles.
+14. **Cross-platform:** Android build via GitHub Actions (same pattern as iOS).
 
 ---
 
-*Last updated: July 3, 2026 — v2 spec locked; existing docs/mockups now flagged as v1.*
+*Source of truth. Update this file whenever project state changes.*
