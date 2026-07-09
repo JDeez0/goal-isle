@@ -7,9 +7,17 @@ on:
 
 jobs:
   build-ios:
-    runs-on: macos-15
+    # macos-26 ships with Xcode 26 + iOS 26 SDK, which Apple now requires
+    # (since April 2026) for all App Store Connect / TestFlight uploads.
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        run: |
+          # Find the newest Xcode 26.x installed on the runner and select it.
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | head -1)/Contents/Developer"
+          echo "Selected: $(xcodebuild -version)"
 
       - uses: subosito/flutter-action@v2
         with:
