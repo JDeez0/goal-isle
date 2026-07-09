@@ -151,20 +151,16 @@ jobs:
       - name: Build iOS (signed)
         run: |
           set -e
-          # Re-establish the keychain in THIS step's shell. On macOS 26, both
-          # the keychain lock state AND the search list can reset between
-          # GitHub Actions steps. xcodebuild/codesign search the keychain
-          # LIST (not the default keychain), so we must re-add our keychain
-          # to the list here.
+          # Re-establish the keychain in THIS step's shell.
           KEYCHAIN_PATH=$(cat /tmp/keychain_path)
           KEYCHAIN_PASS=$(cat /tmp/keychain_pass)
           security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
           security default-keychain -s "$KEYCHAIN_PATH"
 
-          echo "=== keychain search list (what xcodebuild sees) ==="
+          echo "=== keychain search list ==="
           security list-keychains -d user
-          echo "=== identities visible to xcodebuild (no path = searches list) ==="
+          echo "=== identities visible to xcodebuild ==="
           security find-identity -v -p codesigning
           IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | awk -F'"' '{print $2}')
           if [ -z "$IDENTITY" ]; then
@@ -173,7 +169,34 @@ jobs:
           fi
           echo "Will sign with: $IDENTITY"
 
-          flutter build ipa --release --export-options-plist=ios/exportOptions.plist
+          # Two-phase build to bypass Flutter's signing pre-validation:
+          # 1. Archive WITHOUT codesign (Flutter won't try to validate certs)
+          # 2. Export the archive WITH codesign (xcodebuild handles signing
+          #    directly using the keychain + exportOptions.plist)
+          # This is the canonical CI approach and avoids Flutter's
+          # "No valid code signing certificates" pre-check that fails even
+          # when the identity is present.
+          flutter build ios --release --no-codesign
+
+          # Find the xcarchive Flutter created
+          ARCHIVE_PATH=$(find build -name "*.xcarchive" -type d | head -1)
+          echo "Found archive: $ARCHIVE_PATH"
+          if [ -z "$ARCHIVE_PATH" ]; then
+            echo "ERROR: No .xcarchive found in build/"
+            find build -name "*.xcarchive" -o -name "*.app" 2>/dev/null | head -10
+            exit 1
+          fi
+
+          echo "=== exporting signed IPA ==="
+          mkdir -p build/ios/ipa
+          xcodebuild -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportOptionsPlist ios/exportOptions.plist \
+            -exportPath build/ios/ipa \
+            OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
+
+          echo "=== IPA built ==="
+          ls -la build/ios/ipa/*.ipa
 
       - name: Upload IPA artifact
         if: always()
