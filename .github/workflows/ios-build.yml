@@ -67,12 +67,17 @@ jobs:
           openssl pkcs12 -in cert.p12 -noout -passin pass:"$CERT_PASSWORD" && echo "P12 OK" || { echo "P12 FAIL"; exit 1; }
 
           # ---- Dedicated keychain (canonical CI approach) ----
+          # On macOS 26, codesign/xcodebuild only search the keychain search
+          # list — NOT just the default keychain. We must explicitly add our
+          # custom keychain to the list (and keep login.keychain too, so the
+          # runner's other tooling still works).
           KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain-db
           KEYCHAIN_PASS=ci-keychain-pass
           echo "--- creating keychain at $KEYCHAIN_PATH ---"
           security create-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security default-keychain -s "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user)
           security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
 
           # Import cert + allow codesign to use the private key.
@@ -88,8 +93,21 @@ jobs:
           echo "PROFILE_UUID=$PROFILE_UUID"
 
           # ---- Verify the signing identity is usable BEFORE the build ----
+          # find-identity exits 0 even with 0 identities, so grep for a real
+          # identity and fail loudly if none is present. This catches the
+          # "signing step succeeds but build can't find cert" failure mode.
+          echo "=== keychain search list ==="
+          security list-keychains -d user
           echo "=== available signing identities ==="
-          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning
+          IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | awk -F'"' '{print $2}')
+          if [ -z "$IDENTITY" ]; then
+            echo "ERROR: No 'Apple Distribution' signing identity found in any keychain."
+            echo "Dumping all identities in $KEYCHAIN_PATH:"
+            security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+            exit 1
+          fi
+          echo "Will sign with: $IDENTITY"
 
           # ---- Export options ----
           cat > ios/exportOptions.plist << EOF
