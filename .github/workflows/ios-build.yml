@@ -151,12 +151,27 @@ jobs:
       - name: Build iOS (signed)
         run: |
           set -e
-          # Re-unlock the keychain in THIS step's shell — keychain lock state
-          # can reset between steps on macOS 26.
+          # Re-establish the keychain in THIS step's shell. On macOS 26, both
+          # the keychain lock state AND the search list can reset between
+          # GitHub Actions steps. xcodebuild/codesign search the keychain
+          # LIST (not the default keychain), so we must re-add our keychain
+          # to the list here.
           KEYCHAIN_PATH=$(cat /tmp/keychain_path)
           KEYCHAIN_PASS=$(cat /tmp/keychain_pass)
           security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
-          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+          security default-keychain -s "$KEYCHAIN_PATH"
+
+          echo "=== keychain search list (what xcodebuild sees) ==="
+          security list-keychains -d user
+          echo "=== identities visible to xcodebuild (no path = searches list) ==="
+          security find-identity -v -p codesigning
+          IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | awk -F'"' '{print $2}')
+          if [ -z "$IDENTITY" ]; then
+            echo "ERROR: No 'Apple Distribution' identity visible in the keychain search list."
+            exit 1
+          fi
+          echo "Will sign with: $IDENTITY"
 
           flutter build ipa --release --export-options-plist=ios/exportOptions.plist
 
