@@ -46,6 +46,11 @@ jobs:
           echo "decrypted: key=$(wc -c < ios_key.pem)B cert=$(wc -c < ios_cert.cer)B profile=$(wc -c < profile.mobileprovision)B"
 
           # Convert DER cert -> PEM, then build a macOS-compatible P12.
+          # CRITICAL: OpenSSL 3.x (3.6.2 on macos-26) defaults to SHA256 MAC
+          # + AES-256 encryption, but macOS's `security` tool only supports
+          # SHA1 MAC + PBE-SHA1-3DES. Without these flags, import fails with
+          # "MAC verification failed during PKCS12 import (wrong password?)".
+          # 3DES is in OpenSSL's default provider — no legacy provider needed.
           echo "--- building P12 ---"
           openssl x509 -in ios_cert.cer -inform DER -out ios_cert.pem -outform PEM
           openssl pkcs12 -export \
@@ -53,7 +58,10 @@ jobs:
             -inkey ios_key.pem \
             -in ios_cert.pem \
             -passout pass:"$CERT_PASSWORD" \
-            -name "Apple Distribution: JASPER HOLIMAN DEEN (3X37886R5C)"
+            -name "Apple Distribution: JASPER HOLIMAN DEEN (3X37886R5C)" \
+            -certpbe PBE-SHA1-3DES \
+            -keypbe PBE-SHA1-3DES \
+            -macalg sha1
 
           echo "cert.p12: $(wc -c < cert.p12) bytes"
           openssl pkcs12 -in cert.p12 -noout -passin pass:"$CERT_PASSWORD" && echo "P12 OK" || { echo "P12 FAIL"; exit 1; }
