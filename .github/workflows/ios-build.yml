@@ -138,13 +138,20 @@ jobs:
           echo "$KEYCHAIN_PASS" > /tmp/keychain_pass
 
           # ---- Export options ----
+          # teamID is required because the archive was built with
+          # CODE_SIGNING_ALLOWED=NO (no team embedded). The export step
+          # re-signs using this team + the provisioning profile UUID.
           cat > ios/exportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>app-store</string>
+            <string>app-store-connect</string>
+            <key>teamID</key>
+            <string>3X37886R5C</string>
+            <key>signingStyle</key>
+            <string>manual</string>
             <key>provisioningProfiles</key>
             <dict>
               <key>com.jasperdeen.goalisle</key>
