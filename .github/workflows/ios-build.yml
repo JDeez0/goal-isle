@@ -16,28 +16,32 @@ jobs:
       - name: Set up Xcode 26 + iOS platform
         run: |
           set -e
-          # The macos-26 runner's default Xcode IS Xcode 26. Select it
-          # explicitly (in case a post-install script changed the default).
           sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | head -1)/Contents/Developer"
           echo "Selected: $(xcodebuild -version)"
           sudo xcodebuild -license accept
 
-          echo "=== SDKs before platform download ==="
-          xcodebuild -showsdks | grep -i ios || echo "(no iOS SDK listed)"
+          echo "=== available SDKs ==="
+          xcodebuild -showsdks
 
-          # CRITICAL: The iOS 26.0 SDK headers ship with Xcode, but the
-          # iOS 26.0 *platform* (runtime components ibtool/xcodebuild need)
-          # must be downloaded. Without it, builds fail with:
-          #   "iOS 26.0 is not installed" / "iOS 26.0 Platform Not Installed"
-          # The download is ~3GB but cached on the runner image in most cases.
-          echo "=== ensuring iOS platform is installed ==="
-          sudo xcodebuild -downloadPlatform iOS 2>&1 || {
-            echo "downloadPlatform failed (may already be installed); trying -runFirstLaunch"
-            sudo xcodebuild -runFirstLaunch
+          # Check if the iOS device platform is actually registered.
+          # The "iOS 26.0 is not installed" error happens when the platform
+          # bundle exists but isn't linked into Xcode's Platforms directory.
+          echo "=== checking iOS platform registration ==="
+          XCODE_DEVELOPER=$(xcode-select -p)
+          XCODE_PATH=${XCODE_DEVELOPER%/Contents/Developer}
+          echo "Xcode path: $XCODE_PATH"
+          echo "Platforms:"
+          ls -la "$XCODE_PATH/Contents/Developer/Platforms/" | grep -i ios || echo "NO iOS PLATFORM DIR"
+
+          # Run first launch to install/link any missing components
+          sudo xcodebuild -runFirstLaunch 2>&1 || true
+
+          # If the iOS platform still isn't registered, try downloading it
+          echo "=== re-checking platforms after runFirstLaunch ==="
+          ls -la "$XCODE_PATH/Contents/Developer/Platforms/" | grep -i ios || {
+            echo "iOS platform missing — attempting download"
+            sudo xcodebuild -downloadPlatform iOS 2>&1 || true
           }
-
-          echo "=== SDKs after platform download ==="
-          xcodebuild -showsdks | grep -i ios
 
       - uses: subosito/flutter-action@v2
         with:
@@ -170,26 +174,25 @@ jobs:
       - name: Build iOS (archive, no signing)
         run: |
           set -e
-          # Step 1: Let Flutter compile the Dart code + install Pods.
-          # --no-codesign skips signing entirely (we sign in step 2).
-          flutter build ios --release --no-codesign
+          # Install Pods first (needed by xcodebuild).
+          cd ios && pod install && cd ..
 
-          # Step 2: Create a proper xcarchive using xcodebuild directly.
-          # flutter build ios only produces a .app; we need an .xcarchive
-          # for xcodebuild -exportArchive to sign it.
+          # Archive directly with xcodebuild, bypassing Flutter's fragile
+          # destination resolution. Using -sdk iphoneos avoids the
+          # "Unable to find a destination" / "iOS 26.0 is not installed"
+          # errors that flutter build ios hits intermittently.
           echo "=== creating xcarchive ==="
           mkdir -p build/ios/archive
           xcodebuild -workspace ios/Runner.xcworkspace \
             -scheme Runner \
             -configuration Release \
             -archivePath build/ios/archive/Runner.xcarchive \
-            -destination "generic/platform=iOS" \
             -sdk iphoneos \
             archive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_SUPPORTED=NO \
-            | tail -20
+            | tail -30
 
           ARCHIVE_PATH="build/ios/archive/Runner.xcarchive"
           if [ ! -d "$ARCHIVE_PATH" ]; then
