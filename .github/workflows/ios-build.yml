@@ -197,8 +197,8 @@ jobs:
           IPA_PATH=$(ls build/ios/ipa/*.ipa | head -1)
           echo "IPA: $IPA_PATH ($(wc -c < "$IPA_PATH") bytes)"
 
-          # Validate the IPA. Capture exit code — altool can print errors
-          # but return 0, so check for "VERIFY FAILED" in output too.
+          # Validate the IPA. altool can print errors but return 0, so
+          # check for actual failure markers in output.
           echo "=== validating IPA ==="
           VAL_OUTPUT=$(xcrun altool --validate-app \
             --type ios \
@@ -207,7 +207,8 @@ jobs:
             --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID" \
             --output-format normal 2>&1) || true
           echo "$VAL_OUTPUT"
-          if echo "$VAL_OUTPUT" | grep -qi "failed\|error"; then
+          # Check for failure markers (not "no errors" which is success)
+          if echo "$VAL_OUTPUT" | grep -qi "VERIFY FAILED\|UPLOAD FAILED\|Validation failed\|Failed to"; then
             echo "=== VALIDATION FAILED — not uploading ==="
             exit 1
           fi
