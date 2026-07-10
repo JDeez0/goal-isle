@@ -487,37 +487,46 @@ class SupabaseRepository {
     return dedup.values.toList();
   }
 
-  /// Send a friend request. Inserts a row where user_id = current user,
-  /// status = 'pending_out'.
+  /// Send a friend request. Uses upsert so duplicate requests don't create
+  /// duplicate rows (Bug #8 fix — backed by unique constraint on
+  /// (user_id, friend_id)).
   static Future<void> createFriend(Friend f) async {
-    await _db.from('friends').insert({
+    await _db.from('friends').upsert({
       'user_id': _uid,
       'friend_id': f.friendId,
       'friend_name': f.friendName,
       'friend_avatar': f.friendAvatar,
       'status': 'pending_out',
-    });
+    }, onConflict: 'user_id,friend_id');
   }
 
-  /// Accept an incoming friend request. Inserts my own row with status
-  /// 'accepted'. The other person's row (where they are user_id) remains
-  /// untouched — a refresh on their side will pick up my accepted row.
+  /// Accept an incoming friend request. Updates the ORIGINAL requester's row
+  /// (where they are user_id and I am friend_id) to status='accepted'.
+  /// This fixes Bug #9: previously inserted a second row, leaving the
+  /// requester seeing 'pending' forever.
   static Future<void> acceptFriend(String friendId, String friendName, String friendAvatar) async {
-    await _db.from('friends').insert({
-      'user_id': _uid,
-      'friend_id': friendId,
-      'friend_name': friendName,
-      'friend_avatar': friendAvatar,
-      'status': 'accepted',
-    });
+    await _db.from('friends')
+        .update({
+          'status': 'accepted',
+          'friend_name': friendName,
+          'friend_avatar': friendAvatar,
+        })
+        .eq('user_id', friendId)
+        .eq('friend_id', _uid!);
   }
 
-  /// Decline a friend request or unfriend. Only deletes rows where the
-  /// current user is the owner (user_id). Incoming requests from the other
-  /// side cannot be deleted by RLS.
+  /// Decline a friend request or unfriend. Deletes rows in BOTH directions
+  /// — my own row (where I am user_id) AND incoming rows (where I am
+  /// friend_id). This fixes Bug #10: previously couldn't delete incoming
+  /// requests, causing them to reappear on refresh.
   static Future<void> deleteFriend(String friendId) async {
+    // Delete my outgoing row (I am user_id)
     await _db.from('friends').delete()
         .eq('user_id', _uid!)
         .eq('friend_id', friendId);
+    // Delete the incoming row (I am friend_id, they are user_id)
+    await _db.from('friends').delete()
+        .eq('user_id', friendId)
+        .eq('friend_id', _uid!);
   }
 }

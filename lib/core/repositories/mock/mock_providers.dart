@@ -309,7 +309,9 @@ class FriendsNotifier extends StateNotifier<List<Friend>> {
     if (uid == null) return;
     try {
       final list = await SupabaseRepository.fetchFriends(uid);
-      if (mounted && list.isNotEmpty) state = list;
+      // Always replace state — even if empty. Previously the `isNotEmpty`
+      // guard caused mock seed friends to leak into real sessions.
+      if (mounted) state = list;
     } catch (_) {}
   }
 
@@ -351,6 +353,8 @@ class FriendsNotifier extends StateNotifier<List<Friend>> {
   }
 
   void sendRequest(Friend f) {
+    // Guard against duplicates (Bug #8 fix)
+    if (state.any((x) => x.friendId == f.friendId)) return;
     state = [...state, f];
     SupabaseRepository.createFriend(f)
         .then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
