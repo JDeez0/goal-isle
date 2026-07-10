@@ -163,21 +163,34 @@ jobs:
       - name: Build iOS (archive, no signing)
         run: |
           set -e
-          # flutter build ipa sometimes fails with "No valid code signing
-          # certificates" even when the cert IS in the keychain — it's a
-          # destination-resolution issue on macos-26 runners, not a real
-          # signing problem. The fix: archive without signing, then export
-          # with signing separately.
+          # Step 1: Let Flutter compile the Dart code + install Pods.
+          # --no-codesign skips signing entirely (we sign in step 2).
           flutter build ios --release --no-codesign
 
-          # Find the xcarchive
-          ARCHIVE_PATH=$(find build/ios/archive -name "*.xcarchive" -type d 2>/dev/null | head -1)
-          if [ -z "$ARCHIVE_PATH" ]; then
-            echo "ERROR: No .xcarchive found"
+          # Step 2: Create a proper xcarchive using xcodebuild directly.
+          # flutter build ios only produces a .app; we need an .xcarchive
+          # for xcodebuild -exportArchive to sign it.
+          echo "=== creating xcarchive ==="
+          mkdir -p build/ios/archive
+          xcodebuild -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -destination "generic/platform=iOS" \
+            -sdk iphoneos \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_SUPPORTED=NO \
+            | tail -20
+
+          ARCHIVE_PATH="build/ios/archive/Runner.xcarchive"
+          if [ ! -d "$ARCHIVE_PATH" ]; then
+            echo "ERROR: Archive not created at $ARCHIVE_PATH"
             find build -type d -name "*.xcarchive" -o -name "*.app" 2>/dev/null | head -10
             exit 1
           fi
-          echo "Archive: $ARCHIVE_PATH"
+          echo "Archive created: $ARCHIVE_PATH"
           echo "$ARCHIVE_PATH" > /tmp/archive_path
 
       - name: Export signed IPA
