@@ -124,7 +124,7 @@ produce by default.
 
 ## 📝 iOS Build — Lessons Learned
 
-The iOS pipeline took ~10 commits to get working. Each failure taught
+The iOS pipeline took ~20 commits to get fully working. Each failure taught
 something worth recording:
 
 1. **Cert name:** Apple renamed "iPhone Distribution" → "Apple Distribution"
@@ -145,6 +145,34 @@ something worth recording:
    entirely. The app uses `SceneDelegate.swift` (FlutterSceneDelegate) for a
    programmatic launch, avoiding ibtool platform issues. `UILaunchScreen`
    (empty dict) replaces the launch storyboard in Info.plist.
+7. **Flutter signing pre-validation is flaky:** `flutter build ipa` does its
+   own signing check that fails ~50% of the time on macos-26 (false negative
+   — cert IS in keychain but Flutter's destination resolution breaks). The fix:
+   two-phase build: `flutter build ios --config-only` + `xcodebuild archive
+   -sdk iphoneos CODE_SIGNING_ALLOWED=NO` + `xcodebuild -exportArchive`.
+8. **iPad multitasking:** Apple rejects builds without a launch storyboard
+   if `UIRequiresFullScreen` isn't set. Add `UIRequiresFullScreen=true` to
+   Info.plist (Goal Isle is phone-first).
+9. **Encryption compliance:** Add `ITSAppUsesNonExemptEncryption=false` to
+   Info.plist to permanently bypass the export compliance question.
+10. **Build numbers:** Apple rejects uploads with duplicate build numbers.
+    Use `GITHUB_RUN_NUMBER` as the build number (`--build-number=$GITHUB_RUN_NUMBER`).
+11. **altool validation:** `altool --validate-app` can print errors but return
+    exit 0. Capture output and grep for `VERIFY FAILED` / `UPLOAD FAILED` /
+    `Validation failed` to detect real failures.
+
+### Final working pipeline
+
+```
+┌─ Increment build number (GITHUB_RUN_NUMBER)
+├─ Set up Xcode 26 + downloadPlatform iOS
+├─ Set up code signing (decrypt → SHA1 P12 → keychain → search list)
+├─ flutter build ios --config-only --build-number=$BUILD_NUMBER
+├─ xcodebuild archive -sdk iphoneos CODE_SIGNING_ALLOWED=NO
+├─ xcodebuild -exportArchive (signs with keychain)
+├─ Upload IPA artifact (always)
+└─ Upload to TestFlight (altool validate + upload)
+```
 
 ---
 
@@ -152,8 +180,9 @@ something worth recording:
 
 ### Immediate — harden + ship a usable beta
 1. **Re-enable RLS on `isles` + `memberships`.** RLS is currently disabled on
-   those two tables (to get the build working). Run `supabase_rls_fix.sql` in
-   the Supabase SQL Editor to re-enable with correct policies.
+   those two tables. Run `supabase_enable_rls.sql` in the Supabase SQL Editor.
+   (The original policies in `supabase_schema.sql` are correct — the persistence
+   bug was caused by mock UUIDs leaking, which is now fixed in Flutter.)
 2. **Test the TestFlight build on a real device.** Verify auth, isle creation,
    spark creation, chat, and posts work end-to-end.
 3. **Add test notes + screenshots** to the TestFlight build for internal testers.
@@ -167,15 +196,12 @@ something worth recording:
    Supabase real-time subscription so messages appear live.
 
 ### Medium term — polish + release
-7. **App icon + launch screen:** the current icon is the default Flutter
-   template. Design a Goal Isle icon. The launch screen is blank (`UILaunchScreen`
-   empty dict) — could add a branded splash.
-8. **Privacy manifest:** Apple now requires `PrivacyInfo.xcprivacy` for
-   TestFlight/App Store. Add it before the next review.
+7. **App icon:** the current icon is the default Flutter template. Design a
+   Goal Isle icon.
+8. **Privacy manifest:** Apple may require `PrivacyInfo.xcprivacy` for
+   App Store review. Add it before submitting for review.
 9. **App Store Connect metadata:** description, keywords, screenshots,
    support URL, privacy policy URL — all needed for external testing/review.
-10. **Versioning:** the workflow uses `FLUTTER_BUILD_NAME` (2.0.0) from
-    Generated.xcconfig. Consider explicit versioning per TestFlight build.
 
 ### Long term
 11. **Push notifications** (spark reminders, chat, friend activity).
