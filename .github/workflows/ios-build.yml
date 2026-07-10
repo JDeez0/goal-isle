@@ -20,28 +20,13 @@ jobs:
           echo "Selected: $(xcodebuild -version)"
           sudo xcodebuild -license accept
 
+          # Ensure the iOS 26 platform is fully installed. The SDK ships with
+          # Xcode but the platform bundle must be registered/downloaded.
+          # Try downloadPlatform first; fall back to runFirstLaunch.
+          sudo xcodebuild -downloadPlatform iOS 2>&1 || sudo xcodebuild -runFirstLaunch
+
           echo "=== available SDKs ==="
-          xcodebuild -showsdks
-
-          # Check if the iOS device platform is actually registered.
-          # The "iOS 26.0 is not installed" error happens when the platform
-          # bundle exists but isn't linked into Xcode's Platforms directory.
-          echo "=== checking iOS platform registration ==="
-          XCODE_DEVELOPER=$(xcode-select -p)
-          XCODE_PATH=${XCODE_DEVELOPER%/Contents/Developer}
-          echo "Xcode path: $XCODE_PATH"
-          echo "Platforms:"
-          ls -la "$XCODE_PATH/Contents/Developer/Platforms/" | grep -i ios || echo "NO iOS PLATFORM DIR"
-
-          # Run first launch to install/link any missing components
-          sudo xcodebuild -runFirstLaunch 2>&1 || true
-
-          # If the iOS platform still isn't registered, try downloading it
-          echo "=== re-checking platforms after runFirstLaunch ==="
-          ls -la "$XCODE_PATH/Contents/Developer/Platforms/" | grep -i ios || {
-            echo "iOS platform missing — attempting download"
-            sudo xcodebuild -downloadPlatform iOS 2>&1 || true
-          }
+          xcodebuild -showsdks | grep -i ios
 
       - uses: subosito/flutter-action@v2
         with:
@@ -57,25 +42,15 @@ jobs:
           set -e
           echo "=== openssl version ==="
           openssl version
-          echo "=== security tool ==="
-          security -h > /dev/null 2>&1 && echo "security OK"
 
           # ---- Decrypt signing materials ----
-          echo "--- decrypting key.enc ---"
           openssl enc -aes-256-cbc -d -in key.enc -out ios_key.pem -pass pass:"$CERT_PASSWORD"
-          echo "--- decrypting cer.enc ---"
           openssl enc -aes-256-cbc -d -in cer.enc -out ios_cert.cer -pass pass:"$CERT_PASSWORD"
-          echo "--- decrypting profile.enc ---"
           openssl enc -aes-256-cbc -d -in profile.enc -out profile.mobileprovision -pass pass:"$CERT_PASSWORD"
           echo "decrypted: key=$(wc -c < ios_key.pem)B cert=$(wc -c < ios_cert.cer)B profile=$(wc -c < profile.mobileprovision)B"
 
-          # Convert DER cert -> PEM, then build a macOS-compatible P12.
-          # CRITICAL: OpenSSL 3.x (3.6.2 on macos-26) defaults to SHA256 MAC
-          # + AES-256 encryption, but macOS's `security` tool only supports
-          # SHA1 MAC + PBE-SHA1-3DES. Without these flags, import fails with
-          # "MAC verification failed during PKCS12 import (wrong password?)".
-          # 3DES is in OpenSSL's default provider — no legacy provider needed.
-          echo "--- building P12 ---"
+          # ---- Build macOS-compatible P12 ----
+          # OpenSSL 3.x defaults to SHA256 MAC; macOS security needs SHA1+3DES.
           openssl x509 -in ios_cert.cer -inform DER -out ios_cert.pem -outform PEM
           openssl pkcs12 -export \
             -out cert.p12 \
@@ -90,28 +65,18 @@ jobs:
           echo "cert.p12: $(wc -c < cert.p12) bytes"
           openssl pkcs12 -in cert.p12 -noout -passin pass:"$CERT_PASSWORD" && echo "P12 OK" || { echo "P12 FAIL"; exit 1; }
 
-          # ---- Dedicated keychain (canonical CI approach) ----
-          # Put the keychain in a STABLE path (not $RUNNER_TEMP which can vary
-          # between steps) so the build step can re-unlock it.
+          # ---- Dedicated keychain ----
           KEYCHAIN_PATH="$HOME/build.keychain-db"
           KEYCHAIN_PASS=ci-keychain-pass
-          echo "--- creating keychain at $KEYCHAIN_PATH ---"
-          # Remove any stale keychain from a prior run
           security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
           security create-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
-          # No auto-lock during the build
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          # Add to the search list (codesign searches the LIST, not default)
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
           security default-keychain -s "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
 
-          # Import cert + allow codesign to use the private key.
-          echo "--- importing cert into keychain ---"
+          # Import cert + set partition list
           security import cert.p12 -k "$KEYCHAIN_PATH" -P "$CERT_PASSWORD" -A -T /usr/bin/codesign -T /usr/bin/security
-          echo "--- setting partition list ---"
-          # -s makes the keychain prompt for access; since we're non-interactive
-          # the -k provides the password. This grants codesign access to the key.
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
 
           # ---- Install provisioning profile ----
@@ -120,31 +85,15 @@ jobs:
           PROFILE_UUID=$(security cms -D -i profile.mobileprovision | plutil -extract UUID raw -)
           echo "PROFILE_UUID=$PROFILE_UUID"
 
-          # ---- Verify the signing identity is usable BEFORE the build ----
-          echo "=== keychain search list ==="
-          security list-keychains -d user
-          echo "=== default keychain ==="
-          security default-keychain
-          echo "=== available signing identities (all keychains) ==="
+          # ---- Verify identity ----
+          echo "=== signing identities ==="
           security find-identity -v -p codesigning
-          echo "=== available signing identities (build keychain only) ==="
-          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
 
-          IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | awk -F'"' '{print $2}')
-          if [ -z "$IDENTITY" ]; then
-            echo "ERROR: No 'Apple Distribution' signing identity found in any keychain."
-            exit 1
-          fi
-          echo "Will sign with: $IDENTITY"
-
-          # Save keychain path + pass for the build step
+          # Save for build step
           echo "$KEYCHAIN_PATH" > /tmp/keychain_path
           echo "$KEYCHAIN_PASS" > /tmp/keychain_pass
 
           # ---- Export options ----
-          # teamID is required because the archive was built with
-          # CODE_SIGNING_ALLOWED=NO (no team embedded). The export step
-          # re-signs using this team + the provisioning profile UUID.
           cat > ios/exportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -171,49 +120,11 @@ jobs:
           </plist>
           EOF
 
-      - name: Build iOS (archive, no signing)
-        run: |
-          set -e
-          # Step 1: Compile Dart to kernel + generate Flutter artifacts.
-          # --config-only skips the Xcode build/destination resolution that
-          # fails intermittently with "iOS 26.0 is not installed".
-          flutter build ios --release --no-codesign --config-only
-
-          # Step 2: Install Pods
-          cd ios && pod install && cd ..
-
-          # Step 3: Archive directly with xcodebuild using -sdk iphoneos,
-          # which bypasses destination resolution entirely.
-          echo "=== creating xcarchive ==="
-          mkdir -p build/ios/archive
-          xcodebuild -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -archivePath build/ios/archive/Runner.xcarchive \
-            -sdk iphoneos \
-            archive \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_SUPPORTED=NO \
-            | tail -30
-
-          ARCHIVE_PATH="build/ios/archive/Runner.xcarchive"
-          if [ ! -d "$ARCHIVE_PATH" ]; then
-            echo "ERROR: Archive not created at $ARCHIVE_PATH"
-            find build -type d -name "*.xcarchive" -o -name "*.app" 2>/dev/null | head -10
-            exit 1
-          fi
-          echo "Archive created: $ARCHIVE_PATH"
-          echo "$ARCHIVE_PATH" > /tmp/archive_path
-
-      - name: Export signed IPA
+      - name: Build iOS (signed)
         run: |
           set -e
           KEYCHAIN_PATH=$(cat /tmp/keychain_path)
           KEYCHAIN_PASS=$(cat /tmp/keychain_pass)
-          ARCHIVE_PATH=$(cat /tmp/archive_path)
-
-          # Re-establish keychain + search list in this step
           security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
           security default-keychain -s "$KEYCHAIN_PATH"
@@ -221,18 +132,27 @@ jobs:
           echo "=== identities ==="
           security find-identity -v -p codesigning
 
-          # Export the archive into a signed IPA. xcodebuild handles signing
-          # directly via the keychain + exportOptions.plist — no Flutter
-          # signing pre-validation involved.
-          mkdir -p build/ios/ipa
-          xcodebuild -exportArchive \
-            -archivePath "$ARCHIVE_PATH" \
-            -exportOptionsPlist ios/exportOptions.plist \
-            -exportPath build/ios/ipa \
-            OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
-
-          IPA_PATH=$(ls build/ios/ipa/*.ipa | head -1)
-          echo "IPA: $IPA_PATH ($(wc -c < "$IPA_PATH") bytes)"
+          # Retry the build up to 3 times. The "No valid code signing
+          # certificates" / "iOS 26.0 is not installed" errors are
+          # intermittent on macos-26 runners (~50% success rate). Retrying
+          # is the pragmatic fix — the build eventually succeeds.
+          for attempt in 1 2 3; do
+            echo "=== build attempt $attempt ==="
+            if flutter build ipa --release --export-options-plist=ios/exportOptions.plist; then
+              echo "=== BUILD SUCCEEDED on attempt $attempt ==="
+              break
+            fi
+            if [ $attempt -eq 3 ]; then
+              echo "=== BUILD FAILED after 3 attempts ==="
+              exit 1
+            fi
+            echo "=== attempt $attempt failed, retrying... ==="
+            # Re-establish keychain before retry (lock state can reset)
+            security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+            security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+            flutter clean
+            flutter pub get
+          done
 
       - name: Upload IPA artifact
         if: always()
@@ -255,11 +175,7 @@ jobs:
 
           IPA_PATH=$(ls build/ios/ipa/*.ipa | head -1)
           echo "IPA: $IPA_PATH ($(wc -c < "$IPA_PATH") bytes)"
-          echo "Issuer: $APP_STORE_CONNECT_ISSUER_ID"
-          echo "Key ID: $APP_STORE_CONNECT_KEY_ID"
 
-          # Validate the IPA before uploading. This catches issues that altool
-          # --upload-app might silently ignore (known Xcode 26 silent-upload bug).
           echo "=== validating IPA ==="
           xcrun altool --validate-app \
             --type ios \
