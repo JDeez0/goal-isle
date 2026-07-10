@@ -2,6 +2,10 @@
 
 **How to edit UX/UI and functionality safely without breaking the iOS build.**
 
+> 📖 **See also:** [`DEVELOPMENT_WORKFLOW.md`](DEVELOPMENT_WORKFLOW.md) — the full iterative development workflow with branching strategy, testing checklist, and emergency procedures.
+>
+> 🪝 **Pre-push hook installed:** `flutter analyze` + protected files check runs automatically before every push. Install with `bash scripts/install-hooks.sh`.
+
 ---
 
 ## 🚨 The Golden Rules

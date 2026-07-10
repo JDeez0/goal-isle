@@ -3,7 +3,17 @@ name: Build iOS
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+  # Allow manual trigger on any branch (e.g., testing a feature branch
+  # before merging to main). Go to Actions → Build iOS → Run workflow →
+  # select the branch.
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build'
+        required: false
+        default: 'main'
 
 jobs:
   build-ios:
@@ -12,6 +22,9 @@ jobs:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
+        with:
+          # When triggered manually, build the selected branch
+          ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Increment build number
         run: |
@@ -201,7 +214,9 @@ jobs:
           path: build/ios/ipa/*.ipa
 
       - name: Upload to TestFlight
-        if: success()
+        # Only upload to TestFlight from pushes to main.
+        # PRs and manual dispatches build+validate but don't upload.
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
