@@ -81,5 +81,17 @@ else
     echo -e "${GREEN}PASSED${NC} (no pubspec changes)"
 fi
 
+# ---- 4. Documentation update reminder ----
+DOCS=("CURRENT_STATUS.md" "PROJECT_KNOWLEDGE.md" "README.md" "UX_UI_ITERATION_PLAN.md" "DEVELOPMENT_WORKFLOW.md" "DEVELOPMENT_GUIDE.md")
+CHANGED_LIB=$(git diff --cached --name-only 2>/dev/null | grep -c "^lib/" || true)
+CHANGED_DOCS=$(git diff --cached --name-only 2>/dev/null | grep -c -E "^($(IFS='|'; echo "${DOCS[*]}"))$" || true)
+if [ "$CHANGED_LIB" -gt 0 ] && [ "$CHANGED_DOCS" -eq 0 ]; then
+    echo -e "${YELLOW}REMINDER${NC}: lib/ files staged but no docs updated."
+    echo "  If this change affects app behavior or the build, update the relevant doc:"
+    echo "    - CURRENT_STATUS.md  (app state, next steps)"
+    echo "    - PROJECT_KNOWLEDGE.md (architecture, schema, bugs)"
+    echo "    - README.md          (entry point, quick start)"
+fi
+
 echo ""
 echo -e "${GREEN}=== All checks passed — pushing ===${NC}"
