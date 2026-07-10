@@ -36,6 +36,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     refreshListenable: _SupabaseAuthListenable(ref),
     redirect: (context, state) {
+      // Guard against Supabase not being initialized (e.g., offline or
+      // init failure). Falls back to auth screen instead of crashing.
       final session = Supabase.instance.client.auth.currentSession;
       final signedIn = session != null;
       final goingToAuth = state.matchedLocation == '/auth';
