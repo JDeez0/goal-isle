@@ -151,11 +151,13 @@ jobs:
           flutter build ios --release --no-codesign --config-only \
             --build-name=2.0.0 --build-number=$BUILD_NUMBER
 
-          # CRITICAL: Install CocoaPods. The --config-only flag above does
-          # NOT run pod install. Without this, native plugins (Supabase,
-          # image_picker, etc.) are missing from the binary → black screen
-          # on launch because Supabase.initialize() fails.
-          cd ios && pod install && cd ..
+          # Resolve Swift Package dependencies (this project uses SPM, not
+          # CocoaPods). The FlutterGeneratedPluginSwiftPackage is resolved
+          # here so the archive build can link all native plugins.
+          echo "=== resolving Swift Package dependencies ==="
+          xcodebuild -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -resolvePackageDependencies
 
           # Phase 2: Archive with xcodebuild directly. -sdk iphoneos
           # bypasses destination resolution (no "iOS 26.0 is not installed").
