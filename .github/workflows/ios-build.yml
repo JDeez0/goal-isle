@@ -120,7 +120,7 @@ jobs:
           </plist>
           EOF
 
-      - name: Build iOS (signed)
+      - name: Build iOS (archive + export)
         run: |
           set -e
           KEYCHAIN_PATH=$(cat /tmp/keychain_path)
@@ -132,27 +132,48 @@ jobs:
           echo "=== identities ==="
           security find-identity -v -p codesigning
 
-          # Retry the build up to 3 times. The "No valid code signing
-          # certificates" / "iOS 26.0 is not installed" errors are
-          # intermittent on macos-26 runners (~50% success rate). Retrying
-          # is the pragmatic fix — the build eventually succeeds.
-          for attempt in 1 2 3; do
-            echo "=== build attempt $attempt ==="
-            if flutter build ipa --release --export-options-plist=ios/exportOptions.plist; then
-              echo "=== BUILD SUCCEEDED on attempt $attempt ==="
-              break
-            fi
-            if [ $attempt -eq 3 ]; then
-              echo "=== BUILD FAILED after 3 attempts ==="
-              exit 1
-            fi
-            echo "=== attempt $attempt failed, retrying... ==="
-            # Re-establish keychain before retry (lock state can reset)
-            security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
-            security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
-            flutter clean
-            flutter pub get
-          done
+          # Two-phase build to bypass Flutter's signing pre-validation,
+          # which fails intermittently on macos-26 runners even when the
+          # cert IS in the keychain (the error is a false negative caused
+          # by Xcode destination resolution, not a real signing problem).
+
+          # Phase 1: Compile Dart + generate Xcode artifacts WITHOUT
+          # running xcodebuild. --config-only skips the build entirely.
+          flutter build ios --release --no-codesign --config-only
+
+          # Phase 2: Archive with xcodebuild directly. -sdk iphoneos
+          # bypasses destination resolution (no "iOS 26.0 is not installed").
+          # CODE_SIGNING_ALLOWED=NO means no signing during archive —
+          # we sign in the export step.
+          echo "=== archiving ==="
+          mkdir -p build/ios/archive
+          xcodebuild -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -sdk iphoneos \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+          ARCHIVE_PATH="build/ios/archive/Runner.xcarchive"
+          if [ ! -d "$ARCHIVE_PATH" ]; then
+            echo "ERROR: Archive not created"
+            exit 1
+          fi
+          echo "Archive: $ARCHIVE_PATH"
+
+          # Phase 3: Export signed IPA from the archive.
+          echo "=== exporting signed IPA ==="
+          mkdir -p build/ios/ipa
+          xcodebuild -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportOptionsPlist ios/exportOptions.plist \
+            -exportPath build/ios/ipa \
+            OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
+
+          IPA_PATH=$(ls build/ios/ipa/*.ipa | head -1)
+          echo "IPA: $IPA_PATH ($(wc -c < "$IPA_PATH") bytes)"
 
       - name: Upload IPA artifact
         if: always()
