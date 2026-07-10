@@ -6,6 +6,7 @@ import '../../../core/models/message.dart';
 import '../../../core/models/metric.dart';
 import '../../../core/models/spark.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/repositories/supabase/supabase_repository.dart';
 
 /// Metric Log — a bottom sheet for logging a new value against a metric Spark.
 ///
@@ -108,6 +109,26 @@ class _MetricLogSheetState extends ConsumerState<MetricLogSheet> {
     );
 
     ref.read(islesProvider.notifier).updateSpark(spark.isleId, updated);
+
+    // Persist the log message to Supabase (Bug #5 fix — previously local-only).
+    SupabaseRepository.sendMessage(msg)
+        .then((saved) {
+          // Replace the temp message with the real one (has server-side ID + timestamp).
+          final sparks = ref.read(islesProvider);
+          for (final isle in sparks) {
+            for (final s in isle.sparks) {
+              if (s.id == spark.id && s.thread.any((m) => m.id == msg.id)) {
+                final newThread = s.thread.map((m) => m.id == msg.id ? saved : m).toList();
+                ref.read(islesProvider.notifier).updateSpark(
+                  spark.isleId,
+                  s.copyWith(thread: newThread),
+                );
+                break;
+              }
+            }
+          }
+        })
+        .catchError((e, s) { debugPrint("Supabase metric log error: $e"); });
 
     Navigator.of(context).pop();
   }
