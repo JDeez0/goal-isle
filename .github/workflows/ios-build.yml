@@ -252,3 +252,62 @@ jobs:
             --apiKey "$APP_STORE_CONNECT_KEY_ID" \
             --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID" \
             --output-format normal
+
+      - name: 📝 Auto-update docs
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -e
+          git config user.name "Goal Isle Bot"
+          git config user.email "bot@goalisle.app"
+
+          TODAY=$(date '+%B %d, %Y')
+
+          # Update "Last updated" date in both docs
+          sed -i "s/^\*\*Last updated:\*\*.*/**Last updated:** $TODAY/" CURRENT_STATUS.md
+          sed -i "s/^\*\*Last updated:\*\*.*/**Last updated:** $TODAY/" PROJECT_KNOWLEDGE.md
+
+          # Extract recent commits since last doc update
+          LAST_DOC=$(git log --oneline --follow -1 -- CURRENT_STATUS.md | awk '{print $1}' 2>/dev/null || echo "")
+          if [ -z "$LAST_DOC" ]; then
+            LAST_DOC=$(git rev-list --max-parents=0 HEAD)
+          fi
+          git log "$LAST_DOC"..HEAD --oneline --no-decorate 2>/dev/null | grep -v "skip ci\|Auto-update" > /tmp/recent_changes.txt || true
+
+          if [ -s /tmp/recent_changes.txt ]; then
+            python3 << 'PYEOF'
+import re
+with open('CURRENT_STATUS.md') as f:
+    content = f.read()
+with open('/tmp/recent_changes.txt') as f:
+    changes = f.read().strip()
+if not changes:
+    exit(0)
+block = '## Recent Changes\n\n' + changes + '\n'
+if '## Recent Changes' in content:
+    # Replace existing section (everything from "## Recent Changes" to next "## ")
+    content = re.sub(
+        r'## Recent Changes\n.*?(?=\n## )',
+        block,
+        content,
+        flags=re.DOTALL
+    )
+else:
+    # Insert before "What to Do Next"
+    content = content.replace(
+        '## 🚀 What to Do Next',
+        block + '\n## 🚀 What to Do Next'
+    )
+with open('CURRENT_STATUS.md', 'w') as f:
+    f.write(content)
+print("Changelog updated: %d commits" % len(changes.split('\n')))
+PYEOF
+          fi
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No doc changes to commit."
+          else
+            git commit -m "docs: auto-update status after successful build [skip ci]"
+            git push origin main
+            echo "✅ Docs auto-updated."
+          fi
