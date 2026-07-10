@@ -160,28 +160,53 @@ jobs:
           </plist>
           EOF
 
-      - name: Build iOS (signed)
+      - name: Build iOS (archive, no signing)
         run: |
           set -e
-          # Re-establish the keychain in THIS step's shell.
+          # flutter build ipa sometimes fails with "No valid code signing
+          # certificates" even when the cert IS in the keychain — it's a
+          # destination-resolution issue on macos-26 runners, not a real
+          # signing problem. The fix: archive without signing, then export
+          # with signing separately.
+          flutter build ios --release --no-codesign
+
+          # Find the xcarchive
+          ARCHIVE_PATH=$(find build/ios/archive -name "*.xcarchive" -type d 2>/dev/null | head -1)
+          if [ -z "$ARCHIVE_PATH" ]; then
+            echo "ERROR: No .xcarchive found"
+            find build -type d -name "*.xcarchive" -o -name "*.app" 2>/dev/null | head -10
+            exit 1
+          fi
+          echo "Archive: $ARCHIVE_PATH"
+          echo "$ARCHIVE_PATH" > /tmp/archive_path
+
+      - name: Export signed IPA
+        run: |
+          set -e
           KEYCHAIN_PATH=$(cat /tmp/keychain_path)
           KEYCHAIN_PASS=$(cat /tmp/keychain_pass)
+          ARCHIVE_PATH=$(cat /tmp/archive_path)
+
+          # Re-establish keychain + search list in this step
           security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
           security default-keychain -s "$KEYCHAIN_PATH"
 
-          echo "=== keychain search list ==="
-          security list-keychains -d user
-          echo "=== identities visible to xcodebuild ==="
+          echo "=== identities ==="
           security find-identity -v -p codesigning
-          IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | awk -F'"' '{print $2}')
-          if [ -z "$IDENTITY" ]; then
-            echo "ERROR: No 'Apple Distribution' identity visible in the keychain search list."
-            exit 1
-          fi
-          echo "Will sign with: $IDENTITY"
 
-          flutter build ipa --release --export-options-plist=ios/exportOptions.plist
+          # Export the archive into a signed IPA. xcodebuild handles signing
+          # directly via the keychain + exportOptions.plist — no Flutter
+          # signing pre-validation involved.
+          mkdir -p build/ios/ipa
+          xcodebuild -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportOptionsPlist ios/exportOptions.plist \
+            -exportPath build/ios/ipa \
+            OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
+
+          IPA_PATH=$(ls build/ios/ipa/*.ipa | head -1)
+          echo "IPA: $IPA_PATH ($(wc -c < "$IPA_PATH") bytes)"
 
       - name: Upload IPA artifact
         if: always()
