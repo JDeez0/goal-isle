@@ -13,6 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Increment build number
+        run: |
+          # Apple requires each TestFlight upload to have a unique, higher
+          # build number. GITHUB_RUN_NUMBER increments per workflow run, so
+          # each push gets a unique build number.
+          echo "BUILD_NUMBER=$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
+          echo "Build number: $GITHUB_RUN_NUMBER"
+
       - name: Set up Xcode 26 + iOS platform
         run: |
           set -e
@@ -139,7 +147,9 @@ jobs:
 
           # Phase 1: Compile Dart + generate Xcode artifacts WITHOUT
           # running xcodebuild. --config-only skips the build entirely.
-          flutter build ios --release --no-codesign --config-only
+          # --build-number gives each upload a unique version for Apple.
+          flutter build ios --release --no-codesign --config-only \
+            --build-name=2.0.0 --build-number=$BUILD_NUMBER
 
           # Phase 2: Archive with xcodebuild directly. -sdk iphoneos
           # bypasses destination resolution (no "iOS 26.0 is not installed").
