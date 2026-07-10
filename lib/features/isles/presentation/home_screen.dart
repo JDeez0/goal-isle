@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -206,104 +205,72 @@ class _TerritoryFace extends StatelessWidget {
   }
 }
 
-/// Poisson-disk dispersion layout for Home.
-/// Computes stable, evenly-spaced positions for the user's active Isles.
-/// All territories use the same 120×120 size for layout purposes.
+/// Even-spaced grid layout for Home.
+///
+/// Places isle territories in a stable grid that guarantees even distribution
+/// on any screen size. Lit isles are placed in the top rows, greyed isles in
+/// the bottom rows. Positions are deterministic (same isles = same layout).
+///
+/// For 1–8 isles (the common case) this gives a clean grid. For 9+ isles it
+/// falls back to a denser grid. There is no random component — layouts are
+/// purely determined by isle count and lit/greyed count.
 class _HomeLayout {
   static List<Offset> compute(List<Isle> isles, BoxConstraints constraints) {
     final n = isles.length;
     if (n == 0) return [];
 
-    final rng = _SeededRng(11 + n);
+    // Usable area (leave margins so territories don't clip)
+    const xMin = 0.12, yMin = 0.08;
+    const uW = 0.76, uH = 0.72;
 
-    // Usable area (leave margins for territories)
-    const xMin = 0.15, xMax = 0.85;
-    const yMin = 0.10, yMax = 0.78;
-    final uW = xMax - xMin;
-    final uH = yMax - yMin;
-
-    // Min distance D (bigger gaps = smaller packing factor)
-    final area = uW * uH;
-    var D = sqrt(area / (n * 1.8));
-    final edgeD = D * 0.5;
-
-    final placed = <Offset>[];
-
-    bool tooClose(double x, double y) {
-      if (x - xMin < edgeD ||
-          xMax - x < edgeD ||
-          y - yMin < edgeD ||
-          yMax - y < edgeD) return true;
-      for (final p in placed) {
-        final dx = x - p.dx;
-        final dy = (y - p.dy) * (uW / uH);
-        if (sqrt(dx * dx + dy * dy) < D) return true;
-      }
-      return false;
-    }
-
-    // Band lit/greyed: lit in top band, greyed in bottom band
-    final litCount =
-        isles.where((i) => _faceStateOf(i) != SparkState.greyed).length;
-    final splitY = yMin + uH * (litCount / n);
-
-    // Place lit/uncomp first (top band)
+    // Split into lit (top) and greyed (bottom)
+    final lit = <int>[];
+    final greyed = <int>[];
     for (var i = 0; i < n; i++) {
-      if (_faceStateOf(isles[i]) == SparkState.greyed) continue;
-      for (var t = 0; t < 2000; t++) {
-        final x = xMin +
-            edgeD +
-            rng.nextDouble() * (uW - edgeD * 2);
-        final y = yMin +
-            edgeD +
-            rng.nextDouble() * (splitY - yMin - edgeD * 2).clamp(0.01, uH);
-        if (!tooClose(x, y)) {
-          placed.add(Offset(x, y));
-          break;
-        }
-      }
-    }
-    // Place greyed (bottom band)
-    for (var i = 0; i < n; i++) {
-      if (_faceStateOf(isles[i]) != SparkState.greyed) continue;
-      for (var t = 0; t < 2000; t++) {
-        final x = xMin +
-            edgeD +
-            rng.nextDouble() * (uW - edgeD * 2);
-        final y = splitY +
-            edgeD +
-            rng.nextDouble() * (yMax - splitY - edgeD * 2).clamp(0.01, uH);
-        if (!tooClose(x, y)) {
-          placed.add(Offset(x, y));
-          break;
-        }
+      if (_faceStateOf(isles[i]) == SparkState.greyed) {
+        greyed.add(i);
+      } else {
+        lit.add(i);
       }
     }
 
-    // Fallback for any that didn't place
-    while (placed.length < n) {
-      placed.add(Offset(0.5, 0.5));
+    // Determine grid columns based on total count
+    final cols = n <= 3 ? n : (n <= 6 ? 3 : 4);
+    final cellW = uW / cols;
+
+    final result = List<Offset>.filled(n, const Offset(0.5, 0.5));
+
+    // Place lit isles (top rows)
+    for (var idx = 0; idx < lit.length; idx++) {
+      final i = lit[idx];
+      final row = idx ~/ cols;
+      final col = idx % cols;
+      final rowsHere = ((lit.length + cols - 1) ~/ cols).clamp(1, 10);
+      final cellH = (uH * 0.65) / rowsHere;
+      result[i] = Offset(
+        xMin + cellW * (col + 0.5),
+        yMin + cellH * (row + 0.5),
+      );
     }
 
-    return placed;
+    // Place greyed isles (bottom rows, below lit)
+    for (var idx = 0; idx < greyed.length; idx++) {
+      final i = greyed[idx];
+      final row = idx ~/ cols;
+      final col = idx % cols;
+      final rowsHere = ((greyed.length + cols - 1) ~/ cols).clamp(1, 10);
+      final cellH = (uH * 0.30) / rowsHere;
+      result[i] = Offset(
+        xMin + cellW * (col + 0.5),
+        yMin + uH * 0.70 + cellH * (row + 0.5),
+      );
+    }
+
+    return result;
   }
 
   static SparkState _faceStateOf(Isle isle) {
     final main = isle.sparks.where((s) => s.isMain).firstOrNull;
     return main?.state ?? SparkState.dull;
-  }
-}
-
-/// Seeded PRNG (mulberry32) for stable layouts.
-class _SeededRng {
-  _SeededRng(int seed) : _a = seed;
-  int _a;
-
-  double nextDouble() {
-    _a |= 0;
-    _a = _a + 0x6D2B79F5;
-    var t = (_a ^ (_a >> 15)) * (1 | _a);
-    t = (t + (t ^ (t >> 7)) * (61 | t)) ^ t;
-    return ((t ^ (t >> 14)) >>> 0) / 4294967296;
   }
 }
