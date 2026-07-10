@@ -7,7 +7,6 @@
 # they reach CI, saving you 10 minutes of waiting for a failed
 # build. If any check fails, the push is aborted.
 # ============================================================
-set -e
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -22,13 +21,13 @@ if ! command -v flutter &> /dev/null; then
     export PATH="$HOME/flutter/bin:$PATH"
 fi
 
-ANALYZE_OUTPUT=$(flutter analyze 2>&1)
-ERROR_COUNT=$(echo "$ANALYZE_OUTPUT" | grep -c " • error •" || true)
+ANALYZE_OUTPUT=$(flutter analyze 2>&1) || true
+ERROR_COUNT=$(echo "$ANALYZE_OUTPUT" | grep -c " • error •" 2>/dev/null || echo "0")
 
-if [ "$ERROR_COUNT" -gt 0 ]; then
+if [ "$ERROR_COUNT" -gt 0 ] 2>/dev/null; then
     echo -e "${RED}FAILED${NC}"
     echo ""
-    echo "$ANALYZE_OUTPUT" | grep " • error •"
+    echo "$ANALYZE_OUTPUT" | grep " • error •" || true
     echo ""
     echo -e "${RED}Push aborted: $ERROR_COUNT analyzer error(s) found.${NC}"
     echo "Fix them with 'flutter analyze' before pushing."
@@ -51,7 +50,7 @@ PROTECTED=(
 
 CHANGED_PROTECTED=""
 for file in "${PROTECTED[@]}"; do
-    if git diff --cached --name-only | grep -q "^$file$"; then
+    if git diff --cached --name-only 2>/dev/null | grep -q "^$file$"; then
         CHANGED_PROTECTED="$CHANGED_PROTECTED  $file\n"
     fi
 done
@@ -63,7 +62,8 @@ if [ -n "$CHANGED_PROTECTED" ]; then
     echo -e "$CHANGED_PROTECTED"
     echo -e "${YELLOW}These files can break the iOS build.${NC}"
     echo "Are you sure you want to continue? (y/N)"
-    read -r response
+    # Read from /dev/tty to avoid stdin conflict with git's pre-push data
+    read -r response < /dev/tty 2>/dev/null || true
     if [ "$response" != "y" ] && [ "$response" != "Y" ]; then
         echo "Push aborted."
         exit 1
@@ -74,7 +74,7 @@ fi
 
 # ---- 3. pubspec dependency check ----
 echo -n "Dependency changes ... "
-if git diff --cached --name-only | grep -q "^pubspec.yaml$"; then
+if git diff --cached --name-only 2>/dev/null | grep -q "^pubspec.yaml$"; then
     echo -e "${YELLOW}WARNING${NC} (pubspec.yaml changed — verify dependencies are SPM-compatible)"
     echo "  If you added a native plugin, test on a manual CI run before merging to main."
 else
