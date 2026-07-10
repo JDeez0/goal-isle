@@ -58,6 +58,8 @@ class UserNotifier extends StateNotifier<User> {
         'avatar': user.avatar,
         'bio': user.bio,
         'updated_at': DateTime.now().toIso8601String(),
+      }).then((_) {}).catchError((e, s) {
+        debugPrint('Supabase profile update error: $e');
       });
     }
   }
@@ -124,8 +126,11 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
     if (SupabaseConfig.client.auth.currentUser == null) return;
     try {
       final isles = await SupabaseRepository.fetchIsles();
+      // Always replace state — even if empty (prevents stale mock data leak).
       if (mounted) state = isles;
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('IslesNotifier load error: $e');
+    }
   }
 
   void refresh() => _loadFromSupabase();
@@ -251,7 +256,9 @@ class MemberhipsNotifier extends StateNotifier<Map<String, List<Membership>>> {
         }
         state = merged;
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('MembershipsNotifier load error: $e');
+    }
   }
 
   void refresh() => _loadFromSupabase();
@@ -312,7 +319,9 @@ class FriendsNotifier extends StateNotifier<List<Friend>> {
       // Always replace state — even if empty. Previously the `isNotEmpty`
       // guard caused mock seed friends to leak into real sessions.
       if (mounted) state = list;
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('FriendsNotifier load error: $e');
+    }
   }
 
   void refresh() => _loadFromSupabase();

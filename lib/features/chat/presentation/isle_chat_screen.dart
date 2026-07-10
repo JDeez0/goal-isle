@@ -442,7 +442,7 @@ class _MessageList extends ConsumerWidget {
     final existing = message.reactions
         .where((r) => r.emoji == '🔥')
         .firstOrNull;
-    final meId = ref.read(currentUserProvider).id;
+    final meId = currentAuthId() ?? ref.read(currentUserProvider).id;
     final updatedReactions = [
       for (final r in message.reactions)
         if (r.emoji == '🔥')

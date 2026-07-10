@@ -54,6 +54,9 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
     _nameCtrl.dispose();
     _targetCtrl.dispose();
     _unitCtrl.dispose();
+    for (final d in _deps) {
+      d.labelCtrl.dispose();
+    }
     super.dispose();
   }
 
@@ -62,6 +65,10 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
       _mainEmojiIdx = 0;
       _mainEmojiChosen = false;
       _nameCtrl.clear();
+      // Dispose old controllers before replacing
+      for (final d in _deps) {
+        d.labelCtrl.dispose();
+      }
       _deps
         ..[0] = _DepDraft()
         ..[1] = _DepDraft();

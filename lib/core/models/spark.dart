@@ -111,7 +111,7 @@ class Spark {
         streak: json['streak'] as int? ?? 0,
         timerMode: enumFromString(
           TimerMode.values,
-          json['timer_mode'] as String? ?? 'instant',
+          json['timer_mode'] as String? ?? 'daily',
         ),
         streakBreaksOnMiss: json['streak_breaks_on_miss'] as bool? ?? true,
         dependencies: (json['dependencies'] as List<dynamic>?)

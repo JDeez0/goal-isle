@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -32,24 +34,33 @@ import 'bottom_nav.dart';
 /// routes (Isles, Spark, Chat, …) are top-level routes pushed on top of the
 /// shell, so they don't render the bottom bar.
 final routerProvider = Provider<GoRouter>((ref) {
+  // Track whether post-auth data loading has been done for the current
+  // session, so the redirect doesn't fire network loads on every redirect
+  // evaluation.
+  String? _loadedSessionUserId;
+
   return GoRouter(
     initialLocation: '/',
-    refreshListenable: _SupabaseAuthListenable(ref),
+    refreshListenable: _SupabaseAuthListenable(),
     redirect: (context, state) {
-      // Guard against Supabase not being initialized (e.g., offline or
-      // init failure). Falls back to auth screen instead of crashing.
       final session = Supabase.instance.client.auth.currentSession;
       final signedIn = session != null;
       final goingToAuth = state.matchedLocation == '/auth';
       if (!signedIn && !goingToAuth) return '/auth';
       if (signedIn && goingToAuth) {
-        // Just signed in — reload all data from Supabase.
-        ref.read(currentUserProvider.notifier).loadFromSupabase();
-        ref.read(islesProvider.notifier).refresh();
-        ref.read(membershipsProvider.notifier).refresh();
-        ref.read(friendsProvider.notifier).refresh();
+        // Fire data loads only once per session (not on every redirect).
+        final sessionUserId = session.user.id;
+        if (_loadedSessionUserId != sessionUserId) {
+          _loadedSessionUserId = sessionUserId;
+          ref.read(currentUserProvider.notifier).loadFromSupabase();
+          ref.read(islesProvider.notifier).refresh();
+          ref.read(membershipsProvider.notifier).refresh();
+          ref.read(friendsProvider.notifier).refresh();
+        }
         return '/';
       }
+      // Clear the loaded-session tracker on sign-out so a new sign-in reloads.
+      if (!signedIn) _loadedSessionUserId = null;
       return null;
     },
     routes: [
@@ -179,11 +190,19 @@ final GlobalKey<NavigatorState> _leagueNavKey =
     GlobalKey<NavigatorState>(debugLabel: 'league');
 
 /// Bridges Supabase auth state changes to GoRouter's refreshListenable.
+/// The auth state stream is cancelled on dispose to prevent leaks.
 class _SupabaseAuthListenable extends ChangeNotifier {
-  _SupabaseAuthListenable(this._ref) {
-    Supabase.instance.client.auth.onAuthStateChange.listen((_) {
+  _SupabaseAuthListenable() {
+    _subscription = Supabase.instance.client.auth.onAuthStateChange.listen((_) {
       notifyListeners();
     });
   }
-  final Ref _ref;
+
+  late final StreamSubscription _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
 }
