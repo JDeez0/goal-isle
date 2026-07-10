@@ -1,6 +1,6 @@
 # Goal Isle — Current Status
 
-**Last updated:** July 9, 2026
+**Last updated:** July 10, 2026
 **Project:** `/home/jasper/projects/goal_isle/`
 **Repo:** `git@github.com:JDeez0/goal-isle.git` (branch: `main`)
 
@@ -14,11 +14,11 @@ to Supabase. Riverpod state management (manual StateNotifier — no codegen).
 GoRouter with StatefulShellRoute (3 bottom-nav branches: Home / Notes / League).
 
 - **Run it (web):** `flutter run -d chrome`
-- **Run it (iOS):** install via **TestFlight** (see below)
+- **Run it (iOS):** install via **TestFlight** ✅ **WORKING**
 - **Build:** `flutter build web --no-tree-shake-icons` ✅
 - **iOS build:** signed IPA + TestFlight upload via GitHub Actions ✅
 
-### 2. iOS on TestFlight 🎉
+### 2. iOS on TestFlight 🎉 — WORKING END-TO-END
 Every push to `main` triggers `.github/workflows/ios-build.yml` on a
 `macos-26` runner (Xcode 26 / iOS 26 SDK, required by Apple since April 2026).
 The workflow:
@@ -26,9 +26,12 @@ The workflow:
 2. Builds a SHA1-MAC PKCS12 (macOS-`security`-compatible) + imports to a
    dedicated keychain in the search list
 3. Downloads the iOS 26 platform, selects Xcode 26
-4. `flutter build ipa --release` → signed IPA
-5. Uploads the IPA as a GitHub artifact (always, even if TestFlight fails)
-6. Uploads to TestFlight via `xcrun altool` (App Store Connect API key)
+4. `flutter build ios --config-only` (compiles Dart, skips flaky signing check)
+5. `xcodebuild -resolvePackageDependencies` (links SPM plugins)
+6. `xcodebuild archive -sdk iphoneos` (builds unsigned xcarchive)
+7. `xcodebuild -exportArchive` (signs with keychain → signed IPA)
+8. Uploads the IPA as a GitHub artifact (always, even if TestFlight fails)
+9. Uploads to TestFlight via `xcrun altool` (App Store Connect API key)
 
 **Bundle ID:** `com.jasperdeen.goalisle` · **Team:** `3X37886R5C`
 **Profile:** "GoalIsle Distribution" (App Store Connect type)
@@ -37,7 +40,9 @@ The workflow:
 ### 3. Supabase Backend — Auth + Postgres + RLS
 - **Auth:** email/password (real Supabase sessions, no mock IDs leak through)
 - **Tables:** `isles`, `memberships`, `sparks`, `messages`, `posts`, `friends`,
-  `metric_logs`, `profiles` — with row-level security policies
+  `profiles` — all with row-level security policies enabled
+- **Metric logs:** stored as messages with `chat_id = 'thread-<spark_id>'`
+  (reuses the messages table — no separate table needed)
 - **Client:** `lib/core/repositories/supabase/supabase_client.dart`
   (URL: `https://mjnitlwhpqylivplkkxu.supabase.co`)
 - **Hybrid providers:** optimistic local state + fire-and-forget Supabase
@@ -140,24 +145,36 @@ something worth recording:
    SHA1. Use `-certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1`.
 5. **iOS 26 SDK (April 2026 requirement):** Use `macos-26` runner (Xcode 26).
    Run `xcodebuild -downloadPlatform iOS` — the SDK ships with Xcode but the
-   platform package must be downloaded separately.
-6. **No storyboards:** Removed `Main.storyboard` + `LaunchScreen.storyboard`
-   entirely. The app uses `SceneDelegate.swift` (FlutterSceneDelegate) for a
-   programmatic launch, avoiding ibtool platform issues. `UILaunchScreen`
-   (empty dict) replaces the launch storyboard in Info.plist.
+   platform package must be downloaded separately. This also fixes ibtool
+   ("iOS 26.0 Platform Not Installed") which previously blocked storyboard
+   compilation.
+6. **NEVER remove Main.storyboard:** `FlutterSceneDelegate` (Flutter 3.38+)
+   REQUIRES `UISceneStoryboardFile=Main` in the scene config to instantiate
+   `FlutterViewController`. Removing it causes a permanent black screen on
+   physical devices ([flutter/flutter#186572](https://github.com/flutter/flutter/issues/186572)).
+   The app uses `SceneDelegate.swift` (FlutterSceneDelegate) + the standard
+   `Main.storyboard` with a single `FlutterViewController` scene.
 7. **Flutter signing pre-validation is flaky:** `flutter build ipa` does its
    own signing check that fails ~50% of the time on macos-26 (false negative
    — cert IS in keychain but Flutter's destination resolution breaks). The fix:
    two-phase build: `flutter build ios --config-only` + `xcodebuild archive
    -sdk iphoneos CODE_SIGNING_ALLOWED=NO` + `xcodebuild -exportArchive`.
-8. **iPad multitasking:** Apple rejects builds without a launch storyboard
-   if `UIRequiresFullScreen` isn't set. Add `UIRequiresFullScreen=true` to
-   Info.plist (Goal Isle is phone-first).
-9. **Encryption compliance:** Add `ITSAppUsesNonExemptEncryption=false` to
-   Info.plist to permanently bypass the export compliance question.
-10. **Build numbers:** Apple rejects uploads with duplicate build numbers.
+8. **Swift Package Manager, not CocoaPods:** This project uses
+   `FlutterGeneratedPluginSwiftPackage` (SPM), not CocoaPods. Do NOT add a
+   Podfile. Use `xcodebuild -resolvePackageDependencies` to link plugins.
+   Note: `supabase_flutter` is pure Dart (no native plugin) — the 4 native
+   plugins are `app_links`, `image_picker_ios`, `shared_preferences_foundation`,
+   `url_launcher_ios`.
+9. **Deployment target:** Must be iOS 14+ for the scene-based launch
+   (`FlutterSceneDelegate`). Set to 15.0 for broad compatibility.
+10. **iPad multitasking:** Apple rejects builds without a launch storyboard
+    if `UIRequiresFullScreen` isn't set. Add `UIRequiresFullScreen=true` to
+    Info.plist (Goal Isle is phone-first).
+11. **Encryption compliance:** Add `ITSAppUsesNonExemptEncryption=false` to
+    Info.plist to permanently bypass the export compliance question.
+12. **Build numbers:** Apple rejects uploads with duplicate build numbers.
     Use `GITHUB_RUN_NUMBER` as the build number (`--build-number=$GITHUB_RUN_NUMBER`).
-11. **altool validation:** `altool --validate-app` can print errors but return
+13. **altool validation:** `altool --validate-app` can print errors but return
     exit 0. Capture output and grep for `VERIFY FAILED` / `UPLOAD FAILED` /
     `Validation failed` to detect real failures.
 
@@ -168,9 +185,10 @@ something worth recording:
 ├─ Set up Xcode 26 + downloadPlatform iOS
 ├─ Set up code signing (decrypt → SHA1 P12 → keychain → search list)
 ├─ flutter build ios --config-only --build-number=$BUILD_NUMBER
+├─ xcodebuild -resolvePackageDependencies (SPM plugins)
 ├─ xcodebuild archive -sdk iphoneos CODE_SIGNING_ALLOWED=NO
-├─ xcodebuild -exportArchive (signs with keychain)
-├─ Upload IPA artifact (always)
+├─ xcodebuild -exportArchive (signs with keychain + exportOptions.plist)
+├─ Upload IPA artifact (always — fallback if TestFlight fails)
 └─ Upload to TestFlight (altool validate + upload)
 ```
 
@@ -178,37 +196,35 @@ something worth recording:
 
 ## 🚀 What to Do Next
 
-### Immediate — harden + ship a usable beta
-1. **Re-enable RLS on `isles` + `memberships`.** RLS is currently disabled on
-   those two tables. Run `supabase_enable_rls.sql` in the Supabase SQL Editor.
-   (The original policies in `supabase_schema.sql` are correct — the persistence
-   bug was caused by mock UUIDs leaking, which is now fixed in Flutter.)
-2. **Test the TestFlight build on a real device.** Verify auth, isle creation,
-   spark creation, chat, and posts work end-to-end.
-3. **Add test notes + screenshots** to the TestFlight build for internal testers.
+### Bugs fixed (all done ✅)
+- ✅ RLS re-enabled on `isles` + `memberships` (policies were correct all along)
+- ✅ Friends table: unique constraint, bidirectional delete, accept updates original
+- ✅ Metric-log thread persistence (reuses messages table via `chat_id='thread-<spark_id>'`)
+- ✅ Black screen on TestFlight (restored Main.storyboard for FlutterSceneDelegate)
+- ✅ Mock UUID leak (real auth UUIDs flow through all write paths)
+- ✅ Sign-out data leak (all providers reset before signOut)
 
-### Short term — fix known bugs
-4. **Metric-log thread persistence (Bug #5):** metric logs don't persist to
-   Supabase yet (local-only).
-5. **Friends table unique constraint (Bugs #8, #9, #10):** add
-   `UNIQUE(user_id, friend_id)` to prevent duplicate friend rows.
-6. **Real-time chat subscription:** chat requires pull-to-refresh; add a
+### Immediate — validate the build
+1. **Install latest TestFlight build on real iPhone.** Verify: sign up, create
+   isle, create spark, send chat, log metric, close+reopen (data persists?).
+2. **Add test notes + screenshots** to the TestFlight build for internal testers.
+3. **Invite beta testers** via TestFlight External Testing.
+
+### Short term — polish
+4. **App icon:** the current icon is the default Flutter template. Design a
+   Goal Isle icon (add to `ios/Runner/Assets.xcassets/AppIcon.appiconset`).
+5. **Privacy manifest:** Add `PrivacyInfo.xcprivacy` before App Store review.
+6. **App Store Connect metadata:** description, keywords, screenshots,
+   support URL, privacy policy URL — needed for external testing/review.
+7. **Real-time chat subscription:** chat requires pull-to-refresh; add a
    Supabase real-time subscription so messages appear live.
 
-### Medium term — polish + release
-7. **App icon:** the current icon is the default Flutter template. Design a
-   Goal Isle icon.
-8. **Privacy manifest:** Apple may require `PrivacyInfo.xcprivacy` for
-   App Store review. Add it before submitting for review.
-9. **App Store Connect metadata:** description, keywords, screenshots,
-   support URL, privacy policy URL — all needed for external testing/review.
-
 ### Long term
-11. **Push notifications** (spark reminders, chat, friend activity).
-12. **Offline queue** for writes when offline (currently fire-and-forget fails
-    silently if offline).
-13. **Moderation** (report + creator-removes) for public Isles.
-14. **Cross-platform:** Android build via GitHub Actions (same pattern as iOS).
+8. **Push notifications** (spark reminders, chat, friend activity).
+9. **Offline queue** for writes when offline (currently fire-and-forget fails
+   silently if offline).
+10. **Moderation** (report + creator-removes) for public Isles.
+11. **Cross-platform:** Android build via GitHub Actions (same pattern as iOS).
 
 ---
 
