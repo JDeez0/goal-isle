@@ -174,13 +174,16 @@ jobs:
       - name: Build iOS (archive, no signing)
         run: |
           set -e
-          # Install Pods first (needed by xcodebuild).
+          # Step 1: Compile Dart to kernel + generate Flutter artifacts.
+          # --config-only skips the Xcode build/destination resolution that
+          # fails intermittently with "iOS 26.0 is not installed".
+          flutter build ios --release --no-codesign --config-only
+
+          # Step 2: Install Pods
           cd ios && pod install && cd ..
 
-          # Archive directly with xcodebuild, bypassing Flutter's fragile
-          # destination resolution. Using -sdk iphoneos avoids the
-          # "Unable to find a destination" / "iOS 26.0 is not installed"
-          # errors that flutter build ios hits intermittently.
+          # Step 3: Archive directly with xcodebuild using -sdk iphoneos,
+          # which bypasses destination resolution entirely.
           echo "=== creating xcarchive ==="
           mkdir -p build/ios/archive
           xcodebuild -workspace ios/Runner.xcworkspace \
