@@ -5,6 +5,7 @@
 **Last updated:** July 10, 2026
 **Project root:** `/home/jasper/projects/goal_isle/`
 **Repository:** `git@github.com:JDeez0/goal-isle.git` (branch: `main`)
+**Status:** ✅ **App renders on TestFlight — black screen fixed, confirmed on device**
 
 ---
 

@@ -1,6 +1,6 @@
 # Goal Isle — Current Status
 
-**Last updated:** July 10, 2026
+**Last updated:** July 10, 2026 — ✅ **Black screen fixed, app renders on TestFlight**
 **Project:** `/home/jasper/projects/goal_isle/`
 **Repo:** `git@github.com:JDeez0/goal-isle.git` (branch: `main`)
 
@@ -14,11 +14,12 @@ to Supabase. Riverpod state management (manual StateNotifier — no codegen).
 GoRouter with StatefulShellRoute (3 bottom-nav branches: Home / Notes / League).
 
 - **Run it (web):** `flutter run -d chrome`
-- **Run it (iOS):** install via **TestFlight** ✅ **WORKING**
+- **Run it (iOS):** install via **TestFlight** ✅ **RENDERS CORRECTLY**
 - **Build:** `flutter build web --no-tree-shake-icons` ✅
 - **iOS build:** signed IPA + TestFlight upload via GitHub Actions ✅
 
-### 2. iOS on TestFlight 🎉 — WORKING END-TO-END
+### 2. iOS on TestFlight 🎉 — WORKING END-TO-END, CONFIRMED ON DEVICE
+The app opens, renders the auth screen, and is usable on a real iPhone.
 Every push to `main` triggers `.github/workflows/ios-build.yml` on a
 `macos-26` runner (Xcode 26 / iOS 26 SDK, required by Apple since April 2026).
 The workflow:
@@ -196,35 +197,49 @@ something worth recording:
 
 ## 🚀 What to Do Next
 
+### ✅ Milestone achieved — app renders on TestFlight (black screen fixed)
+
 ### Bugs fixed (all done ✅)
 - ✅ RLS re-enabled on `isles` + `memberships` (policies were correct all along)
 - ✅ Friends table: unique constraint, bidirectional delete, accept updates original
 - ✅ Metric-log thread persistence (reuses messages table via `chat_id='thread-<spark_id>'`)
-- ✅ Black screen on TestFlight (restored Main.storyboard for FlutterSceneDelegate)
+- ✅ **Black screen on TestFlight** (restored Main.storyboard for FlutterSceneDelegate)
 - ✅ Mock UUID leak (real auth UUIDs flow through all write paths)
 - ✅ Sign-out data leak (all providers reset before signOut)
+- ✅ Code audit: 27 critical/high issues fixed (router, stream leak, null safety, error handling)
 
-### Immediate — validate the build
-1. **Install latest TestFlight build on real iPhone.** Verify: sign up, create
-   isle, create spark, send chat, log metric, close+reopen (data persists?).
-2. **Add test notes + screenshots** to the TestFlight build for internal testers.
-3. **Invite beta testers** via TestFlight External Testing.
+### Infrastructure built (all done ✅)
+- ✅ Pre-push hook (`flutter analyze` gate + protected files warning)
+- ✅ `goal` helper command (check, web, branch, ship, ci)
+- ✅ Flutter on PATH permanently
+- ✅ CI: PR builds (validate only), manual dispatch (any branch), TestFlight only on main push
+- ✅ DEVELOPMENT_WORKFLOW.md + DEVELOPMENT_GUIDE.md + PROJECT_KNOWLEDGE.md + UX_UI_ITERATION_PLAN.md
 
-### Short term — polish
-4. **App icon:** the current icon is the default Flutter template. Design a
+### Immediate — polish for beta
+1. **Run through full TestFlight test:** sign up, create isle, create spark, send
+   chat, log metric, close+reopen (data persists?). Verify auth, isle creation,
+   spark creation, chat, and posts work end-to-end.
+2. **App icon:** the current icon is the default Flutter template. Design a
    Goal Isle icon (add to `ios/Runner/Assets.xcassets/AppIcon.appiconset`).
-5. **Privacy manifest:** Add `PrivacyInfo.xcprivacy` before App Store review.
-6. **App Store Connect metadata:** description, keywords, screenshots,
+3. **Privacy manifest:** Add `PrivacyInfo.xcprivacy` before App Store review.
+4. **App Store Connect metadata:** description, keywords, screenshots,
    support URL, privacy policy URL — needed for external testing/review.
-7. **Real-time chat subscription:** chat requires pull-to-refresh; add a
+
+### Short term
+5. **Real-time chat subscription:** chat requires pull-to-refresh; add a
    Supabase real-time subscription so messages appear live.
+6. **Invite beta testers** via TestFlight External Testing.
 
 ### Long term
-8. **Push notifications** (spark reminders, chat, friend activity).
-9. **Offline queue** for writes when offline (currently fire-and-forget fails
+7. **Push notifications** (spark reminders, chat, friend activity).
+8. **Offline queue** for writes when offline (currently fire-and-forget fails
    silently if offline).
-10. **Moderation** (report + creator-removes) for public Isles.
-11. **Cross-platform:** Android build via GitHub Actions (same pattern as iOS).
+9. **Moderation** (report + creator-removes) for public Isles.
+10. **Cross-platform:** Android build via GitHub Actions (same pattern as iOS).
+
+---
+
+*Source of truth. Update this file whenever project state changes.*
 
 ---
 
