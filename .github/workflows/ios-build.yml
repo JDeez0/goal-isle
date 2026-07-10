@@ -253,8 +253,8 @@ jobs:
             --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID" \
             --output-format normal
 
-      - name: 📝 Auto-update docs
-        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Auto-update docs
+        if: ${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         run: |
           set -e
           git config user.name "Goal Isle Bot"
