@@ -178,14 +178,33 @@ jobs:
           # we sign in the export step.
           echo "=== archiving ==="
           mkdir -p build/ios/archive
-          xcodebuild -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -archivePath build/ios/archive/Runner.xcarchive \
-            -sdk iphoneos \
-            archive \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+
+          # Retry up to 3 times. macos-26 runners are flaky and ~25% of
+          # builds fail with "Found no destinations for the scheme 'Runner'".
+          # This is NOT a code issue — retrying almost always succeeds.
+          MAX_RETRIES=3
+          for attempt in 1 2 3; do
+            echo "--- archive attempt $attempt/$MAX_RETRIES ---"
+            if xcodebuild -workspace ios/Runner.xcworkspace \
+              -scheme Runner \
+              -configuration Release \
+              -archivePath build/ios/archive/Runner.xcarchive \
+              -sdk iphoneos \
+              archive \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO; then
+              echo "Archive succeeded on attempt $attempt"
+              break
+            else
+              EXIT_CODE=$?
+              if [ "$attempt" -eq "$MAX_RETRIES" ]; then
+                echo "Archive failed after $MAX_RETRIES attempts (exit $EXIT_CODE)"
+                exit $EXIT_CODE
+              fi
+              echo "Archive failed on attempt $attempt (exit $EXIT_CODE), retrying in 10s..."
+              sleep 10
+            fi
+          done
 
           ARCHIVE_PATH="build/ios/archive/Runner.xcarchive"
           if [ ! -d "$ARCHIVE_PATH" ]; then
