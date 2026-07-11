@@ -172,16 +172,24 @@ jobs:
             -scheme Runner \
             -resolvePackageDependencies
 
-          # Phase 2: Archive with xcodebuild directly. -sdk iphoneos
-          # bypasses destination resolution (no "iOS 26.0 is not installed").
-          # CODE_SIGNING_ALLOWED=NO means no signing during archive —
-          # we sign in the export step.
+          # Phase 2: Archive with xcodebuild directly.
+          #
+          # macos-26 runners have a known ~25% flakiness rate where the
+          # pre-built runner image ships without properly registered iOS
+          # device/simulator destinations (known issue across multiple
+          # runner versions — see github.com/actions/runner-images issues
+          # #11683, #12758, #13275, #13054, #12948).
+          #
+          # The fix: use `-destination 'generic/platform=iOS'` instead of
+          # relying on the runner's destination registry. This is a virtual
+          # destination that doesn't require any specific device or
+          # simulator runtime — it just says "build for iOS." Standard CI
+          # best practice used by Apple, Fastlane, and Flutter.
+          #
+          # We keep a retry loop as safety net for edge cases.
           echo "=== archiving ==="
           mkdir -p build/ios/archive
 
-          # Retry up to 3 times. macos-26 runners are flaky and ~25% of
-          # builds fail with "Found no destinations for the scheme 'Runner'".
-          # This is NOT a code issue — retrying almost always succeeds.
           MAX_RETRIES=3
           for attempt in 1 2 3; do
             echo "--- archive attempt $attempt/$MAX_RETRIES ---"
@@ -189,7 +197,7 @@ jobs:
               -scheme Runner \
               -configuration Release \
               -archivePath build/ios/archive/Runner.xcarchive \
-              -sdk iphoneos \
+              -destination 'generic/platform=iOS' \
               archive \
               CODE_SIGNING_ALLOWED=NO \
               CODE_SIGNING_REQUIRED=NO; then
