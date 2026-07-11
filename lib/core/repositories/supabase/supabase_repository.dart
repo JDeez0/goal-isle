@@ -23,22 +23,34 @@ class SupabaseRepository {
 
   /// Fetch all Isles the current user is a member of, with nested sparks.
   static Future<List<Isle>> fetchIsles() async {
-    if (_uid == null) return [];
+    final uid = _uid;
+    if (uid == null) return [];
 
     // Get isle IDs from memberships
-    final memberRows = await _db.from('memberships').select('isle_id').eq('user_id', _uid!);
+    final memberRows = await _db.from('memberships').select('isle_id').eq('user_id', uid);
     final isleIds = (memberRows as List).map((r) => (r as Map)['isle_id'] as String).toList();
+
+    debugPrint('fetchIsles: user=$uid, memberships found=${isleIds.length}, ids=$isleIds');
 
     if (isleIds.isEmpty) return [];
 
-    // Fetch isles
+    // Fetch isles that the user is a member of
     final isleRows = await _db.from('isles').select().inFilter('id', isleIds);
-    final publicIsles = await _db.from('isles').select().eq('visibility', 'public');
-    
+    debugPrint('fetchIsles: isle rows fetched=${isleRows.length}');
+
+    // Also fetch public isles
+    List<Map<String, dynamic>> publicRows = [];
+    try {
+      final pub = await _db.from('isles').select().eq('visibility', 'public');
+      publicRows = (pub as List).map((r) => r as Map<String, dynamic>).toList();
+    } catch (e) {
+      debugPrint('fetchIsles: public isles fetch failed: $e');
+    }
+
     // Merge (member isles + public isles, deduped)
     final allIsleRows = <Map<String, dynamic>>[];
     final seenIds = <String>{};
-    for (final row in [...isleRows, ...publicIsles]) {
+    for (final row in [...isleRows, ...publicRows]) {
       final id = row['id'] as String;
       if (!seenIds.contains(id)) {
         seenIds.add(id);
@@ -46,28 +58,35 @@ class SupabaseRepository {
       }
     }
 
-    // For each isle, fetch its sparks
+    debugPrint('fetchIsles: total unique isles=${allIsleRows.length}');
+
+    // For each isle, fetch its sparks (resilient — skip isles that fail)
     final isles = <Isle>[];
     for (final row in allIsleRows) {
-      final isleId = row['id'] as String;
-      final sparks = await fetchSparks(isleId);
-      final posts = await fetchPostsForIsle(isleId);
-      final msgs = await fetchMessages(isleId);
+      try {
+        final isleId = row['id'] as String;
+        final sparks = await fetchSparks(isleId);
+        final posts = await fetchPostsForIsle(isleId);
+        final msgs = await fetchMessages(isleId);
 
-      isles.add(Isle(
-        id: isleId,
-        name: row['name'] ?? '',
-        emoji: row['main_emoji'] ?? '',
-        purpose: row['purpose'],
-        color: row['color'] ?? 'blue',
-        visibility: row['visibility'] == 'public' ? IsleVisibility.public : IsleVisibility.private,
-        createdBy: row['created_by'] ?? '',
-        createdAt: DateTime.parse(row['created_at']),
-        sparks: sparks,
-        posts: posts,
-        msgs: msgs,
-      ));
+        isles.add(Isle(
+          id: isleId,
+          name: row['name'] ?? '',
+          emoji: row['main_emoji'] ?? '',
+          purpose: row['purpose'],
+          color: row['color'] ?? 'blue',
+          visibility: row['visibility'] == 'public' ? IsleVisibility.public : IsleVisibility.private,
+          createdBy: row['created_by'] ?? '',
+          createdAt: DateTime.parse(row['created_at']),
+          sparks: sparks,
+          posts: posts,
+          msgs: msgs,
+        ));
+      } catch (e) {
+        debugPrint('fetchIsles: failed to load isle ${row['id']}: $e');
+      }
     }
+    debugPrint('fetchIsles: returning ${isles.length} isles');
     return isles;
   }
 
