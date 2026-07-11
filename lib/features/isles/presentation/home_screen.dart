@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -119,13 +118,7 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-/// A single Isle's territory + all its sparks on Home.
-///
-/// Renders the isle's territory region (soft tinted circle) with ALL the
-/// isle's sparks floating inside it. The main spark is at center; other
-/// sparks are arranged around it in a ring. Per spec §9: "each Isle
-/// appears as a soft colored region on the water, with its sparks
-/// floating on it."
+/// A single Isle's territory + face on Home.
 class _TerritoryFace extends StatelessWidget {
   const _TerritoryFace({
     required this.isle,
@@ -135,94 +128,66 @@ class _TerritoryFace extends StatelessWidget {
   });
 
   final Isle isle;
-  final double x; // 0.0–1.0 fraction of width (territory center)
-  final double y; // 0.0–1.0 fraction of height (territory center)
+  final double x; // 0.0–1.0 fraction of width
+  final double y; // 0.0–1.0 fraction of height
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final color = _isleColor(isle.color);
-    final sparks = isle.sparks;
-    final mainSpark = sparks.where((s) => s.isMain).firstOrNull;
+    final faceState = _faceState(isle);
+    final faceEmoji = isle.emoji;
+    final streak = isle.sparks.where((s) => s.isMain).fold<int>(0,
+        (prev, s) => s.streak > prev ? s.streak : prev);
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
         final h = constraints.maxHeight;
-        final cx = x * w;
-        final cy = y * h;
-
-        // Territory radius scales with spark count
-        final nonMainSparks = sparks.where((s) => !s.isMain).toList();
-        final territoryRadius = 50.0 + (nonMainSparks.length * 12.0);
+        final px = x * w;
+        final py = y * h;
 
         return Stack(
-          clipBehavior: Clip.none,
           children: [
             // Territory region — soft radial wash
             Positioned(
-              left: cx - territoryRadius,
-              top: cy - territoryRadius,
+              left: px - 60,
+              top: py - 60,
               child: Container(
-                width: territoryRadius * 2,
-                height: territoryRadius * 2,
+                width: 120, height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: color.withValues(alpha: 0.045),
                 ),
               ),
             ),
-            // Main spark — at center
-            if (mainSpark != null)
-              Positioned(
-                left: cx - 32,
-                top: cy - 32,
-                child: GestureDetector(
-                  onTap: onTap,
-                  child: SparkWidget(
-                    emoji: isle.emoji,
-                    state: mainSpark.state,
-                    size: 64,
-                    streak: mainSpark.state == SparkState.lit ||
-                            mainSpark.state == SparkState.streaked
-                        ? mainSpark.streak
-                        : null,
-                  ),
+            // Face — the Isle's main spark emoji
+            Positioned(
+              left: px - 32,
+              top: py - 32,
+              child: GestureDetector(
+                onTap: onTap,
+                child: SparkWidget(
+                  emoji: faceEmoji,
+                  state: faceState,
+                  size: 64,
+                  streak: faceState == SparkState.lit ||
+                          faceState == SparkState.streaked
+                      ? streak
+                      : null,
                 ),
               ),
-            // Other sparks — arranged in a ring around the main spark
-            ...List.generate(nonMainSparks.length, (i) {
-              final spark = nonMainSparks[i];
-              final n = nonMainSparks.length;
-              // Distribute evenly on a circle
-              final angle = (i / n) * 2 * pi - pi / 2;
-              final ringR = territoryRadius * 0.72;
-              final sx = cx + cos(angle) * ringR;
-              final sy = cy + sin(angle) * ringR;
-              return Positioned(
-                left: sx - 20,
-                top: sy - 20,
-                child: GestureDetector(
-                  onTap: () {
-                    // Navigate to spark details
-                    onTap.call();
-                  },
-                  child: SparkWidget(
-                    emoji: spark.emoji,
-                    state: spark.state,
-                    size: 40,
-                    streak: spark.state == SparkState.lit ||
-                            spark.state == SparkState.streaked
-                        ? spark.streak
-                        : null,
-                  ),
-                ),
-              );
-            }),
+            ),
           ],
         );
       },
     );
+  }
+
+  SparkState _faceState(Isle isle) {
+    final main = isle.sparks.where((s) => s.isMain).firstOrNull;
+    if (main == null) return SparkState.dull;
+    return main.state;
   }
 
   Color _isleColor(String name) {
