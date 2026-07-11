@@ -118,7 +118,7 @@ final islesProvider =
     StateNotifierProvider<IslesNotifier, List<Isle>>((ref) => IslesNotifier());
 
 class IslesNotifier extends StateNotifier<List<Isle>> {
-  IslesNotifier() : super(List<Isle>.of(MockData.instance.isles)) {
+  IslesNotifier() : super([]) {
     _loadFromSupabase();
   }
 
@@ -135,9 +135,9 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
 
   void refresh() => _loadFromSupabase();
 
-  /// Reset to mock seed (for sign-out).
+  /// Reset to empty (for sign-out).
   void reset() {
-    state = List<Isle>.of(MockData.instance.isles);
+    state = [];
   }
 
   /// Returns the real (Supabase-UUID) Isle. If no Supabase user, returns
@@ -238,7 +238,7 @@ final membershipsProvider = StateNotifierProvider<MemberhipsNotifier, Map<String
 );
 
 class MemberhipsNotifier extends StateNotifier<Map<String, List<Membership>>> {
-  MemberhipsNotifier() : super(Map<String, List<Membership>>.of(MockData.instance.memberships)) {
+  MemberhipsNotifier() : super({}) {
     _loadFromSupabase();
   }
 
@@ -264,7 +264,7 @@ class MemberhipsNotifier extends StateNotifier<Map<String, List<Membership>>> {
   void refresh() => _loadFromSupabase();
 
   void reset() {
-    state = Map<String, List<Membership>>.of(MockData.instance.memberships);
+    state = {};
   }
 
   /// Local-state-only membership add. Use this when the membership has
@@ -307,7 +307,7 @@ final friendsProvider = StateNotifierProvider<FriendsNotifier, List<Friend>>(
 );
 
 class FriendsNotifier extends StateNotifier<List<Friend>> {
-  FriendsNotifier() : super(List<Friend>.of(MockData.instance.friends)) {
+  FriendsNotifier() : super([]) {
     _loadFromSupabase();
   }
 
@@ -327,7 +327,7 @@ class FriendsNotifier extends StateNotifier<List<Friend>> {
   void refresh() => _loadFromSupabase();
 
   void reset() {
-    state = List<Friend>.of(MockData.instance.friends);
+    state = [];
   }
 
   void acceptFriend(String friendId) {

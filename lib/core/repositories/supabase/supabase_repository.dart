@@ -103,38 +103,54 @@ class SupabaseRepository {
     }).select().single();
 
     final newId = row['id'] as String;
+    debugPrint('createIsle: isle inserted, id=$newId');
 
     // 2. Insert the creator's membership (role = 'creator').
-    await _db.from('memberships').insert({
-      'isle_id': newId,
-      'user_id': creatorId,
-      'role': 'creator',
-    });
+    try {
+      await _db.from('memberships').insert({
+        'isle_id': newId,
+        'user_id': creatorId,
+        'role': 'creator',
+      });
+      debugPrint('createIsle: membership inserted');
+    } catch (e) {
+      debugPrint('createIsle: MEMBERSHIP INSERT FAILED: $e');
+      // Don't rethrow — the isle exists, we just can't add membership.
+      // The user will still see the isle if it's public, or via creator check.
+    }
 
-    // 3. Auto-seed the first key. Per spec §2 (Isle): every Isle is
-    //    created with one key so it appears on Home immediately as an
-    //    active territory. The user can rename, change emoji, or delete
-    //    this key from the Isle Home.
-    final autoKey = Spark(
-      id: 'sp-seed-pending', // replaced by createSpark with the Supabase id
-      isleId: newId,
-      emoji: isle.emoji, // same emoji as the isle — face on Home matches
-      title: null,
-      mode: SparkMode.ritual,
-      scope: SparkScope.shared,
-      state: SparkState.dull,
-      streak: 0,
-      timerMode: TimerMode.daily,
-      isMain: true,
-      createdAt: DateTime.now(),
-    );
-    final realAutoKey = await createSpark(autoKey);
+    // 3. Auto-seed the first key.
+    try {
+      final autoKey = Spark(
+        id: 'sp-seed-pending',
+        isleId: newId,
+        emoji: isle.emoji,
+        title: null,
+        mode: SparkMode.ritual,
+        scope: SparkScope.shared,
+        state: SparkState.dull,
+        streak: 0,
+        timerMode: TimerMode.daily,
+        isMain: true,
+        createdAt: DateTime.now(),
+      );
+      final realAutoKey = await createSpark(autoKey);
+      debugPrint('createIsle: seed spark inserted, id=${realAutoKey.id}');
 
-    return isle.copyWith(
-      id: newId,
-      createdBy: creatorId,
-      sparks: [realAutoKey],
-    );
+      return isle.copyWith(
+        id: newId,
+        createdBy: creatorId,
+        sparks: [realAutoKey],
+      );
+    } catch (e) {
+      debugPrint('createIsle: SEED SPARK INSERT FAILED: $e');
+      // Return the isle without a spark — it won't be "active" on Home
+      // but at least it persists. The user can add sparks manually.
+      return isle.copyWith(
+        id: newId,
+        createdBy: creatorId,
+      );
+    }
   }
 
   static Future<void> updateIsle(Isle isle) async {
