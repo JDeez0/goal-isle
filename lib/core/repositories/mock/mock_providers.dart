@@ -115,36 +115,51 @@ String? currentAuthId() => SupabaseConfig.client.auth.currentUser?.id;
 // =============================================================================
 
 final islesProvider =
-    StateNotifierProvider<IslesNotifier, List<Isle>>((ref) => IslesNotifier());
+    StateNotifierProvider<IslesNotifier, List<Isle>>((ref) => IslesNotifier(ref));
+
+/// Loading state for isles. True until the first Supabase load completes.
+/// Home screen checks this to avoid showing empty state during load.
+final islesLoadingProvider = StateProvider<bool>((ref) => true);
 
 class IslesNotifier extends StateNotifier<List<Isle>> {
-  IslesNotifier() : super([]) {
+  final Ref _ref;
+  IslesNotifier(this._ref) : super([]) {
     _loadFromSupabase();
   }
 
   Future<void> _loadFromSupabase() async {
-    if (SupabaseConfig.client.auth.currentUser == null) return;
+    if (SupabaseConfig.client.auth.currentUser == null) {
+      if (mounted) state = [];
+      _ref.read(islesLoadingProvider.notifier).state = false;
+      return;
+    }
     try {
       final isles = await SupabaseRepository.fetchIsles();
-      // Always replace state — even if empty (prevents stale mock data leak).
       if (mounted) state = isles;
     } catch (e) {
       debugPrint('IslesNotifier load error: $e');
+      if (mounted) state = [];
     }
+    if (mounted) _ref.read(islesLoadingProvider.notifier).state = false;
   }
 
-  void refresh() => _loadFromSupabase();
+  void refresh() {
+    _ref.read(islesLoadingProvider.notifier).state = true;
+    _loadFromSupabase();
+  }
 
   /// Reset to empty (for sign-out).
   void reset() {
     state = [];
+    _ref.read(islesLoadingProvider.notifier).state = true;
   }
 
   /// Returns the real (Supabase-UUID) Isle. If no Supabase user, returns
   /// the local isle unchanged. Callers can await this and then add the
   /// creator's membership to the local memberships provider using the real id.
   Future<Isle> addIsle(Isle isle) async {
-    state = [...state, isle];
+    final current = state;
+    state = [...current, isle];
     final uid = SupabaseConfig.client.auth.currentUser?.id;
     if (uid == null) return isle;
     try {
@@ -162,26 +177,30 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
   }
 
   void updateIsle(Isle isle) {
-    state = [for (final i in state) if (i.id == isle.id) isle else i];
+    final current = state;
+    state = [for (final i in current) if (i.id == isle.id) isle else i];
     SupabaseRepository.updateIsle(isle).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void removeIsle(String isleId) {
-    state = [for (final i in state) if (i.id != isleId) i];
+    final current = state;
+    state = [for (final i in current) if (i.id != isleId) i];
     SupabaseRepository.deleteIsle(isleId).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void addSpark(String isleId, Spark spark) {
+    final current = state;
     state = [
-      for (final i in state)
+      for (final i in current)
         if (i.id == isleId) i.copyWith(sparks: [...i.sparks, spark]) else i,
     ];
     SupabaseRepository.createSpark(spark).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void updateSpark(String isleId, Spark spark) {
+    final current = state;
     state = [
-      for (final i in state)
+      for (final i in current)
         if (i.id == isleId)
           i.copyWith(sparks: [for (final s in i.sparks) if (s.id == spark.id) spark else s])
         else
@@ -191,8 +210,9 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
   }
 
   void removeSpark(String isleId, String sparkId) {
+    final current = state;
     state = [
-      for (final i in state)
+      for (final i in current)
         if (i.id == isleId)
           i.copyWith(sparks: [for (final s in i.sparks) if (s.id != sparkId) s])
         else
@@ -202,24 +222,27 @@ class IslesNotifier extends StateNotifier<List<Isle>> {
   }
 
   void addPost(String isleId, Post post) {
+    final current = state;
     state = [
-      for (final i in state)
+      for (final i in current)
         if (i.id == isleId) i.copyWith(posts: [...i.posts, post]) else i,
     ];
     SupabaseRepository.createPost(post).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void addMessage(String isleId, Message message) {
+    final current = state;
     state = [
-      for (final i in state)
+      for (final i in current)
         if (i.id == isleId) i.copyWith(msgs: [...i.msgs, message]) else i,
     ];
     SupabaseRepository.sendMessage(message).then((_) {}).catchError((e, s) { debugPrint("Supabase error: $e"); });
   }
 
   void updateMessage(String isleId, Message message) {
+    final current = state;
     state = [
-      for (final i in state)
+      for (final i in current)
         if (i.id == isleId)
           i.copyWith(msgs: [for (final m in i.msgs) if (m.id == message.id) message else m])
         else

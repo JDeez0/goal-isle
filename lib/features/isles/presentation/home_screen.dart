@@ -21,6 +21,12 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isles = ref.watch(islesProvider);
+    final isLoading = ref.watch(islesLoadingProvider);
+    // While loading, show a blank screen — prevents the flash of
+    // empty state before Supabase data arrives.
+    if (isLoading) {
+      return const Scaffold(body: SizedBox.shrink());
+    }
     final activeIsles = isles.where((i) => i.isActive).toList();
 
     return Scaffold(
