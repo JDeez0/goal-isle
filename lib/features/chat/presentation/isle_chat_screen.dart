@@ -92,8 +92,8 @@ class _IsleChatScreenState extends ConsumerState<IsleChatScreen> {
             child: _MessageList(
               isle: isle,
               scrollController: _scrollController,
-            ),
-          ).labeled('CH-03'),
+            ).labeled('CH-03'),
+          ),
           // Composer.
           _Composer(
             controller: _inputController,

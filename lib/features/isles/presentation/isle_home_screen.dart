@@ -272,8 +272,8 @@ class _KeyRow extends ConsumerWidget {
                         style: const TextStyle(
                             fontSize: 14, fontWeight: FontWeight.w600),
                         overflow: TextOverflow.ellipsis,
-                      ),
-                    ).labeled('IH-09-k-2'),
+                      ).labeled('IH-09-k-2'),
+                    ),
                     const SizedBox(width: 8),
                     _TimerPill(mode: spark.timerMode).labeled('IH-09-k-3'),
                   ]),

@@ -305,8 +305,8 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
                   title: 'Just you',
                   selected: _kind == _Kind.solo,
                   onTap: () => setState(() => _kind = _Kind.solo),
-                ),
-              ).labeled('NS-17-1'),
+                ).labeled('NS-17-1'),
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: _KindCard(
@@ -314,8 +314,8 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
                   title: 'Add people',
                   selected: _kind == _Kind.shared,
                   onTap: () => setState(() => _kind = _Kind.shared),
-                ),
-              ).labeled('NS-17-2'),
+                ).labeled('NS-17-2'),
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: _KindCard(
@@ -323,8 +323,8 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
                   title: 'Track a number',
                   selected: _kind == _Kind.metric,
                   onTap: () => setState(() => _kind = _Kind.metric),
-                ),
-              ).labeled('NS-17-3'),
+                ).labeled('NS-17-3'),
+              ),
             ]).labeled('NS-17'),
           ),
 

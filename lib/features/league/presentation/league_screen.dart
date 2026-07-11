@@ -74,8 +74,8 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
                       members: memberships[selected.id] ?? const <Membership>[],
                       meId: meId,
                       accent: _isleColor(selected.color),
-                    ),
-                  ).labeled('L-04'),
+                    ).labeled('L-04'),
+                  ),
                 ],
               ),
       ),
@@ -339,8 +339,8 @@ class _RankRow extends StatelessWidget {
                 color: const Color(0xFF1F2937),
               ),
               overflow: TextOverflow.ellipsis,
-            ),
-          ).labeled('L-name'),
+            ).labeled('L-name'),
+          ),
           // Flame + streak number.
           Row(
             mainAxisSize: MainAxisSize.min,

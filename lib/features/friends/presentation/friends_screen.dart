@@ -444,8 +444,8 @@ class _SearchRow extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF1F2937),
               ),
-            ),
-          ).labeled('F-search-name'),
+            ).labeled('F-search-name'),
+          ),
           added
               ? const Padding(
                   padding: EdgeInsets.only(right: 4),
