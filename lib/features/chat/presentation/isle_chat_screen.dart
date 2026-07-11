@@ -8,6 +8,7 @@ import '../../../core/models/isle.dart';
 import '../../../core/models/message.dart';
 import '../../../core/models/spark.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Isle Chat — the room for a single Isle. The app bar shows a tappable mini
 /// spark that drops down a recipe card (the isle's main key). The message list
@@ -56,12 +57,12 @@ class _IsleChatScreenState extends ConsumerState<IsleChatScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
             onPressed: () => context.go('/isle'),
-          ),
+          ).labeled('CH-00'),
         ),
         body: const Center(
           child: Text('Isle not found',
               style: TextStyle(color: Color(0xFF94A3B8))),
-        ),
+        ).labeled('CH-00-err'),
       );
     }
 
@@ -85,21 +86,21 @@ class _IsleChatScreenState extends ConsumerState<IsleChatScreen> {
         children: [
           // Recipe dropdown card (below the app bar).
           if (_recipeOpen)
-            _RecipeDropdown(isle: isle),
+            _RecipeDropdown(isle: isle).labeled('CH-02'),
           // Message list.
           Expanded(
             child: _MessageList(
               isle: isle,
               scrollController: _scrollController,
             ),
-          ),
+          ).labeled('CH-03'),
           // Composer.
           _Composer(
             controller: _inputController,
             canSend: _canSend,
             onSend: _sendMessage,
             onEmoji: () => _showEmojiSheet(context),
-          ),
+          ).labeled('CH-04'),
         ],
       ),
     );
@@ -239,7 +240,7 @@ class _ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
         onPressed: onBack,
-      ),
+      ).labeled('CH-01-back'),
       title: GestureDetector(
         onTap: onToggleRecipe,
         behavior: HitTestBehavior.opaque,
@@ -252,23 +253,23 @@ class _ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
                 state: main.state,
                 size: 34,
                 showSparkles: false,
-              )
+              ).labeled('CH-01-spark')
             else
-              Text(isle.emoji, style: const TextStyle(fontSize: 22)),
+              Text(isle.emoji, style: const TextStyle(fontSize: 22)).labeled('CH-01-emoji'),
             const SizedBox(width: 8),
             Icon(
               recipeOpen ? Icons.expand_less : Icons.expand_more,
               size: 20,
               color: const Color(0xFF94A3B8),
-            ),
+            ).labeled('CH-01-chevron'),
           ],
         ),
-      ),
+      ).labeled('CH-01-recipe-toggle'),
       actions: [
         IconButton(
           icon: const Icon(Icons.info_outline, color: Color(0xFF3B82F6)),
           onPressed: onInfo,
-        ),
+        ).labeled('CH-01-info'),
       ],
     );
   }
@@ -290,7 +291,7 @@ class _RecipeDropdown extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Text('No main key for this Isle.',
             style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
-      );
+      ).labeled('CH-02-empty');
     }
     final deps = main.dependencies;
 
@@ -311,18 +312,18 @@ class _RecipeDropdown extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.4,
                   color: Color(0xFF94A3B8)),
-            ),
+            ).labeled('CH-02-title'),
             const SizedBox(height: 10),
             Row(
               children: [
-                for (final d in deps) ...[
-                  Text(d.emoji,
+                for (int i = 0; i < deps.length; i++) ...[
+                  Text(deps[i].emoji,
                       style: TextStyle(
                           fontSize: 26,
-                          color: d.satisfied
+                          color: deps[i].satisfied
                               ? const Color(0xFF1F2937)
-                              : const Color(0x551F2937))),
-                  if (d != deps.last)
+                              : const Color(0x551F2937))).labeled('CH-02-dep-${i + 1}'),
+                  if (deps[i] != deps.last)
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 6),
                       child: Text('+',
@@ -330,7 +331,7 @@ class _RecipeDropdown extends StatelessWidget {
                               fontSize: 16,
                               fontWeight: FontWeight.w300,
                               color: Color(0xFFCBD5E1))),
-                    ),
+                    ).labeled('CH-02-plus'),
                 ],
                 if (deps.isNotEmpty)
                   const Padding(
@@ -340,15 +341,15 @@ class _RecipeDropdown extends StatelessWidget {
                             fontSize: 18,
                             fontWeight: FontWeight.w300,
                             color: Color(0xFF94A3B8))),
-                  ),
+                  ).labeled('CH-02-equals'),
                 SparkWidget(
                   emoji: main.emoji,
                   state: main.state,
                   size: 40,
                   showSparkles: false,
-                ),
+                ).labeled('CH-02-result'),
               ],
-            ),
+            ).labeled('CH-02-recipe'),
           ],
         ),
       ),
@@ -380,7 +381,7 @@ class _MessageList extends ConsumerWidget {
             style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
           ),
         ),
-      );
+      ).labeled('CH-03-empty');
     }
 
     return ListView.builder(
@@ -396,7 +397,7 @@ class _MessageList extends ConsumerWidget {
           message: message,
           isMe: isMe,
           onLongPress: () => _react(context, ref, message),
-        );
+        ).labeled('CH-03-${index + 1}');
       },
     );
   }
@@ -420,7 +421,7 @@ class _MessageList extends ConsumerWidget {
                 child: Text('React',
                     style: TextStyle(
                         fontSize: 14, fontWeight: FontWeight.w700)),
-              ),
+              ).labeled('CH-react-title'),
               const SizedBox(height: 10),
               ListTile(
                 leading: const Text('🔥', style: TextStyle(fontSize: 24)),
@@ -429,7 +430,7 @@ class _MessageList extends ConsumerWidget {
                   _addReaction(ref, message);
                   Navigator.pop(context);
                 },
-              ),
+              ).labeled('CH-react-fire'),
             ],
           ),
         ),
@@ -496,20 +497,20 @@ class _MessageBubble extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(message.senderAvatar,
-                      style: const TextStyle(fontSize: 14)),
+                      style: const TextStyle(fontSize: 14)).labeled('CH-bubble-avatar'),
                   const SizedBox(width: 5),
                   Text(message.senderName,
                       style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF64748B))),
+                          color: Color(0xFF64748B))).labeled('CH-bubble-name'),
                 ],
               ),
-            ),
+            ).labeled('CH-bubble-sender'),
           GestureDetector(
             onLongPress: onLongPress,
             child: _bubble(isBig, body),
-          ),
+          ).labeled('CH-bubble-content'),
           Padding(
             padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
             child: Text(
@@ -517,7 +518,7 @@ class _MessageBubble extends StatelessWidget {
               style: const TextStyle(
                   fontSize: 10, color: Color(0xFF94A3B8)),
             ),
-          ),
+          ).labeled('CH-bubble-time'),
           if (message.reactions.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 4),
@@ -525,11 +526,11 @@ class _MessageBubble extends StatelessWidget {
                 spacing: 4,
                 runSpacing: 4,
                 children: [
-                  for (final r in message.reactions)
-                    _ReactionChip(emoji: r.emoji, count: r.users.length),
+                  for (int i = 0; i < message.reactions.length; i++)
+                    _ReactionChip(emoji: message.reactions[i].emoji, count: message.reactions[i].users.length).labeled('CH-bubble-react-${i + 1}'),
                 ],
               ),
-            ),
+            ).labeled('CH-bubble-reactions'),
         ],
       ),
     );
@@ -661,7 +662,7 @@ class _Composer extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
+              ).labeled('CH-04-emoji'),
               const SizedBox(width: 8),
               // Pill-shaped input.
               Expanded(
@@ -672,21 +673,24 @@ class _Composer extends StatelessWidget {
                   ),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                  child: TextField(
-                    controller: controller,
-                    textCapitalization: TextCapitalization.sentences,
-                    minLines: 1,
-                    maxLines: 5,
-                    style: const TextStyle(
-                        fontSize: 15, color: Color(0xFF1F2937)),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding:
-                          EdgeInsets.symmetric(vertical: 10),
-                      hintText: 'Message…',
-                      hintStyle:
-                          TextStyle(fontSize: 15, color: Color(0xFF94A3B8)),
+                  child: DebugLabel(
+                    label: 'CH-04-input',
+                    child: TextField(
+                      controller: controller,
+                      textCapitalization: TextCapitalization.sentences,
+                      minLines: 1,
+                      maxLines: 5,
+                      style: const TextStyle(
+                          fontSize: 15, color: Color(0xFF1F2937)),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding:
+                            EdgeInsets.symmetric(vertical: 10),
+                        hintText: 'Message…',
+                        hintStyle:
+                            TextStyle(fontSize: 15, color: Color(0xFF94A3B8)),
+                      ),
                     ),
                   ),
                 ),
@@ -713,7 +717,7 @@ class _Composer extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
+              ).labeled('CH-04-send'),
             ],
           ),
         ),
@@ -745,7 +749,7 @@ class _EmojiSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text('Insert emoji',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)).labeled('CH-emoji-title'),
             const SizedBox(height: 14),
             GridView.count(
               crossAxisCount: 8,
@@ -755,13 +759,13 @@ class _EmojiSheet extends StatelessWidget {
               crossAxisSpacing: 6,
               childAspectRatio: 1,
               children: [
-                for (final e in _emojis)
+                for (int i = 0; i < _emojis.length; i++)
                   GestureDetector(
-                    onTap: () => onPick(e),
+                    onTap: () => onPick(_emojis[i]),
                     child: Center(
-                      child: Text(e, style: const TextStyle(fontSize: 24)),
+                      child: Text(_emojis[i], style: const TextStyle(fontSize: 24)),
                     ),
-                  ),
+                  ).labeled('CH-emoji-${i + 1}'),
               ],
             ),
           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/repositories/supabase/supabase_client.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Auth entry — email/password sign up + sign in via Supabase.
 class AuthScreen extends ConsumerStatefulWidget {
@@ -93,32 +94,32 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       child: const Text('🔑', style: TextStyle(fontSize: 40)),
                     ),
                   ),
-                ),
+                ).labeled('A-01'),
                 const SizedBox(height: 16),
-                const Text('Goal Isle', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+                const Text('Goal Isle', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)).labeled('A-02'),
                 const SizedBox(height: 28),
                 if (_emailSent) ...[
-                  const Icon(Icons.mail_outline, size: 48, color: Color(0xFF3B82F6)),
+                  const Icon(Icons.mail_outline, size: 48, color: Color(0xFF3B82F6)).labeled('A-03'),
                   const SizedBox(height: 16),
-                  const Text('Check your email', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  const Text('Check your email', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)).labeled('A-04'),
                   const SizedBox(height: 8),
                   Text('We sent a link to ${_email.text.trim()}. Click it to verify, then sign in.',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), height: 1.5)),
+                    style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), height: 1.5)).labeled('A-05'),
                   const SizedBox(height: 24),
                   TextButton(
                     onPressed: () => setState(() { _emailSent = false; _isSignUp = false; }),
                     child: const Text('Back to sign in'),
-                  ),
+                  ).labeled('A-06'),
                 ] else ...[
                 if (_isSignUp)
-                  _input(_handle, 'handle', keyboard: TextInputType.text),
-                _input(_email, 'email', keyboard: TextInputType.emailAddress),
+                  _input(_handle, 'handle', keyboard: TextInputType.text).labeled('A-07'),
+                _input(_email, 'email', keyboard: TextInputType.emailAddress).labeled('A-08'),
                 const SizedBox(height: 8),
-                _input(_password, 'password', obscure: true),
+                _input(_password, 'password', obscure: true).labeled('A-09'),
                 if (_error != null) ...[
                   const SizedBox(height: 12),
-                  Text(_error!, style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13)),
+                  Text(_error!, style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13)).labeled('A-10'),
                 ],
                 const SizedBox(height: 16),
                 SizedBox(
@@ -133,15 +134,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       elevation: 0,
                     ),
                     child: _loading
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)).labeled('A-12')
                         : Text(_isSignUp ? 'Join' : 'Sign in', style: const TextStyle(fontWeight: FontWeight.w700)),
                   ),
-                ),
+                ).labeled('A-11'),
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () => setState(() { _isSignUp = !_isSignUp; _error = null; }),
                   child: Text(_isSignUp ? 'Have an account? Sign in' : 'New here? Join'),
-                ),
+                ).labeled('A-13'),
                 ], // end else (form content)
               ],
             ),

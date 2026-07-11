@@ -5,6 +5,7 @@ import '../../../core/models/isle.dart';
 import '../../../core/models/membership.dart';
 import '../../../core/models/post.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Post Composer — write a one-off broadcast to one or more of your Isles.
 ///
@@ -126,8 +127,8 @@ class _PostComposerScreenState extends ConsumerState<PostComposerScreen> {
             'Cancel',
             style: TextStyle(color: Color(0xFF64748B), fontSize: 15),
           ),
-        ),
-        title: const Text('Post'),
+        ).labeled('PC-01'),
+        title: const Text('Post').labeled('PC-02'),
         actions: [
           TextButton(
             onPressed: _canPost ? _post : null,
@@ -141,7 +142,7 @@ class _PostComposerScreenState extends ConsumerState<PostComposerScreen> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-          ),
+          ).labeled('PC-03'),
         ],
       ),
       body: ListView(
@@ -151,42 +152,45 @@ class _PostComposerScreenState extends ConsumerState<PostComposerScreen> {
           _Panel(children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
-              child: TextField(
-                controller: _textCtrl,
-                onChanged: (_) => setState(() {}),
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                textCapitalization: TextCapitalization.sentences,
-                style: const TextStyle(fontSize: 15, height: 1.4),
-                decoration: const InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  hintText: '...',
-                  hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
-                  contentPadding: EdgeInsets.zero,
+              child: DebugLabel(
+                label: 'PC-05',
+                child: TextField(
+                  controller: _textCtrl,
+                  onChanged: (_) => setState(() {}),
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: const TextStyle(fontSize: 15, height: 1.4),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    hintText: '...',
+                    hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
+                    contentPadding: EdgeInsets.zero,
+                  ),
                 ),
               ),
             ),
             if (_hasImage) ...[
-              const Divider(height: 1, color: Color(0xFFECEFF2)),
+              const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('PC-06'),
               _PhotoSlot(
                 hasImage: true,
                 onTap: () => setState(() => _hasImage = !_hasImage),
-              ),
+              ).labeled('PC-08'),
             ] else ...[
-              const Divider(height: 1, color: Color(0xFFECEFF2)),
+              const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('PC-06'),
               _PhotoSlot(
                 hasImage: false,
                 onTap: () => setState(() => _hasImage = !_hasImage),
-              ),
+              ).labeled('PC-07'),
             ],
-          ]),
+          ]).labeled('PC-04'),
 
           const SizedBox(height: 24),
 
           // Audience picker.
-          const _SectionLabel('To'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
+          const _SectionLabel('To').labeled('PC-09'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('PC-10'),
           _Panel(
             children: [
               _AudienceRow(
@@ -195,7 +199,7 @@ class _PostComposerScreenState extends ConsumerState<PostComposerScreen> {
                 subtitle: 'Broadcast everywhere',
                 selected: _allIsles,
                 onTap: _toggleAll,
-              ),
+              ).labeled('PC-12'),
               for (int i = 0; i < myIsles.length; i++) ...[
                 const Divider(height: 1, color: Color(0xFFECEFF2)),
                 _AudienceRow(
@@ -207,10 +211,10 @@ class _PostComposerScreenState extends ConsumerState<PostComposerScreen> {
                       _selectedIsleIds.contains(myIsles[i].id),
                   onTap: () => _toggleIsle(myIsles[i].id),
                   color: _isleColor(myIsles[i].color),
-                ),
+                ).labeled('PC-${13 + i}'),
               ],
             ],
-          ),
+          ).labeled('PC-11'),
           const SizedBox(height: 32),
         ],
       ),

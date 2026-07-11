@@ -7,6 +7,7 @@ import '../../../core/models/enums.dart';
 import '../../../core/models/membership.dart';
 import '../../../core/models/spark.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/utils/debug_label.dart';
 import 'metric_log_sheet.dart';
 
 /// Spark Details — the drill-in for a single Key. A tappable hero card that
@@ -38,12 +39,12 @@ class _SparkDetailsScreenState extends ConsumerState<SparkDetailsScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
             onPressed: () => context.go('/isle'),
-          ),
+          ).labeled('SD-00'),
         ),
         body: const Center(
           child: Text('Spark not found',
               style: TextStyle(color: Color(0xFF94A3B8))),
-        ),
+        ).labeled('SD-00-err'),
       );
     }
 
@@ -57,13 +58,13 @@ class _SparkDetailsScreenState extends ConsumerState<SparkDetailsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
           onPressed: () => context.go('/isle'),
-        ),
-        title: Text(spark.title ?? 'Untitled key'),
+        ).labeled('SD-01'),
+        title: Text(spark.title ?? 'Untitled key').labeled('SD-02'),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Color(0xFF3B82F6)),
             onPressed: () => context.go('/sparksettings'),
-          ),
+          ).labeled('SD-03'),
         ],
       ),
       body: ListView(
@@ -73,7 +74,7 @@ class _SparkDetailsScreenState extends ConsumerState<SparkDetailsScreen> {
             spark: spark,
             expanded: _expanded,
             onToggle: () => setState(() => _expanded = !_expanded),
-          ),
+          ).labeled('SD-04'),
           const SizedBox(height: 16),
           _ActionRows(
             spark: spark,
@@ -81,7 +82,7 @@ class _SparkDetailsScreenState extends ConsumerState<SparkDetailsScreen> {
             isLit: isLit,
             onDone: () => _markLit(spark),
             onLog: () => MetricLogSheet.show(context, ref, spark),
-          ),
+          ).labeled('SD-05'),
         ],
       ),
     );
@@ -140,7 +141,7 @@ class _HeroCard extends StatelessWidget {
                             spark.state == SparkState.streaked
                         ? spark.streak
                         : null,
-                  ),
+                  ).labeled('SD-hero-spark'),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -149,9 +150,9 @@ class _HeroCard extends StatelessWidget {
                         Text(spark.title ?? 'Untitled key',
                             style: const TextStyle(
                                 fontSize: 17,
-                                fontWeight: FontWeight.w700)),
+                                fontWeight: FontWeight.w700)).labeled('SD-hero-title'),
                         const SizedBox(height: 6),
-                        _MetaRow(spark: spark),
+                        _MetaRow(spark: spark).labeled('SD-hero-meta'),
                       ],
                     ),
                   ),
@@ -160,19 +161,22 @@ class _HeroCard extends StatelessWidget {
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
                     color: const Color(0xFF94A3B8),
-                  ),
-                ]),
+                  ).labeled('SD-hero-expand'),
+                ]).labeled('SD-hero-row'),
               ),
             ),
           ),
           // Expanded content.
           if (expanded) ...[
-            const Divider(height: 1, color: Color(0xFFECEFF2)),
+            const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('SD-hero-divider'),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-              child: spark.mode == SparkMode.ritual
-                  ? _RecipeBody(spark: spark)
-                  : _MetricBody(spark: spark),
+              child: DebugLabel(
+                label: 'SD-hero-body',
+                child: spark.mode == SparkMode.ritual
+                    ? _RecipeBody(spark: spark)
+                    : _MetricBody(spark: spark),
+              ),
             ),
           ],
         ],
@@ -193,19 +197,19 @@ class _MetaRow extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         if (spark.streak > 0) ...[
-          const Text('🔥', style: TextStyle(fontSize: 13)),
+          const Text('🔥', style: TextStyle(fontSize: 13)).labeled('SD-meta-fire'),
           Text('${spark.streak} streak',
               style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFFF97316))),
+                  color: Color(0xFFF97316))).labeled('SD-meta-streak'),
         ],
-        const Icon(Icons.schedule, size: 13, color: Color(0xFF94A3B8)),
+        const Icon(Icons.schedule, size: 13, color: Color(0xFF94A3B8)).labeled('SD-meta-schedule'),
         Text(spark.timerMode.name,
             style: const TextStyle(
-                fontSize: 12, color: Color(0xFF94A3B8))),
+                fontSize: 12, color: Color(0xFF94A3B8))).labeled('SD-meta-timer'),
       ],
-    );
+    ).labeled('SD-meta-row');
   }
 }
 
@@ -228,7 +232,7 @@ class _RecipeBody extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Text('No ingredients yet.',
                 style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
-          )
+          ).labeled('SD-recipe-empty')
         else
           Wrap(
             spacing: 14,
@@ -239,34 +243,34 @@ class _RecipeBody extends StatelessWidget {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(d.emoji, style: const TextStyle(fontSize: 30)),
+                    Text(d.emoji, style: const TextStyle(fontSize: 30)).labeled('SD-recipe-dep-emoji'),
                     if (d.label != null && d.label!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: Text(d.label!,
                             style: const TextStyle(
                                 fontSize: 11,
-                                color: Color(0xFF94A3B8))),
+                                color: Color(0xFF94A3B8))).labeled('SD-recipe-dep-label'),
                       ),
                   ],
-                ),
+                ).labeled('SD-recipe-dep-${deps.indexOf(d)}'),
             ],
-          ),
+          ).labeled('SD-recipe-deps'),
         const SizedBox(height: 10),
         const Text('=',
             style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w300,
-                color: Color(0xFF94A3B8))),
+                color: Color(0xFF94A3B8))).labeled('SD-recipe-equals'),
         const SizedBox(height: 10),
         SparkWidget(
           emoji: spark.emoji,
           state: spark.state,
           shape: spark.shape,
           size: 80,
-        ),
+        ).labeled('SD-recipe-result'),
       ],
-    );
+    ).labeled('SD-recipe-body');
   }
 }
 
@@ -298,11 +302,11 @@ class _MetricBody extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF1F2937),
                   height: 1),
-            ),
+            ).labeled('SD-metric-value'),
             const SizedBox(width: 6),
-            if (m != null) _TrendArrow(trend: m.trend),
+            if (m != null) _TrendArrow(trend: m.trend).labeled('SD-metric-arrow'),
           ],
-        ),
+        ).labeled('SD-metric-row'),
         const SizedBox(height: 4),
         Text(
           m != null
@@ -310,7 +314,7 @@ class _MetricBody extends StatelessWidget {
               : 'no value yet',
           style: const TextStyle(
               fontSize: 12, color: Color(0xFF94A3B8)),
-        ),
+        ).labeled('SD-metric-previous'),
         if (target > 0) ...[
           const SizedBox(height: 12),
           Container(
@@ -327,10 +331,10 @@ class _MetricBody extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF64748B)),
             ),
-          ),
+          ).labeled('SD-metric-target'),
         ],
       ],
-    );
+    ).labeled('SD-metric-body');
   }
 }
 
@@ -350,7 +354,7 @@ class _TrendArrow extends StatelessWidget {
         : trend == 'down'
             ? Icons.arrow_downward
             : Icons.remove;
-    return Icon(icon, size: 18, color: color);
+    return Icon(icon, size: 18, color: color).labeled('SD-trend-icon');
   }
 }
 
@@ -400,8 +404,8 @@ class _ActionRows extends StatelessWidget {
                     : 'Log',
                 style: const TextStyle(
                     fontSize: 15, fontWeight: FontWeight.w600),
-              ),
-            ),
+              ).labeled('SD-action-primary-label'),
+            ).labeled('SD-action-primary'),
           ),
           const SizedBox(height: 10),
           // Secondary actions.
@@ -423,7 +427,7 @@ class _ActionRows extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                   ),
-                ),
+                ).labeled('SD-action-thread'),
               ),
             ),
             const SizedBox(width: 10),
@@ -444,12 +448,12 @@ class _ActionRows extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                   ),
-                ),
+                ).labeled('SD-action-members'),
               ),
             ),
-          ]),
+          ]).labeled('SD-action-secondary'),
         ],
-      );
+      ).labeled('SD-actions');
     });
   }
 
@@ -479,25 +483,25 @@ class _ActionRows extends StatelessWidget {
                   '${isleName?.name ?? 'Isle'} · ${members.length} members',
                   style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w700),
-                ),
+                ).labeled('SD-modal-title'),
               ),
               const SizedBox(height: 8),
-              const Divider(color: Color(0xFFECEFF2)),
+              const Divider(color: Color(0xFFECEFF2)).labeled('SD-modal-divider'),
               for (final m in members)
                 ListTile(
                   leading: Text(m.userAvatar,
-                      style: const TextStyle(fontSize: 22)),
+                      style: const TextStyle(fontSize: 22)).labeled('SD-modal-avatar'),
                   title: Text(m.userName,
-                      style: const TextStyle(fontSize: 14)),
+                      style: const TextStyle(fontSize: 14)).labeled('SD-modal-name'),
                   subtitle: Text(
                     m.role == 'creator' ? 'Creator' : 'Member',
                     style: const TextStyle(
                         fontSize: 12, color: Color(0xFF94A3B8)),
-                  ),
-                ),
+                  ).labeled('SD-modal-role'),
+                ).labeled('SD-modal-${members.indexOf(m)}'),
             ],
-          ),
-        ),
+          ).labeled('SD-modal-body'),
+        ).labeled('SD-modal'),
       ),
     );
   }

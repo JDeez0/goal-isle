@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/models/friend.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Friends — the account-level friends manager. Shows incoming requests,
 /// established friends, and outgoing (pending) requests. The + button opens an
@@ -29,51 +30,51 @@ class FriendsScreen extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
           onPressed: () => context.go('/profile'),
-        ),
-        title: const Text('Friends'),
+        ).labeled('F-01'),
+        title: const Text('Friends').labeled('F-02'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: Color(0xFF3B82F6)),
             onPressed: () => _showAddSheet(context, ref),
-          ),
+          ).labeled('F-03'),
         ],
       ),
       body: isEmpty
-          ? const _EmptyState(text: 'no friends yet')
+          ? const _EmptyState(text: 'no friends yet').labeled('F-04')
           : ListView(
               children: [
                 const SizedBox(height: 12),
                 if (requests.isNotEmpty) ...[
-                  const _SectionLabel('Requests'),
+                  const _SectionLabel('Requests').labeled('F-05'),
                   _Panel(children: [
                     for (int i = 0; i < requests.length; i++) ...[
-                      _RequestRow(friend: requests[i]),
+                      _RequestRow(friend: requests[i]).labeled('F-07-${i + 1}'),
                       if (i < requests.length - 1)
                         const _Divider(),
                     ],
-                  ]),
+                  ]).labeled('F-06'),
                   const SizedBox(height: 22),
                 ],
                 if (accepted.isNotEmpty) ...[
-                  const _SectionLabel('Friends'),
+                  const _SectionLabel('Friends').labeled('F-08'),
                   _Panel(children: [
                     for (int i = 0; i < accepted.length; i++) ...[
-                      _FriendRow(friend: accepted[i]),
+                      _FriendRow(friend: accepted[i]).labeled('F-10-${i + 1}'),
                       if (i < accepted.length - 1)
                         const _Divider(),
                     ],
-                  ]),
+                  ]).labeled('F-09'),
                   const SizedBox(height: 22),
                 ],
                 if (sent.isNotEmpty) ...[
-                  const _SectionLabel('Sent'),
+                  const _SectionLabel('Sent').labeled('F-11'),
                   _Panel(children: [
                     for (int i = 0; i < sent.length; i++) ...[
-                      _SentRow(friend: sent[i]),
+                      _SentRow(friend: sent[i]).labeled('F-13-${i + 1}'),
                       if (i < sent.length - 1)
                         const _Divider(),
                     ],
-                  ]),
+                  ]).labeled('F-12'),
                   const SizedBox(height: 32),
                 ],
               ],
@@ -105,7 +106,7 @@ class _RequestRow extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          _Avatar(emoji: friend.friendAvatar),
+          _Avatar(emoji: friend.friendAvatar).labeled('F-req-avatar'),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -118,12 +119,12 @@ class _RequestRow extends ConsumerWidget {
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF1F2937),
                   ),
-                ),
+                ).labeled('F-req-name'),
                 const SizedBox(height: 1),
                 const Text(
                   'wants to be friends',
                   style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                ),
+                ).labeled('F-req-subtitle'),
               ],
             ),
           ),
@@ -139,7 +140,7 @@ class _RequestRow extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(10)),
             ),
             child: const Text('Decline', style: TextStyle(fontSize: 13)),
-          ),
+          ).labeled('F-req-decline'),
           const SizedBox(width: 8),
           ElevatedButton(
             onPressed: () =>
@@ -154,7 +155,7 @@ class _RequestRow extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(10)),
             ),
             child: const Text('Accept', style: TextStyle(fontSize: 13)),
-          ),
+          ).labeled('F-req-accept'),
         ],
       ),
     );
@@ -172,7 +173,7 @@ class _FriendRow extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          _Avatar(emoji: friend.friendAvatar),
+          _Avatar(emoji: friend.friendAvatar).labeled('F-friend-avatar'),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -185,12 +186,12 @@ class _FriendRow extends ConsumerWidget {
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF1F2937),
                   ),
-                ),
+                ).labeled('F-friend-name'),
                 const SizedBox(height: 1),
                 const Text(
                   'friend',
                   style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                ),
+                ).labeled('F-friend-label'),
               ],
             ),
           ),
@@ -205,7 +206,7 @@ class _FriendRow extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(10)),
             ),
             child: const Text('Remove', style: TextStyle(fontSize: 13)),
-          ),
+          ).labeled('F-friend-remove'),
         ],
       ),
     );
@@ -223,7 +224,7 @@ class _SentRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          _Avatar(emoji: friend.friendAvatar),
+          _Avatar(emoji: friend.friendAvatar).labeled('F-sent-avatar'),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -236,12 +237,12 @@ class _SentRow extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF1F2937),
                   ),
-                ),
+                ).labeled('F-sent-name'),
                 const SizedBox(height: 1),
                 const Text(
                   'pending',
                   style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                ),
+                ).labeled('F-sent-subtitle'),
               ],
             ),
           ),
@@ -251,7 +252,7 @@ class _SentRow extends StatelessWidget {
               'pending',
               style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
             ),
-          ),
+          ).labeled('F-sent-pending'),
         ],
       ),
     );
@@ -299,37 +300,40 @@ class _AddFriendSheetState extends ConsumerState<_AddFriendSheet> {
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
-          ),
+          ).labeled('F-add-grab'),
           const SizedBox(height: 16),
           const Text('Add',
               style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1,
-                  color: Color(0xFF94A3B8))),
+                  color: Color(0xFF94A3B8))).labeled('F-add-label'),
           const SizedBox(height: 12),
           // Search field.
-          TextField(
-            controller: _controller,
-            autofocus: true,
-            onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
-            style: const TextStyle(fontSize: 15),
-            decoration: InputDecoration(
-              hintText: 'Search people',
-              hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-              prefixIcon: const Icon(Icons.search,
-                  size: 20, color: Color(0xFF94A3B8)),
-              filled: true,
-              fillColor: const Color(0xFFF4F6F8),
-              contentPadding: const EdgeInsets.symmetric(vertical: 10),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide:
-                    const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+          DebugLabel(
+            label: 'F-add-search',
+            child: TextField(
+              controller: _controller,
+              autofocus: true,
+              onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
+              style: const TextStyle(fontSize: 15),
+              decoration: InputDecoration(
+                hintText: 'Search people',
+                hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                prefixIcon: const Icon(Icons.search,
+                    size: 20, color: Color(0xFF94A3B8)),
+                filled: true,
+                fillColor: const Color(0xFFF4F6F8),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+                ),
               ),
             ),
           ),
@@ -345,7 +349,7 @@ class _AddFriendSheetState extends ConsumerState<_AddFriendSheet> {
                             fontSize: 13, color: Color(0xFF94A3B8)),
                       ),
                     ),
-                  )
+                  ).labeled('F-add-empty')
                 : ListView.separated(
                     shrinkWrap: true,
                     physics: const ClampingScrollPhysics(),
@@ -373,7 +377,7 @@ class _AddFriendSheetState extends ConsumerState<_AddFriendSheet> {
                                 ),
                               );
                         },
-                      );
+                      ).labeled('F-add-result-${i + 1}');
                     },
                   ),
           ),
@@ -430,7 +434,7 @@ class _SearchRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       child: Row(
         children: [
-          _Avatar(emoji: avatar, size: 36),
+          _Avatar(emoji: avatar, size: 36).labeled('F-search-avatar'),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -441,7 +445,7 @@ class _SearchRow extends StatelessWidget {
                 color: Color(0xFF1F2937),
               ),
             ),
-          ),
+          ).labeled('F-search-name'),
           added
               ? const Padding(
                   padding: EdgeInsets.only(right: 4),
@@ -449,7 +453,7 @@ class _SearchRow extends StatelessWidget {
                     'pending',
                     style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
                   ),
-                )
+                ).labeled('F-search-pending')
               : OutlinedButton(
                   onPressed: onAdd,
                   style: OutlinedButton.styleFrom(
@@ -462,7 +466,7 @@ class _SearchRow extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10)),
                   ),
                   child: const Text('Add', style: TextStyle(fontSize: 13)),
-                ),
+                ).labeled('F-search-add'),
         ],
       ),
     );

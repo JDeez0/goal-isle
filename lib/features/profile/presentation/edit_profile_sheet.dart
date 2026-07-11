@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Edit Profile — bottom sheet with avatar picker, name, handle, bio.
 class EditProfileSheet extends ConsumerStatefulWidget {
@@ -71,14 +72,14 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
-          ),
+          ).labeled('EP-01'),
           const SizedBox(height: 16),
           const Text('Edit',
               style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1,
-                  color: Color(0xFF94A3B8))),
+                  color: Color(0xFF94A3B8))).labeled('EP-02'),
           const SizedBox(height: 12),
           // Avatar slot
           Center(
@@ -93,30 +94,33 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
                 ),
               ),
             ),
-          ),
+          ).labeled('EP-03'),
           if (_showAvatarPicker) ...[
             const SizedBox(height: 10),
             Wrap(
               spacing: 6, runSpacing: 6, alignment: WrapAlignment.center,
-              children: _avatars.map((e) => GestureDetector(
-                onTap: () => setState(() { _avatar = e; _showAvatarPicker = false; }),
-                child: Container(
-                  width: 40, height: 40,
-                  decoration: BoxDecoration(
-                    color: _avatar == e ? const Color(0x243B82F6) : const Color(0xFFF4F6F8),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(child: Text(e, style: const TextStyle(fontSize: 22))),
-                ),
-              )).toList(),
+              children: [
+                for (int i = 0; i < _avatars.length; i++)
+                  GestureDetector(
+                    onTap: () => setState(() { _avatar = _avatars[i]; _showAvatarPicker = false; }),
+                    child: Container(
+                      width: 40, height: 40,
+                      decoration: BoxDecoration(
+                        color: _avatar == _avatars[i] ? const Color(0x243B82F6) : const Color(0xFFF4F6F8),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(child: Text(_avatars[i], style: const TextStyle(fontSize: 22))),
+                    ),
+                  ).labeled('EP-${4 + i}'),
+              ],
             ),
           ],
           const SizedBox(height: 14),
-          _Field(controller: _nameCtrl, hint: 'Name'),
+          _Field(controller: _nameCtrl, hint: 'Name').labeled('EP-18'),
           const SizedBox(height: 8),
-          _Field(controller: _handleCtrl, hint: '@handle'),
+          _Field(controller: _handleCtrl, hint: '@handle').labeled('EP-19'),
           const SizedBox(height: 8),
-          _Field(controller: _bioCtrl, hint: 'Bio (optional)'),
+          _Field(controller: _bioCtrl, hint: 'Bio (optional)').labeled('EP-20'),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -131,7 +135,7 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
               ),
               child: const Text('Done', style: TextStyle(fontWeight: FontWeight.w700)),
             ),
-          ),
+          ).labeled('EP-21'),
         ],
       ),
     );

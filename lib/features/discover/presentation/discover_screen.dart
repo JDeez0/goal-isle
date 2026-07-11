@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/models/membership.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
 import '../../../core/repositories/supabase/supabase_repository.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Discover — browse discoverable public Isles and join them.
 ///
@@ -109,13 +110,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
           onPressed: () => context.go('/isles'),
-        ),
-        title: const Text('Discover'),
+        ).labeled('D-01'),
+        title: const Text('Discover').labeled('D-02'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Color(0xFF3B82F6)),
             onPressed: _refresh,
-          ),
+          ).labeled('D-03'),
         ],
       ),
       body: ListView(
@@ -130,19 +131,22 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFFECEFF2)),
               ),
-              child: TextField(
-                controller: _searchCtrl,
-                onChanged: (v) => setState(() => _query = v),
-                textCapitalization: TextCapitalization.words,
-                style: const TextStyle(fontSize: 14),
-                decoration: const InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  prefixIcon: Icon(Icons.search,
-                      size: 20, color: Color(0xFF94A3B8)),
-                  hintText: 'Search Isles',
-                  hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+              child: DebugLabel(
+                label: 'D-04',
+                child: TextField(
+                  controller: _searchCtrl,
+                  onChanged: (v) => setState(() => _query = v),
+                  textCapitalization: TextCapitalization.words,
+                  style: const TextStyle(fontSize: 14),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    prefixIcon: Icon(Icons.search,
+                        size: 20, color: Color(0xFF94A3B8)),
+                    hintText: 'Search Isles',
+                    hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
+                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+                  ),
                 ),
               ),
             ),
@@ -155,7 +159,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 child: CircularProgressIndicator(
                     color: Color(0xFF3B82F6), strokeWidth: 2),
               ),
-            )
+            ).labeled('D-05')
           else if (rows.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 48),
@@ -164,7 +168,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     style: TextStyle(
                         fontSize: 13, color: Color(0xFF94A3B8))),
               ),
-            )
+            ).labeled('D-06')
           else
             for (int i = 0; i < rows.length; i++) ...[
               _DiscoverRow(
@@ -173,7 +177,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 memberCount: _memberCount(rows[i]['id'] as String),
                 onJoin: () => _join(rows[i]),
                 onLeave: () => _leave(rows[i]['id'] as String),
-              ),
+              ).labeled('D-${i + 7}'),
               if (i < rows.length - 1) const SizedBox(height: 10),
             ],
           const SizedBox(height: 24),
@@ -218,7 +222,7 @@ class _DiscoverRow extends StatelessWidget {
         ),
         padding: const EdgeInsets.fromLTRB(14, 13, 12, 13),
         child: Row(children: [
-          _SkewedEmojiTile(emoji: emoji, color: color),
+          _SkewedEmojiTile(emoji: emoji, color: color).labeled('D-row-tile'),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -227,21 +231,21 @@ class _DiscoverRow extends StatelessWidget {
                 Text(name,
                     style: const TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis),
+                    overflow: TextOverflow.ellipsis).labeled('D-row-name'),
                 const SizedBox(height: 2),
                 Text(sub,
                     style: const TextStyle(
                         fontSize: 12, color: Color(0xFF64748B)),
-                    overflow: TextOverflow.ellipsis),
+                    overflow: TextOverflow.ellipsis).labeled('D-row-purpose'),
                 const SizedBox(height: 3),
                 Text('$members members',
                     style: const TextStyle(
-                        fontSize: 11, color: Color(0xFF94A3B8))),
+                        fontSize: 11, color: Color(0xFF94A3B8))).labeled('D-row-members'),
               ],
             ),
           ),
           const SizedBox(width: 10),
-          _JoinButton(joined: joined, color: color, onTap: onJoin, onLeave: onLeave),
+          _JoinButton(joined: joined, color: color, onTap: onJoin, onLeave: onLeave).labeled('D-row-join'),
         ]),
       ),
     );

@@ -5,6 +5,7 @@ import '../../../core/models/enums.dart';
 import '../../../core/models/isle.dart';
 import '../../../core/models/membership.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Your Isles — the index of every Isle the current user belongs to.
 /// Lists each Isle in a settings-style panel (mini skewed hero + name +
@@ -30,37 +31,40 @@ class IslesIndexScreen extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
           onPressed: () => context.go('/'),
-        ),
-        title: const Text('Your Isles'),
+        ).labeled('II-01'),
+        title: const Text('Your Isles').labeled('II-02'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: Color(0xFF3B82F6)),
             onPressed: () => context.go('/create-isle'),
-          ),
+          ).labeled('II-03'),
         ],
       ),
-      body: ListView(
+body: ListView(
         children: [
           const SizedBox(height: 12),
-          _SectionLabel('Isles (${myIsles.length})'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
-          _SettingsPanel(
-            children: myIsles.isEmpty
-                ? const [_EmptyRow('You haven’t joined any Isles yet.')]
-                : [
-                    for (int i = 0; i < myIsles.length; i++) ...[
-                      _IsleRow(isle: myIsles[i]),
-                      if (i < myIsles.length - 1)
-                        const Divider(height: 1, color: Color(0xFFECEFF2)),
+          _SectionLabel('Isles (${myIsles.length})').labeled('II-04'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('II-05'),
+          DebugLabel(
+            label: 'II-06',
+            child: _SettingsPanel(
+              children: myIsles.isEmpty
+                  ? [const _EmptyRow('You haven\'t joined any Isles yet.').labeled('II-07')]
+                  : [
+                      for (int i = 0; i < myIsles.length; i++) ...[
+                        _IsleRow(isle: myIsles[i]).labeled('II-${7 + i}'),
+                        if (i < myIsles.length - 1)
+                          const Divider(height: 1, color: Color(0xFFECEFF2)),
+                      ],
                     ],
-                  ],
+            ),
           ),
           const SizedBox(height: 24),
-          const _SectionLabel('Find more'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
+          const _SectionLabel('Find more').labeled('II-08'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('II-09'),
           _SettingsPanel(children: [
-            _DiscoverRow(onTap: () => context.go('/discover')),
-          ]),
+            _DiscoverRow(onTap: () => context.go('/discover')).labeled('II-10'),
+          ]).labeled('II-11'),
           const SizedBox(height: 32),
         ],
       ),

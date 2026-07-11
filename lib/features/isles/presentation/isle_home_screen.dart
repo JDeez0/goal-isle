@@ -9,6 +9,7 @@ import '../../../core/models/message.dart';
 import '../../../core/models/post.dart';
 import '../../../core/models/spark.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Isle Home — drill-in for a single Isle. Header (emoji, name, purpose,
 /// member count), the list of Keys sorted lit-first/greyed-last, a chat
@@ -28,12 +29,12 @@ class IsleHomeScreen extends ConsumerWidget {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
             onPressed: () => context.go('/'),
-          ),
+          ).labeled('IH-00'),
         ),
         body: const Center(
           child: Text('Isle not found',
               style: TextStyle(color: Color(0xFF94A3B8))),
-        ),
+        ).labeled('IH-00-err'),
       );
     }
 
@@ -53,8 +54,8 @@ class IsleHomeScreen extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
           onPressed: () => context.go('/'),
-        ),
-        title: Text(isle.name),
+        ).labeled('IH-01'),
+        title: Text(isle.name).labeled('IH-02'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: Color(0xFF3B82F6)),
@@ -62,12 +63,12 @@ class IsleHomeScreen extends ConsumerWidget {
               ref.read(activeIsleIdProvider.notifier).state = isle.id;
               context.go('/create');
             },
-          ),
+          ).labeled('IH-03'),
           if (isCreator)
             IconButton(
               icon: const Icon(Icons.settings, color: Color(0xFF3B82F6)),
               onPressed: () => context.go('/isle-settings'),
-            ),
+            ).labeled('IH-04'),
         ],
       ),
       body: ListView(
@@ -76,22 +77,22 @@ class IsleHomeScreen extends ConsumerWidget {
             isle: isle,
             memberCount: members.length,
             onMembersTap: () => _showMembersModal(context, members, isle),
-          ),
+          ).labeled('IH-05'),
           const SizedBox(height: 8),
           // Keys list.
-          _SectionLabel('Keys (${sortedSparks.length})'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
+          _SectionLabel('Keys (${sortedSparks.length})').labeled('IH-06'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('IH-07'),
           _Panel(
             children: sortedSparks.isEmpty
-                ? const [_EmptyRow('No keys yet.')]
+                ? [const _EmptyRow('No keys yet.').labeled('IH-09')]
                 : [
                     for (int i = 0; i < sortedSparks.length; i++) ...[
-                      _KeyRow(spark: sortedSparks[i]),
+                      _KeyRow(spark: sortedSparks[i]).labeled('IH-09-${i + 1}'),
                       if (i < sortedSparks.length - 1)
                         const Divider(height: 1, color: Color(0xFFECEFF2)),
                     ],
                   ],
-          ),
+          ).labeled('IH-08'),
           // Chat preview (only if there are messages).
           if (isle.msgs.isNotEmpty) ...[
             const SizedBox(height: 24),
@@ -99,23 +100,23 @@ class IsleHomeScreen extends ConsumerWidget {
               _ChatPreviewRow(
                 last: isle.msgs.last,
                 onTap: () => context.go('/chat'),
-              ),
-            ]),
+              ).labeled('IH-10'),
+            ]).labeled('IH-11'),
           ],
           // Activity feed.
           if (isle.posts.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const _SectionLabel('Activity'),
-            const Divider(height: 1, color: Color(0xFFECEFF2)),
+            const _SectionLabel('Activity').labeled('IH-12'),
+            const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('IH-13'),
             _Panel(
               children: [
                 for (int i = 0; i < isle.posts.length; i++) ...[
-                  _PostRow(post: isle.posts[i]),
+                  _PostRow(post: isle.posts[i]).labeled('IH-14-${i + 1}'),
                   if (i < isle.posts.length - 1)
                     const Divider(height: 1, color: Color(0xFFECEFF2)),
                 ],
               ],
-            ),
+            ).labeled('IH-15'),
           ],
           const SizedBox(height: 32),
         ],
@@ -144,20 +145,23 @@ class IsleHomeScreen extends ConsumerWidget {
                   '${isle.name} · ${members.length} members',
                   style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w700),
-                ),
+                ).labeled('IH-modal-title'),
               ),
               const SizedBox(height: 8),
-              const Divider(color: Color(0xFFECEFF2)),
-              for (final m in members)
-                ListTile(
-                  leading: Text(m.userAvatar,
-                      style: const TextStyle(fontSize: 22)),
-                  title: Text(m.userName,
-                      style: const TextStyle(fontSize: 14)),
-                  subtitle: Text(
-                    m.role == 'creator' ? 'Creator' : 'Member',
-                    style: const TextStyle(
-                        fontSize: 12, color: Color(0xFF94A3B8)),
+              const Divider(color: Color(0xFFECEFF2)).labeled('IH-modal-divider'),
+              for (int i = 0; i < members.length; i++)
+                DebugLabel(
+                  label: 'IH-modal-${i + 1}',
+                  child: ListTile(
+                    leading: Text(members[i].userAvatar,
+                        style: const TextStyle(fontSize: 22)),
+                    title: Text(members[i].userName,
+                        style: const TextStyle(fontSize: 14)),
+                    subtitle: Text(
+                      members[i].role == 'creator' ? 'Creator' : 'Member',
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFF94A3B8)),
+                    ),
                   ),
                 ),
             ],
@@ -193,7 +197,7 @@ class _IsleHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 8),
       child: Row(children: [
-        _SkewedEmojiTile(emoji: isle.emoji, color: color),
+        _SkewedEmojiTile(emoji: isle.emoji, color: color).labeled('IH-05-1'),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
@@ -201,12 +205,12 @@ class _IsleHeader extends StatelessWidget {
             children: [
               Text(isle.name,
                   style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.w700)),
+                      fontSize: 20, fontWeight: FontWeight.w700)).labeled('IH-05-2'),
               if (isle.purpose != null && isle.purpose!.isNotEmpty) ...[
                 const SizedBox(height: 2),
                 Text(isle.purpose!,
                     style: const TextStyle(
-                        fontSize: 13, color: Color(0xFF94A3B8))),
+                        fontSize: 13, color: Color(0xFF94A3B8))).labeled('IH-05-3'),
               ],
               const SizedBox(height: 4),
               GestureDetector(
@@ -219,7 +223,7 @@ class _IsleHeader extends StatelessWidget {
                     color: color,
                   ),
                 ),
-              ),
+              ).labeled('IH-05-4'),
             ],
           ),
         ),
@@ -255,7 +259,7 @@ class _KeyRow extends ConsumerWidget {
                       spark.state == SparkState.streaked
                   ? spark.streak
                   : null,
-            ),
+            ).labeled('IH-09-k-1'),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -269,25 +273,25 @@ class _KeyRow extends ConsumerWidget {
                             fontSize: 14, fontWeight: FontWeight.w600),
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ),
+                    ).labeled('IH-09-k-2'),
                     const SizedBox(width: 8),
-                    _TimerPill(mode: spark.timerMode),
+                    _TimerPill(mode: spark.timerMode).labeled('IH-09-k-3'),
                   ]),
                   const SizedBox(height: 3),
                   Text(
                     _subStatus(spark.state),
                     style: const TextStyle(
                         fontSize: 12, color: Color(0xFF94A3B8)),
-                  ),
+                  ).labeled('IH-09-k-4'),
                 ],
               ),
             ),
             if (spark.streak > 0) ...[
               const SizedBox(width: 6),
-              _StreakFlame(streak: spark.streak),
+              _StreakFlame(streak: spark.streak).labeled('IH-09-k-5'),
             ],
             const Icon(Icons.chevron_right,
-                size: 16, color: Color(0xFF94A3B8)),
+                size: 16, color: Color(0xFF94A3B8)).labeled('IH-09-k-6'),
           ]),
         ),
       ),
@@ -310,13 +314,13 @@ class _StreakFlame extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('🔥', style: TextStyle(fontSize: 13)),
+        const Text('🔥', style: TextStyle(fontSize: 13)).labeled('IH-flame'),
         const SizedBox(width: 2),
         Text('$streak',
             style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFFF97316))),
+                color: Color(0xFFF97316))).labeled('IH-streak'),
       ],
     );
   }
@@ -340,7 +344,7 @@ class _TimerPill extends StatelessWidget {
             fontSize: 10,
             fontWeight: FontWeight.w600,
             color: Color(0xFF64748B)),
-      ),
+      ).labeled('IH-timer'),
     );
   }
 }
@@ -362,7 +366,7 @@ class _ChatPreviewRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           child: Row(children: [
             const Icon(Icons.chat_bubble_outline,
-                size: 20, color: Color(0xFF64748B)),
+                size: 20, color: Color(0xFF64748B)).labeled('IH-chat-icon'),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -370,17 +374,17 @@ class _ChatPreviewRow extends StatelessWidget {
                 children: [
                   Text('${last.senderName}:',
                       style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w600)),
+                          fontSize: 12, fontWeight: FontWeight.w600)).labeled('IH-chat-sender'),
                   Text(preview,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontSize: 13, color: Color(0xFF64748B))),
+                          fontSize: 13, color: Color(0xFF64748B))).labeled('IH-chat-preview'),
                 ],
               ),
             ),
             const Icon(Icons.chevron_right,
-                size: 16, color: Color(0xFF94A3B8)),
+                size: 16, color: Color(0xFF94A3B8)).labeled('IH-chat-chevron'),
           ]),
         ),
       ),
@@ -398,7 +402,7 @@ class _PostRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       child: Row(children: [
-        Text(post.authorAvatar, style: const TextStyle(fontSize: 22)),
+        Text(post.authorAvatar, style: const TextStyle(fontSize: 22)).labeled('IH-post-avatar'),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -406,19 +410,19 @@ class _PostRow extends StatelessWidget {
             children: [
               Text('${post.authorName} posted',
                   style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w600)),
+                      fontSize: 12, fontWeight: FontWeight.w600)).labeled('IH-post-name'),
               if (post.text != null && post.text!.isNotEmpty) ...[
                 const SizedBox(height: 2),
                 Text(post.text!,
                     style: const TextStyle(
                         fontSize: 13, color: Color(0xFF1F2937)),
                     maxLines: 2,
-                    overflow: TextOverflow.ellipsis),
+                    overflow: TextOverflow.ellipsis).labeled('IH-post-text'),
               ],
               const SizedBox(height: 2),
               Text(_timeAgo(post.createdAt),
                   style: const TextStyle(
-                      fontSize: 11, color: Color(0xFF94A3B8))),
+                      fontSize: 11, color: Color(0xFF94A3B8))).labeled('IH-post-time'),
             ],
           ),
         ),
@@ -426,7 +430,7 @@ class _PostRow extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 8),
             child: Text(post.emoji!,
-                style: const TextStyle(fontSize: 28, height: 1)),
+                style: const TextStyle(fontSize: 28, height: 1)).labeled('IH-post-emoji'),
           ),
       ]),
     );
@@ -467,7 +471,7 @@ class _SkewedEmojiTile extends StatelessWidget {
           transform: Matrix4.skewX(_counter),
           child: Center(
             child:
-                Text(emoji, style: const TextStyle(fontSize: 29, height: 1)),
+                Text(emoji, style: const TextStyle(fontSize: 29, height: 1)).labeled('IH-tile-emoji'),
           ),
         ),
       ),

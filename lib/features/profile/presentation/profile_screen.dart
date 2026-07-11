@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import '../../../core/repositories/mock/mock_providers.dart';
 import '../../../core/repositories/supabase/supabase_client.dart';
+import '../../../core/utils/debug_label.dart';
 import 'edit_profile_sheet.dart';
 
 /// Profile — the account hub. Renders from currentUserProvider.
@@ -20,8 +20,8 @@ class ProfileScreen extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
           onPressed: () => context.go('/'),
-        ),
-        title: const Text('You'),
+        ).labeled('P-01'),
+        title: const Text('You').labeled('P-02'),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit, color: Color(0xFF3B82F6)),
@@ -35,7 +35,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
               builder: (_) => const EditProfileSheet(),
             ),
-          ),
+          ).labeled('P-03'),
         ],
       ),
       body: ListView(
@@ -55,18 +55,18 @@ class ProfileScreen extends ConsumerWidget {
                   child: Center(
                     child: Text(user.avatar, style: const TextStyle(fontSize: 42)),
                   ),
-                ),
+                ).labeled('P-04'),
                 const SizedBox(height: 6),
                 Text(
                   user.name,
                   style: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w700),
-                ),
+                ).labeled('P-05'),
                 const SizedBox(height: 2),
                 Text(
                   '@${user.handle}',
                   style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                ),
+                ).labeled('P-06'),
                 if (user.bio != null && user.bio!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
@@ -76,11 +76,11 @@ class ProfileScreen extends ConsumerWidget {
                       style: const TextStyle(
                           fontSize: 13, color: Color(0xFF64748B), height: 1.4),
                     ),
-                  ),
+                  ).labeled('P-07'),
               ],
             ),
           ),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('P-08'),
           // Navigation rows
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -96,32 +96,32 @@ class ProfileScreen extends ConsumerWidget {
                     icon: Icons.home_outlined,
                     label: 'Your Isles',
                     onTap: () => context.go('/isles'),
-                  ),
-                  const Divider(height: 1, color: Color(0xFFECEFF2)),
+                  ).labeled('P-10'),
+                  const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('P-11'),
                   _ProfileRow(
                     icon: Icons.search,
                     label: 'Discover',
                     onTap: () => context.go('/discover'),
-                  ),
-                  const Divider(height: 1, color: Color(0xFFECEFF2)),
+                  ).labeled('P-12'),
+                  const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('P-13'),
                   _ProfileRow(
                     icon: Icons.edit_note,
                     label: 'Post',
                     onTap: () => context.go('/post'),
-                  ),
-                  const Divider(height: 1, color: Color(0xFFECEFF2)),
+                  ).labeled('P-14'),
+                  const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('P-15'),
                   _ProfileRow(
                     icon: Icons.people_outline,
                     label: 'Friends',
                     onTap: () => context.go('/friends'),
-                  ),
-                  const Divider(height: 1, color: Color(0xFFECEFF2)),
+                  ).labeled('P-16'),
+                  const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('P-17'),
                   _ProfileRow(
                     icon: Icons.settings_outlined,
                     label: 'Settings',
                     onTap: () => context.go('/appsettings'),
-                  ),
-                  const Divider(height: 1, color: Color(0xFFECEFF2)),
+                  ).labeled('P-18'),
+                  const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('P-19'),
                   _ProfileRow(
                     icon: Icons.logout,
                     label: 'Sign out',
@@ -133,10 +133,10 @@ class ProfileScreen extends ConsumerWidget {
                       ref.read(membershipsProvider.notifier).reset();
                       ref.read(friendsProvider.notifier).reset();
                     },
-                  ),
+                  ).labeled('P-20'),
                 ],
               ),
-            ),
+            ).labeled('P-09'),
           ),
         ],
       ),

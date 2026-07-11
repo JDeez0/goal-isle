@@ -6,6 +6,7 @@ import '../../../core/models/enums.dart';
 import '../../../core/models/isle.dart';
 import '../../../core/models/membership.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Create Isle — pick an emoji, name, purpose, color, and visibility,
 /// then create the Isle, become its creator, and drill into it.
@@ -102,8 +103,8 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
             'Cancel',
             style: TextStyle(color: Color(0xFF64748B), fontSize: 15),
           ),
-        ),
-        title: const Text('New Isle'),
+        ).labeled('CI-01'),
+        title: const Text('New Isle').labeled('CI-02'),
         actions: [
           TextButton(
             onPressed: _canCreate ? _create : null,
@@ -117,15 +118,15 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-          ),
+          ).labeled('CI-03'),
         ],
       ),
       body: ListView(
         children: [
           const SizedBox(height: 16),
           // Isle section — skewed mini-spark slot + name + purpose.
-          const _SectionLabel('Isle'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
+          const _SectionLabel('Isle').labeled('CI-04'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('CI-05'),
           _Panel(children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 18, 18, 6),
@@ -134,7 +135,7 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
                   onTap: () => setState(
                       () => _emojiIdx = (_emojiIdx + 1) % _emojiPool.length),
                   child: _SkewedEmojiSlot(emoji: _emojiPool[_emojiIdx]),
-                ),
+                ).labeled('CI-07'),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -144,49 +145,55 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
                         'Tap to cycle emoji',
                         style: TextStyle(
                             fontSize: 11, color: Color(0xFF94A3B8)),
-                      ),
-                      TextField(
-                        controller: _nameCtrl,
-                        onChanged: (_) => setState(() {}),
-                        textCapitalization: TextCapitalization.words,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
-                        decoration: const InputDecoration(
-                          isDense: true,
-                          border: InputBorder.none,
-                          hintText: 'Isle name',
-                          hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
-                          contentPadding: EdgeInsets.symmetric(vertical: 4),
+                      ).labeled('CI-08'),
+                      DebugLabel(
+                        label: 'CI-09',
+                        child: TextField(
+                          controller: _nameCtrl,
+                          onChanged: (_) => setState(() {}),
+                          textCapitalization: TextCapitalization.words,
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            border: InputBorder.none,
+                            hintText: 'Isle name',
+                            hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
+                            contentPadding: EdgeInsets.symmetric(vertical: 4),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
               ]),
-            ),
-            const Divider(height: 1, color: Color(0xFFECEFF2)),
+            ).labeled('CI-06'),
+            const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('CI-10'),
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
-              child: TextField(
-                controller: _purposeCtrl,
-                textCapitalization: TextCapitalization.sentences,
-                style: const TextStyle(fontSize: 14),
-                decoration: const InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  hintText: 'Purpose (optional)',
-                  hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
-                  contentPadding: EdgeInsets.zero,
+              child: DebugLabel(
+                label: 'CI-11',
+                child: TextField(
+                  controller: _purposeCtrl,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: const TextStyle(fontSize: 14),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    hintText: 'Purpose (optional)',
+                    hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
+                    contentPadding: EdgeInsets.zero,
+                  ),
                 ),
               ),
             ),
-          ]),
+          ]).labeled('CI-12'),
 
           const SizedBox(height: 24),
 
           // Color row.
-          const _SectionLabel('Color'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
+          const _SectionLabel('Color').labeled('CI-13'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('CI-14'),
           _Panel(children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
@@ -194,22 +201,22 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
                 spacing: 14,
                 runSpacing: 14,
                 children: [
-                  for (final c in _colors)
+                  for (int i = 0; i < _colors.length; i++)
                     _ColorSwatch(
-                      name: c,
-                      selected: _color == c,
-                      onTap: () => setState(() => _color = c),
-                    ),
+                      name: _colors[i],
+                      selected: _color == _colors[i],
+                      onTap: () => setState(() => _color = _colors[i]),
+                    ).labeled('CI-${15 + i}'),
                 ],
               ),
             ),
-          ]),
+          ]).labeled('CI-23'),
 
           const SizedBox(height: 24),
 
           // Visibility.
-          const _SectionLabel('Visibility'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
+          const _SectionLabel('Visibility').labeled('CI-24'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('CI-25'),
           _Panel(children: [
             _VisibilityRow(
               icon: Icons.lock_outline,
@@ -218,8 +225,8 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
               selected: _visibility == IsleVisibility.private,
               onTap: () => setState(
                   () => _visibility = IsleVisibility.private),
-            ),
-            const Divider(height: 1, color: Color(0xFFECEFF2)),
+            ).labeled('CI-26'),
+            const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('CI-27'),
             _VisibilityRow(
               icon: Icons.public,
               title: 'Public',
@@ -227,8 +234,8 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
               selected: _visibility == IsleVisibility.public,
               onTap: () => setState(
                   () => _visibility = IsleVisibility.public),
-            ),
-          ]),
+            ).labeled('CI-28'),
+          ]).labeled('CI-29'),
 
           const SizedBox(height: 32),
 
@@ -251,7 +258,7 @@ class _CreateIsleScreenState extends ConsumerState<CreateIsleScreen> {
                         TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
               ),
             ),
-          ),
+          ).labeled('CI-30'),
           const SizedBox(height: 32),
         ],
       ),

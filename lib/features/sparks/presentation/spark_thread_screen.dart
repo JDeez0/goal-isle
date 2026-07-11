@@ -6,6 +6,7 @@ import '../../../core/models/message.dart';
 import '../../../core/models/spark.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
 import '../../../core/repositories/supabase/supabase_repository.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Spark Thread — a read-only view of a single Spark's log/thread messages.
 ///
@@ -74,12 +75,12 @@ class _SparkThreadScreenState extends ConsumerState<SparkThreadScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
             onPressed: () => context.go('/spark'),
-          ),
+          ).labeled('ST-00'),
         ),
         body: const Center(
           child: Text('Thread not found',
               style: TextStyle(color: Color(0xFF94A3B8))),
-        ),
+        ).labeled('ST-00-err'),
       );
     }
 
@@ -93,18 +94,18 @@ class _SparkThreadScreenState extends ConsumerState<SparkThreadScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
           onPressed: () => context.go('/spark'),
-        ),
-        title: Text(spark.title ?? 'Thread'),
+        ).labeled('ST-01'),
+        title: Text(spark.title ?? 'Thread').labeled('ST-02'),
       ),
       body: RefreshIndicator(
         onRefresh: () async => _loadMessages(),
         child: messages.isEmpty
             ? ListView(
-                children: const [
-                  SizedBox(height: 200),
-                  _EmptyThread(),
+                children: [
+                  const SizedBox(height: 200),
+                  const _EmptyThread().labeled('ST-05'),
                 ],
-              )
+              ).labeled('ST-04')
             : ListView.builder(
                 padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
                 reverse: true,
@@ -113,11 +114,11 @@ class _SparkThreadScreenState extends ConsumerState<SparkThreadScreen> {
                   final msg = messages[messages.length - 1 - i];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: _ThreadBubble(message: msg, isMe: msg.senderId == meId),
+                    child: _ThreadBubble(message: msg, isMe: msg.senderId == meId).labeled('ST-${i + 6}'),
                   );
                 },
-              ),
-      ),
+              ).labeled('ST-list'),
+      ).labeled('ST-03'),
     );
   }
 }

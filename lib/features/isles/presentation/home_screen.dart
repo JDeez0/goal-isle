@@ -5,6 +5,7 @@ import '../../../core/models/isle.dart';
 import '../../../core/models/enums.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
 import '../../../app/widgets/spark_widget.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Home — the signature screen. Shows active Isles as tinted territories
 /// on the water, each with its main-key face floating inside.
@@ -25,7 +26,7 @@ class HomeScreen extends ConsumerWidget {
     // While loading, show a blank screen — prevents the flash of
     // empty state before Supabase data arrives.
     if (isLoading) {
-      return const Scaffold(body: SizedBox.shrink());
+      return const Scaffold(body: SizedBox.shrink()).labeled('H-04');
     }
     final activeIsles = isles.where((i) => i.isActive).toList();
 
@@ -62,7 +63,7 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  ),
+                  ).labeled('H-01'),
                 ),
                 // Territory regions + faces
                 ...List.generate(activeIsles.length, (i) {
@@ -72,6 +73,7 @@ class HomeScreen extends ConsumerWidget {
                     isle: isle,
                     x: pos.dx,
                     y: pos.dy,
+                    label: 'H-02-${i + 1}',
                     onTap: () {
                       ref.read(activeIsleIdProvider.notifier).state = isle.id;
                       context.go('/isle');
@@ -113,7 +115,7 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  ),
+                  ).labeled('H-03'),
                 ),
               ],
             );
@@ -130,12 +132,14 @@ class _TerritoryFace extends StatelessWidget {
     required this.isle,
     required this.x,
     required this.y,
+    required this.label,
     required this.onTap,
   });
 
   final Isle isle;
-  final double x; // 0.0–1.0 fraction of width
-  final double y; // 0.0–1.0 fraction of height
+  final double x;
+  final double y;
+  final String label;
   final VoidCallback onTap;
 
   @override
@@ -165,7 +169,7 @@ class _TerritoryFace extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: color.withValues(alpha: 0.045),
                 ),
-              ),
+              ).labeled('$label-region'),
             ),
             // Face — the Isle's main spark emoji
             Positioned(
@@ -181,7 +185,7 @@ class _TerritoryFace extends StatelessWidget {
                           faceState == SparkState.streaked
                       ? streak
                       : null,
-                ),
+                ).labeled('$label-face'),
               ),
             ),
           ],

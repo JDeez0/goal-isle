@@ -7,6 +7,7 @@ import '../../../core/models/metric.dart';
 import '../../../core/models/spark.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
 import '../../../core/repositories/supabase/supabase_repository.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Metric Log — a bottom sheet for logging a new value against a metric Spark.
 ///
@@ -153,47 +154,50 @@ class _MetricLogSheetState extends ConsumerState<MetricLogSheet> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ),
+            ).labeled('ML-01'),
             const SizedBox(height: 14),
             Text(
               'Log · $title',
               style:
                   const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-            ),
+            ).labeled('ML-02'),
             const SizedBox(height: 16),
             // Number input + photo toggle.
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _ctrl,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    onChanged: (_) => setState(() {
-                      _error = null;
-                    }),
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.w700),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: '0',
-                      hintStyle: const TextStyle(
-                          color: Color(0xFFCBD5E1),
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700),
-                      errorText: _error,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            const BorderSide(color: Color(0xFFECEFF2)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                            color: Color(0xFF3B82F6), width: 1.5),
+                  child: DebugLabel(
+                    label: 'ML-03',
+                    child: TextField(
+                      controller: _ctrl,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      onChanged: (_) => setState(() {
+                        _error = null;
+                      }),
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.w700),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: '0',
+                        hintStyle: const TextStyle(
+                            color: Color(0xFFCBD5E1),
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700),
+                        errorText: _error,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFECEFF2)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                              color: Color(0xFF3B82F6), width: 1.5),
+                        ),
                       ),
                     ),
                   ),
@@ -223,9 +227,9 @@ class _MetricLogSheetState extends ConsumerState<MetricLogSheet> {
                           : const Color(0xFF64748B),
                     ),
                   ),
-                ),
+                ).labeled('ML-04'),
               ],
-            ),
+            ).labeled('ML-input-row'),
             const SizedBox(height: 18),
             SizedBox(
               height: 46,
@@ -242,10 +246,10 @@ class _MetricLogSheetState extends ConsumerState<MetricLogSheet> {
                 child: const Text('Add',
                     style:
                         TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-              ),
+              ).labeled('ML-05'),
             ),
           ],
-        ),
+        ).labeled('ML-body'),
       ),
     );
   }

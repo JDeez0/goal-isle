@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/utils/debug_label.dart';
 import '../theme/tokens.dart';
 
 /// Shell that hosts the three bottom-nav branches (Home, Notes, League) and
@@ -17,15 +18,14 @@ class BottomNavShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: navigationShell,
+      body: navigationShell.labeled('BN-01'),
       bottomNavigationBar: _BottomNav(
         currentIndex: navigationShell.currentIndex,
         onTap: (index) => navigationShell.goBranch(
           index,
-          // Return to the branch's initial location when re-tapping its tab.
           initialLocation: index == navigationShell.currentIndex,
         ),
-      ),
+      ).labeled('BN-02'),
     );
   }
 }
@@ -70,7 +70,7 @@ class _BottomNav extends StatelessWidget {
     // Interleave 44px gaps between the buttons.
     final rowChildren = <Widget>[];
     for (var i = 0; i < buttons.length; i++) {
-      rowChildren.add(buttons[i]);
+      rowChildren.add(buttons[i].labeled('BN-0${i + 3}'));
       if (i < buttons.length - 1) {
         rowChildren.add(const SizedBox(width: 44));
       }

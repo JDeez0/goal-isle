@@ -6,6 +6,7 @@ import '../../../core/models/isle.dart';
 import '../../../core/models/membership.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
 import '../../../app/widgets/spark_widget.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// League / Streaks — the bottom-nav tab that ranks each Isle's members by
 /// streak. A horizontal row of isle chips (mini spark + first word of the name)
@@ -41,7 +42,7 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
         child: isles.isEmpty || selected == null
-            ? const _EmptyState(text: 'no streaks yet')
+            ? const _EmptyState(text: 'no streaks yet').labeled('L-01')
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -51,7 +52,7 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
                     isles: isles,
                     selectedId: selected.id,
                     onTap: (id) => setState(() => _currentIsleId = id),
-                  ),
+                  ).labeled('L-02'),
                   const SizedBox(height: 18),
                   // Selected Isle's name as a bold title.
                   Padding(
@@ -64,7 +65,7 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
                         color: Color(0xFF1F2937),
                       ),
                     ),
-                  ),
+                  ).labeled('L-03'),
                   const SizedBox(height: 14),
                   // Ranked members.
                   Expanded(
@@ -74,7 +75,7 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
                       meId: meId,
                       accent: _isleColor(selected.color),
                     ),
-                  ),
+                  ).labeled('L-04'),
                 ],
               ),
       ),
@@ -111,7 +112,7 @@ class _IsleChipRow extends StatelessWidget {
             isle: isle,
             selected: selected,
             onTap: () => onTap(isle.id),
-          );
+          ).labeled('L-05-${i + 1}');
         },
       ),
     );
@@ -155,7 +156,7 @@ class _IsleChip extends StatelessWidget {
               state: _faceState(isle),
               size: 36,
               showSparkles: false,
-            ),
+            ).labeled('L-chip-spark'),
             const SizedBox(width: 8),
             Text(
               label,
@@ -164,7 +165,7 @@ class _IsleChip extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 color: selected ? accent : const Color(0xFF1F2937),
               ),
-            ),
+            ).labeled('L-chip-name'),
           ],
         ),
       ),
@@ -194,7 +195,7 @@ class _RankedList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (members.isEmpty) {
-      return const _EmptyState(text: 'no streaks yet');
+      return const _EmptyState(text: 'no streaks yet').labeled('L-empty');
     }
 
     final ranked = _ranking(isle, members, meId);
@@ -214,7 +215,7 @@ class _RankedList extends StatelessWidget {
           isMe: entry.userId == meId,
           isTop: rank == 1,
           accent: accent,
-        );
+        ).labeled('L-${i + 6}');
       },
     );
   }
@@ -301,7 +302,7 @@ class _RankRow extends StatelessWidget {
                       '👑',
                       style: TextStyle(fontSize: 20, height: 1),
                     ),
-                  )
+                  ).labeled('L-rank-crown')
                 : Text(
                     '$rank',
                     style: const TextStyle(
@@ -309,8 +310,8 @@ class _RankRow extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF94A3B8),
                     ),
-                  ),
-          ),
+                  ).labeled('L-rank-num'),
+          ).labeled('L-rank'),
           const SizedBox(width: 8),
           // Avatar.
           Container(
@@ -326,7 +327,7 @@ class _RankRow extends StatelessWidget {
             child: Center(
               child: Text(avatar, style: const TextStyle(fontSize: 20)),
             ),
-          ),
+          ).labeled('L-avatar'),
           const SizedBox(width: 12),
           // Name.
           Expanded(
@@ -339,12 +340,12 @@ class _RankRow extends StatelessWidget {
               ),
               overflow: TextOverflow.ellipsis,
             ),
-          ),
+          ).labeled('L-name'),
           // Flame + streak number.
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('🔥', style: TextStyle(fontSize: 15)),
+              const Text('🔥', style: TextStyle(fontSize: 15)).labeled('L-flame'),
               const SizedBox(width: 3),
               Text(
                 '$streak',
@@ -353,9 +354,9 @@ class _RankRow extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                   color: isTop ? accent : const Color(0xFF1F2937),
                 ),
-              ),
+              ).labeled('L-streak'),
             ],
-          ),
+          ).labeled('L-streak-row'),
         ],
       ),
     );

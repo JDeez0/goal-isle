@@ -6,6 +6,7 @@ import '../../../app/widgets/spark_widget.dart';
 import '../../../core/models/spark.dart';
 import '../../../core/models/spark_shape.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Spark Settings — rename, reshape the silhouette (4 corner sliders with a
 /// live preview), and delete the spark.
@@ -52,21 +53,24 @@ class _SparkSettingsScreenState extends ConsumerState<SparkSettingsScreen> {
   Future<void> _delete(Spark spark) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Delete ${spark.title ?? 'spark'}?'),
-        content: const Text(
-            'This removes the key from its Isle. This can’t be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete',
-                style: TextStyle(color: Color(0xFFEF4444))),
-          ),
-        ],
+      builder: (ctx) => DebugLabel(
+        label: 'SS-dialog',
+        child: AlertDialog(
+          title: Text('Delete ${spark.title ?? 'spark'}?').labeled('SS-dialog-title'),
+          content: const Text(
+              'This removes the key from its Isle. This can’t be undone.').labeled('SS-dialog-content'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel').labeled('SS-dialog-cancel'),
+            ).labeled('SS-dialog-cancel-btn'),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Delete',
+                  style: TextStyle(color: Color(0xFFEF4444))).labeled('SS-dialog-delete'),
+            ).labeled('SS-dialog-delete-btn'),
+          ],
+        ),
       ),
     );
     if (confirmed != true) return;
@@ -90,13 +94,13 @@ class _SparkSettingsScreenState extends ConsumerState<SparkSettingsScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
             onPressed: () => context.go('/spark'),
-          ),
-          title: const Text('Settings'),
+          ).labeled('SS-00'),
+          title: const Text('Settings').labeled('SS-00-title'),
         ),
         body: const Center(
           child: Text('Spark not found',
               style: TextStyle(color: Color(0xFF94A3B8))),
-        ),
+        ).labeled('SS-00-err'),
       );
     }
 
@@ -111,86 +115,98 @@ class _SparkSettingsScreenState extends ConsumerState<SparkSettingsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
           onPressed: () => context.go('/spark'),
-        ),
-        title: const Text('Settings'),
+        ).labeled('SS-01'),
+        title: const Text('Settings').labeled('SS-02'),
       ),
       body: ListView(
         children: [
           const SizedBox(height: 12),
 
           // Name section.
-          const _SectionLabel('Name'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
-          _Panel(children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 6, 18, 14),
-              child: TextField(
-                controller: _nameCtrl,
-                onChanged: (_) => setState(() {}),
-                textCapitalization: TextCapitalization.words,
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600),
-                decoration: const InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  hintText: 'Spark name',
-                  hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
-                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+          const _SectionLabel('Name').labeled('SS-03'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('SS-04'),
+          DebugLabel(
+            label: 'SS-05',
+            child: _Panel(children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 6, 18, 14),
+                child: DebugLabel(
+                  label: 'SS-06',
+                  child: TextField(
+                    controller: _nameCtrl,
+                    onChanged: (_) => setState(() {}),
+                    textCapitalization: TextCapitalization.words,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      hintText: 'Spark name',
+                      hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
+                      contentPadding: EdgeInsets.symmetric(vertical: 8),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ]),
+            ]),
+          ),
 
           const SizedBox(height: 24),
 
           // Shape section — live preview + 4 corner sliders.
-          const _SectionLabel('Shape'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
-          _Panel(children: [
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 22, 0, 8),
-                child: SparkWidget(
-                  emoji: spark.emoji,
-                  state: spark.state,
-                  shape: previewShape,
-                  size: 88,
+          const _SectionLabel('Shape').labeled('SS-07'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('SS-08'),
+          DebugLabel(
+            label: 'SS-09',
+            child: _Panel(children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 22, 0, 8),
+                  child: SparkWidget(
+                    emoji: spark.emoji,
+                    state: spark.state,
+                    shape: previewShape,
+                    size: 88,
+                  ).labeled('SS-10'),
                 ),
               ),
-            ),
-            _ShapeSlider(
-              label: 'Top-left',
-              value: _tl,
-              onChanged: (v) => setState(() => _tl = v),
-            ),
-            const Divider(height: 1, color: Color(0xFFECEFF2)),
-            _ShapeSlider(
-              label: 'Top-right',
-              value: _tr,
-              onChanged: (v) => setState(() => _tr = v),
-            ),
-            const Divider(height: 1, color: Color(0xFFECEFF2)),
-            _ShapeSlider(
-              label: 'Bottom-right',
-              value: _br,
-              onChanged: (v) => setState(() => _br = v),
-            ),
-            const Divider(height: 1, color: Color(0xFFECEFF2)),
-            _ShapeSlider(
-              label: 'Bottom-left',
-              value: _bl,
-              onChanged: (v) => setState(() => _bl = v),
-            ),
-          ]),
+              _ShapeSlider(
+                label: 'Top-left',
+                value: _tl,
+                onChanged: (v) => setState(() => _tl = v),
+              ).labeled('SS-11'),
+              const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('SS-11-div'),
+              _ShapeSlider(
+                label: 'Top-right',
+                value: _tr,
+                onChanged: (v) => setState(() => _tr = v),
+              ).labeled('SS-12'),
+              const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('SS-12-div'),
+              _ShapeSlider(
+                label: 'Bottom-right',
+                value: _br,
+                onChanged: (v) => setState(() => _br = v),
+              ).labeled('SS-13'),
+              const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('SS-13-div'),
+              _ShapeSlider(
+                label: 'Bottom-left',
+                value: _bl,
+                onChanged: (v) => setState(() => _bl = v),
+              ).labeled('SS-14'),
+            ]),
+          ),
 
           const SizedBox(height: 24),
 
           // Danger zone.
-          const _SectionLabel('Danger zone'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
-          _Panel(children: [
-            _DangerRow(label: 'Delete', onTap: () => _delete(spark)),
-          ]),
+          const _SectionLabel('Danger zone').labeled('SS-15'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('SS-16'),
+          DebugLabel(
+            label: 'SS-17',
+            child: _Panel(children: [
+              _DangerRow(label: 'Delete', onTap: () => _delete(spark)).labeled('SS-18'),
+            ]),
+          ),
 
           const SizedBox(height: 32),
           Padding(
@@ -209,7 +225,7 @@ class _SparkSettingsScreenState extends ConsumerState<SparkSettingsScreen> {
                 child: const Text('Done',
                     style:
                         TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-              ),
+              ).labeled('SS-19'),
             ),
           ),
           const SizedBox(height: 32),

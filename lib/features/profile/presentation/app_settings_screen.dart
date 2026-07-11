@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// App Settings — Display (theme cycle), Notifications toggle, About.
 /// Per Language Principle: settings chrome is allowed OS-level vocabulary.
@@ -22,13 +23,13 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
           onPressed: () => context.go('/profile'),
-        ),
-        title: const Text('Settings'),
+        ).labeled('AS-01'),
+        title: const Text('Settings').labeled('AS-02'),
       ),
       body: ListView(
         children: [
-          const _SectionLabel('Display'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
+          const _SectionLabel('Display').labeled('AS-03'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('AS-04'),
           _SettingsPanel(children: [
             _SettingsRow(
               icon: Icons.light_mode_outlined,
@@ -36,25 +37,25 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
               value: _themes[_themeIdx],
               onTap: () => setState(() => _themeIdx = (_themeIdx + 1) % _themes.length),
               showChevron: true,
-            ),
-          ]),
+            ).labeled('AS-06'),
+          ]).labeled('AS-05'),
           const SizedBox(height: 16),
-          const _SectionLabel('Notifications'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
+          const _SectionLabel('Notifications').labeled('AS-07'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('AS-08'),
           _SettingsPanel(children: [
             _SettingsRow(
               icon: Icons.notifications_outlined,
               label: 'Push',
               toggle: _notifications,
               onToggle: (v) => setState(() => _notifications = v),
-            ),
-          ]),
+            ).labeled('AS-10'),
+          ]).labeled('AS-09'),
           const SizedBox(height: 16),
-          const _SectionLabel('About'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
-          const _SettingsPanel(children: [
-            _SettingsRow(label: 'v2.0 · Flutter', isStatic: true),
-          ]),
+          const _SectionLabel('About').labeled('AS-12'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('AS-13'),
+          _SettingsPanel(children: [
+            const _SettingsRow(label: 'v2.0 · Flutter', isStatic: true).labeled('AS-15'),
+          ]).labeled('AS-14'),
         ],
       ),
     );

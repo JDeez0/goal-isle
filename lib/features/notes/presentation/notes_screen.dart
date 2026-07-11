@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/isle.dart';
 import '../../../core/models/post.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Notes — a single chronological feed aggregating every post across all of
 /// the user's Isles.
@@ -30,7 +31,7 @@ class NotesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
-        title: const Text('Notes'),
+        title: const Text('Notes').labeled('N-01'),
       ),
       body: feed.isEmpty
           ? const Center(
@@ -38,7 +39,7 @@ class NotesScreen extends ConsumerWidget {
                 'no posts yet',
                 style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
               ),
-            )
+            ).labeled('N-02')
           : ListView.separated(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               itemCount: feed.length,
@@ -54,7 +55,7 @@ class NotesScreen extends ConsumerWidget {
                         entry.value.id;
                     context.go('/isle');
                   },
-                );
+                ).labeled('N-${i + 3}');
               },
             ),
     );
@@ -95,7 +96,7 @@ class _FeedCard extends StatelessWidget {
             children: [
               // Header — avatar + "posted" + Isle label + big emoji.
               Row(children: [
-                Text(post.authorAvatar, style: const TextStyle(fontSize: 26)),
+                Text(post.authorAvatar, style: const TextStyle(fontSize: 26)).labeled('N-card-avatar'),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -110,32 +111,32 @@ class _FeedCard extends StatelessWidget {
                                 fontWeight: FontWeight.w600),
                           ),
                         ]),
-                      ),
+                      ).labeled('N-card-posted'),
                       const SizedBox(height: 2),
                       // Isle label — tinted with the Isle's color.
                       Row(children: [
                         Text(isle.emoji,
-                            style: const TextStyle(fontSize: 11)),
+                            style: const TextStyle(fontSize: 11)).labeled('N-card-isle-emoji'),
                         const SizedBox(width: 4),
                         Text(isle.name,
                             style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: isleColor)),
-                      ]),
+                                color: isleColor)).labeled('N-card-isle-name'),
+                      ]).labeled('N-card-isle'),
                     ],
                   ),
                 ),
                 if (hasEmoji)
                   Text(post.emoji!,
-                      style: const TextStyle(fontSize: 30, height: 1)),
-              ]),
+                      style: const TextStyle(fontSize: 30, height: 1)).labeled('N-card-emoji'),
+              ]).labeled('N-card-header'),
               // Text body.
               if (hasText) ...[
                 const SizedBox(height: 10),
                 Text(post.text!,
                     style: const TextStyle(
-                        fontSize: 14, color: Color(0xFF1F2937), height: 1.4)),
+                        fontSize: 14, color: Color(0xFF1F2937), height: 1.4)).labeled('N-card-text'),
               ],
               // Image — colored gradient placeholder.
               if (hasImage) ...[
@@ -155,12 +156,12 @@ class _FeedCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                ),
+                ).labeled('N-card-image'),
               ],
               const SizedBox(height: 8),
               Text(_timeAgo(post.createdAt),
                   style: const TextStyle(
-                      fontSize: 11, color: Color(0xFF94A3B8))),
+                      fontSize: 11, color: Color(0xFF94A3B8))).labeled('N-card-time'),
             ],
           ),
         ),

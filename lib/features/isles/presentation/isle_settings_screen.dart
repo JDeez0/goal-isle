@@ -5,6 +5,7 @@ import '../../../core/models/enums.dart';
 import '../../../core/models/isle.dart';
 import '../../../core/models/membership.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// Isle Settings — members, color, visibility, and danger (delete/leave).
 /// Creator-only rows (color, visibility, delete) are hidden for plain members.
@@ -27,13 +28,13 @@ class IsleSettingsScreen extends ConsumerWidget {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
             onPressed: () => context.go('/isle'),
-          ),
-          title: const Text('Settings'),
+          ).labeled('IS-00'),
+          title: const Text('Settings').labeled('IS-00-title'),
         ),
         body: const Center(
           child: Text('Isle not found',
               style: TextStyle(color: Color(0xFF94A3B8))),
-        ),
+        ).labeled('IS-00-err'),
       );
     }
 
@@ -51,16 +52,16 @@ class IsleSettingsScreen extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF3B82F6)),
           onPressed: () => context.go('/isle'),
-        ),
-        title: const Text('Settings'),
+        ).labeled('IS-01'),
+        title: const Text('Settings').labeled('IS-02'),
       ),
       body: ListView(
         children: [
           const SizedBox(height: 12),
 
           // Members section.
-          _SectionLabel('Members (${members.length})'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
+          _SectionLabel('Members (${members.length})').labeled('IS-03'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('IS-04'),
           _Panel(children: [
             _SettingsRow(
               icon: Icons.group_outlined,
@@ -69,22 +70,22 @@ class IsleSettingsScreen extends ConsumerWidget {
               showChevron: true,
               onTap: () => _showMembersModal(
                   context, isle, members, isCreator, meId, ref),
-            ),
-          ]),
+            ).labeled('IS-06'),
+          ]).labeled('IS-05'),
 
           if (isCreator) ...[
             const SizedBox(height: 24),
-            const _SectionLabel('Isle'),
-            const Divider(height: 1, color: Color(0xFFECEFF2)),
+            const _SectionLabel('Isle').labeled('IS-07'),
+            const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('IS-08'),
             _Panel(children: [
               _SettingsRow(
                 icon: Icons.palette_outlined,
                 label: 'Color',
-                trailing: _ColorDot(name: isle.color),
+                trailing: _ColorDot(name: isle.color).labeled('IS-10'),
                 showChevron: true,
                 onTap: () => _showColorModal(context, isle, ref),
-              ),
-              const Divider(height: 1, color: Color(0xFFECEFF2)),
+              ).labeled('IS-09'),
+              const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('IS-11'),
               _SettingsRow(
                 icon: isle.visibility == IsleVisibility.private
                     ? Icons.lock_outline
@@ -95,19 +96,19 @@ class IsleSettingsScreen extends ConsumerWidget {
                     : 'Public',
                 showChevron: true,
                 onTap: () => _toggleVisibility(isle, ref),
-              ),
-            ]),
+              ).labeled('IS-12'),
+            ]).labeled('IS-13'),
           ],
 
           const SizedBox(height: 24),
-          _SectionLabel(isCreator ? 'Danger zone' : 'Leave'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
+          _SectionLabel(isCreator ? 'Danger zone' : 'Leave').labeled('IS-14'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('IS-15'),
           _Panel(children: [
             _DangerRow(
               label: isCreator ? 'Delete Isle' : 'Leave Isle',
               onTap: () => _onDanger(context, isle, isCreator, meId, ref),
-            ),
-          ]),
+            ).labeled('IS-17'),
+          ]).labeled('IS-16'),
 
           const SizedBox(height: 32),
         ],
@@ -137,38 +138,41 @@ class IsleSettingsScreen extends ConsumerWidget {
                   '${isle.name} · ${members.length} members',
                   style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w700),
-                ),
+                ).labeled('IS-modal-title'),
               ),
               const SizedBox(height: 8),
-              const Divider(color: Color(0xFFECEFF2)),
-              for (final m in members)
-                ListTile(
-                  leading:
-                      Text(m.userAvatar, style: const TextStyle(fontSize: 22)),
-                  title:
-                      Text(m.userName, style: const TextStyle(fontSize: 14)),
-                  subtitle: Text(
-                    m.role == 'creator' ? 'Creator' : 'Member',
-                    style: const TextStyle(
-                        fontSize: 12, color: Color(0xFF94A3B8)),
+              const Divider(color: Color(0xFFECEFF2)).labeled('IS-modal-divider'),
+              for (int i = 0; i < members.length; i++)
+                DebugLabel(
+                  label: 'IS-modal-${i + 1}',
+                  child: ListTile(
+                    leading:
+                        Text(members[i].userAvatar, style: const TextStyle(fontSize: 22)),
+                    title:
+                        Text(members[i].userName, style: const TextStyle(fontSize: 14)),
+                    subtitle: Text(
+                      members[i].role == 'creator' ? 'Creator' : 'Member',
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFF94A3B8)),
+                    ),
+                    trailing: (isCreator &&
+                            members[i].role != 'creator' &&
+                            members[i].userId != meId)
+                        ? TextButton(
+                            onPressed: () {
+                              ref
+                                  .read(membershipsProvider.notifier)
+                                  .removeMember(isle.id, members[i].userId);
+                              Navigator.of(context).pop();
+                              _showMembersModal(
+                                  context, isle, ref.read(membershipsProvider)[isle.id] ?? const [], isCreator, meId, ref);
+                            },
+                            child: const Text('Remove',
+                                style: TextStyle(
+                                    color: Color(0xFFEF4444), fontSize: 13)),
+                          ).labeled('IS-modal-remove')
+                        : null,
                   ),
-                  trailing: (isCreator &&
-                          m.role != 'creator' &&
-                          m.userId != meId)
-                      ? TextButton(
-                          onPressed: () {
-                            ref
-                                .read(membershipsProvider.notifier)
-                                .removeMember(isle.id, m.userId);
-                            Navigator.of(context).pop();
-                            _showMembersModal(
-                                context, isle, ref.read(membershipsProvider)[isle.id] ?? const [], isCreator, meId, ref);
-                          },
-                          child: const Text('Remove',
-                              style: TextStyle(
-                                  color: Color(0xFFEF4444), fontSize: 13)),
-                        )
-                      : null,
                 ),
             ],
           ),
@@ -196,29 +200,29 @@ class IsleSettingsScreen extends ConsumerWidget {
                 children: [
                   const Text('Color',
                       style: TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w700)),
+                          fontSize: 14, fontWeight: FontWeight.w700)).labeled('IS-color-title'),
                   const SizedBox(height: 16),
                   Wrap(
                     spacing: 14,
                     runSpacing: 14,
                     children: [
-                      for (final c in _colors)
+                      for (int i = 0; i < _colors.length; i++)
                         GestureDetector(
-                          onTap: () => setSt(() => picked = c),
+                          onTap: () => setSt(() => picked = _colors[i]),
                           child: Container(
                             width: 38,
                             height: 38,
                             decoration: BoxDecoration(
-                              color: _isleColor(c),
+                              color: _isleColor(_colors[i]),
                               borderRadius: BorderRadius.circular(10),
-                              border: picked == c
+                              border: picked == _colors[i]
                                   ? Border.all(
                                       color: const Color(0xFF1F2937),
                                       width: 2.5)
                                   : null,
                             ),
                           ),
-                        ),
+                        ).labeled('IS-color-${i + 1}'),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -242,7 +246,7 @@ class IsleSettingsScreen extends ConsumerWidget {
                           style: TextStyle(
                               fontSize: 14, fontWeight: FontWeight.w600)),
                     ),
-                  ),
+                  ).labeled('IS-color-done'),
                 ],
               ),
             ),
@@ -263,24 +267,27 @@ class IsleSettingsScreen extends ConsumerWidget {
 
   Future<void> _onDanger(BuildContext context, Isle isle, bool isCreator,
       String meId, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
+final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(isCreator ? 'Delete ${isle.name}?' : 'Leave ${isle.name}?'),
-        content: Text(isCreator
-            ? 'This permanently removes the Isle for everyone. This can’t be undone.'
-            : 'You’ll no longer see this Isle or its keys.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(isCreator ? 'Delete' : 'Leave',
-                style: const TextStyle(color: Color(0xFFEF4444))),
-          ),
-        ],
+      builder: (ctx) => DebugLabel(
+        label: 'IS-dialog',
+        child: AlertDialog(
+          title: Text(isCreator ? 'Delete ${isle.name}?' : 'Leave ${isle.name}?').labeled('IS-dialog-title'),
+          content: Text(isCreator
+              ? 'This permanently removes the Isle for everyone. This can\'t be undone.'
+              : 'You\'ll no longer see this Isle or its keys.').labeled('IS-dialog-content'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ).labeled('IS-dialog-cancel'),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(isCreator ? 'Delete' : 'Leave',
+                  style: const TextStyle(color: Color(0xFFEF4444))),
+            ).labeled('IS-dialog-confirm'),
+          ],
+        ),
       ),
     );
     if (confirmed != true) return;

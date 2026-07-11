@@ -8,6 +8,7 @@ import '../../../core/models/enums.dart';
 import '../../../core/models/metric.dart';
 import '../../../core/models/spark.dart';
 import '../../../core/repositories/mock/mock_providers.dart';
+import '../../../core/utils/debug_label.dart';
 
 /// New Spark — compose a ritual or metric Key, then add it to the active Isle.
 class NewSparkScreen extends ConsumerStatefulWidget {
@@ -185,8 +186,8 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
           onPressed: () => context.go('/isle'),
           child: const Text('Cancel',
               style: TextStyle(color: Color(0xFF64748B), fontSize: 15)),
-        ),
-        title: const Text('New Spark'),
+        ).labeled('NS-01'),
+        title: const Text('New Spark').labeled('NS-02'),
         actions: [
           TextButton(
             onPressed: _canCreate ? _create : null,
@@ -200,7 +201,7 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-          ),
+          ).labeled('NS-03'),
         ],
       ),
       body: ListView(
@@ -216,76 +217,85 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
                   : SparkState.dull,
               size: 80,
             ),
-          ),
+          ).labeled('NS-04'),
           const SizedBox(height: 16),
 
           // Main spark + name.
-          const _SectionLabel('Spark'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
-          _Panel(children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 6),
-              child: Row(children: [
-                GestureDetector(
-                  onTap: _cycleMain,
-                  child: _SkewedEmojiSlot(
-                      emoji: _emojiPool[_mainEmojiIdx],
-                      lit: _mainEmojiChosen),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Tap to cycle emoji',
-                          style: TextStyle(
-                              fontSize: 11, color: Color(0xFF94A3B8))),
-                      TextField(
-                        controller: _nameCtrl,
-                        onChanged: (_) => setState(() {}),
-                        textCapitalization: TextCapitalization.words,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
-                        decoration: const InputDecoration(
-                          isDense: true,
-                          border: InputBorder.none,
-                          hintText: 'Name (optional)',
-                          hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 4),
+          const _SectionLabel('Spark').labeled('NS-05'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('NS-06'),
+          DebugLabel(
+            label: 'NS-07',
+            child: _Panel(children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 6),
+                child: Row(children: [
+                  GestureDetector(
+                    onTap: _cycleMain,
+                    child: _SkewedEmojiSlot(
+                        emoji: _emojiPool[_mainEmojiIdx],
+                        lit: _mainEmojiChosen),
+                  ).labeled('NS-08'),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Tap to cycle emoji',
+                            style: TextStyle(
+                                fontSize: 11, color: Color(0xFF94A3B8))).labeled('NS-09'),
+                        DebugLabel(
+                          label: 'NS-10',
+                          child: TextField(
+                            controller: _nameCtrl,
+                            onChanged: (_) => setState(() {}),
+                            textCapitalization: TextCapitalization.words,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              border: InputBorder.none,
+                              hintText: 'Name (optional)',
+                              hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
+                              contentPadding:
+                                  EdgeInsets.symmetric(vertical: 4),
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ]),
-            ),
-          ]),
+                ]),
+              ),
+            ]),
+          ),
 
           // Dependency slots — ritual only.
           if (_isRitual) ...[
             const SizedBox(height: 24),
-            const _SectionLabel('Ingredients'),
-            const Divider(height: 1, color: Color(0xFFECEFF2)),
-            _Panel(children: [
-              for (int i = 0; i < _deps.length; i++) ...[
-                _DepRow(
-                  draft: _deps[i],
-                  emoji: _emojiPool[_deps[i].idx],
-                  onCycle: () => _cycleDep(i),
-                  onLabelChanged: (_) => setState(() {}),
-                ),
-                if (i < _deps.length - 1)
-                  const Divider(height: 1, color: Color(0xFFECEFF2)),
-              ],
-            ]),
+            const _SectionLabel('Ingredients').labeled('NS-11'),
+            const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('NS-12'),
+            DebugLabel(
+              label: 'NS-13',
+              child: _Panel(children: [
+                for (int i = 0; i < _deps.length; i++) ...[
+                  _DepRow(
+                    draft: _deps[i],
+                    emoji: _emojiPool[_deps[i].idx],
+                    onCycle: () => _cycleDep(i),
+                    onLabelChanged: (_) => setState(() {}),
+                  ).labeled('NS-14-${i + 1}'),
+                  if (i < _deps.length - 1)
+                    const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('NS-14-${i + 1}-div'),
+                ],
+              ]),
+            ),
           ],
 
           const SizedBox(height: 24),
 
           // Kind picker.
-          const _SectionLabel('Kind'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
+          const _SectionLabel('Kind').labeled('NS-15'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('NS-16'),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: Row(children: [
@@ -296,7 +306,7 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
                   selected: _kind == _Kind.solo,
                   onTap: () => setState(() => _kind = _Kind.solo),
                 ),
-              ),
+              ).labeled('NS-17-1'),
               const SizedBox(width: 8),
               Expanded(
                 child: _KindCard(
@@ -305,7 +315,7 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
                   selected: _kind == _Kind.shared,
                   onTap: () => setState(() => _kind = _Kind.shared),
                 ),
-              ),
+              ).labeled('NS-17-2'),
               const SizedBox(width: 8),
               Expanded(
                 child: _KindCard(
@@ -314,14 +324,14 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
                   selected: _kind == _Kind.metric,
                   onTap: () => setState(() => _kind = _Kind.metric),
                 ),
-              ),
-            ]),
+              ).labeled('NS-17-3'),
+            ]).labeled('NS-17'),
           ),
 
           // Metric fields.
           if (!_isRitual) ...[
             const SizedBox(height: 16),
-            const Divider(height: 1, color: Color(0xFFECEFF2)),
+            const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('NS-17-div'),
             _Panel(children: [
               _FieldRow(
                 label: 'Target',
@@ -330,57 +340,63 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 onChanged: (_) => setState(() {}),
-              ),
-              const Divider(height: 1, color: Color(0xFFECEFF2)),
+              ).labeled('NS-18'),
+              const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('NS-18-div'),
               _FieldRow(
                 label: 'Unit',
                 controller: _unitCtrl,
                 hint: 'e.g. pts',
                 onChanged: (_) => setState(() {}),
-              ),
-              const Divider(height: 1, color: Color(0xFFECEFF2)),
+              ).labeled('NS-19'),
+              const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('NS-19-div'),
               _ScopeToggle(
                 shared: _kind == _Kind.shared,
                 onChanged: (v) => setState(
                     () => _kind = v ? _Kind.shared : _Kind.metric),
-              ),
-            ]),
+              ).labeled('NS-20'),
+            ]).labeled('NS-metric-panel'),
           ],
 
           const SizedBox(height: 24),
 
           // Timer.
-          const _SectionLabel('Timer'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
-          _Panel(children: [
-            _NavRow(
-              icon: Icons.schedule,
-              label: 'Resets',
-              value: _timerLabel(_timer),
-              onTap: _pickTimer,
-            ),
-          ]),
+          const _SectionLabel('Timer').labeled('NS-21'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('NS-22'),
+          DebugLabel(
+            label: 'NS-23',
+            child: _Panel(children: [
+              _NavRow(
+                icon: Icons.schedule,
+                label: 'Resets',
+                value: _timerLabel(_timer),
+                onTap: _pickTimer,
+              ).labeled('NS-24'),
+            ]),
+          ),
 
           const SizedBox(height: 24),
 
           // Streak + Share.
-          const _SectionLabel('Behavior'),
-          const Divider(height: 1, color: Color(0xFFECEFF2)),
-          _Panel(children: [
-            _ToggleRow(
-              label: 'Breaks on miss',
-              subtitle: 'Streak resets if you miss a cycle',
-              value: _breaksOnMiss,
-              onChanged: (v) => setState(() => _breaksOnMiss = v),
-            ),
-            const Divider(height: 1, color: Color(0xFFECEFF2)),
-            _NavRow(
-              icon: Icons.share_outlined,
-              label: 'Share',
-              value: 'Invite',
-              onTap: () => context.go('/isles'),
-            ),
-          ]),
+          const _SectionLabel('Behavior').labeled('NS-25'),
+          const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('NS-26'),
+          DebugLabel(
+            label: 'NS-27',
+            child: _Panel(children: [
+              _ToggleRow(
+                label: 'Breaks on miss',
+                subtitle: 'Streak resets if you miss a cycle',
+                value: _breaksOnMiss,
+                onChanged: (v) => setState(() => _breaksOnMiss = v),
+              ).labeled('NS-28'),
+              const Divider(height: 1, color: Color(0xFFECEFF2)).labeled('NS-28-div'),
+              _NavRow(
+                icon: Icons.share_outlined,
+                label: 'Share',
+                value: 'Invite',
+                onTap: () => context.go('/isles'),
+              ).labeled('NS-29'),
+            ]),
+          ),
 
           const SizedBox(height: 32),
           Padding(
@@ -400,7 +416,7 @@ class _NewSparkScreenState extends ConsumerState<NewSparkScreen> {
                 child: const Text('Create Spark',
                     style:
                         TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-              ),
+              ).labeled('NS-30'),
             ),
           ),
           const SizedBox(height: 32),
@@ -779,8 +795,8 @@ class _TimerSheet extends StatelessWidget {
             child: Text('Resets',
                 style: TextStyle(
                     fontSize: 14, fontWeight: FontWeight.w700)),
-          ),
-          const Divider(color: Color(0xFFECEFF2)),
+          ).labeled('NS-timer-title'),
+          const Divider(color: Color(0xFFECEFF2)).labeled('NS-timer-divider'),
           for (final m in options)
             ListTile(
               leading: Icon(Icons.schedule, size: 20,
@@ -801,10 +817,10 @@ class _TimerSheet extends StatelessWidget {
                       size: 18, color: Color(0xFF3B82F6))
                   : null,
               onTap: () => Navigator.of(context).pop(m),
-            ),
+            ).labeled('NS-timer-${options.indexOf(m)}'),
           const SizedBox(height: 8),
         ],
-      ),
+      ).labeled('NS-timer-body'),
     );
   }
 }
