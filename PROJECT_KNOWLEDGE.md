@@ -2,10 +2,10 @@
 
 **Single source of truth. Everything you need to know about this project.**
 
-**Last updated:** July 10, 2026
+**Last updated:** July 11, 2026
 **Project root:** `/home/jasper/projects/goal_isle/`
 **Repository:** `git@github.com:JDeez0/goal-isle.git` (branch: `main`)
-**Status:** ✅ **App renders on TestFlight — black screen fixed, confirmed on device**
+**Status:** ✅ **App working on TestFlight — isles persist, no flash, layout fixed**
 
 ---
 
@@ -132,6 +132,7 @@ void updateIsle(Isle isle) {
 - `islesProvider` → `IslesNotifier` — list of all isles with full data
 - `membershipsProvider` → `MemberhipsNotifier` — Map<isleId, List<Membership>>
 - `friendsProvider` → `FriendsNotifier` — list of friends
+- `islesLoadingProvider` — bool, true while fetching from Supabase (prevents home screen flash)
 - `activeIsleIdProvider` / `activeSparkIdProvider` — navigation state (UI-only)
 
 **Key helpers:**
@@ -266,6 +267,12 @@ xcodebuild: error: Found no destinations for the scheme 'Runner' and action arch
 | 28 | **Chat reactions use mock ID** | `currentUserProvider.id` instead of `currentAuthId()` | Use `currentAuthId()` | `fbc4fa5` |
 | 29 | **Stale local files** | 6 P12 variants, cert.pem, key.pem, decoy exportOptions | Removed all stale files | `fbc4fa5` |
 | 30 | **Abandoned codemagic.yaml** | Two CI configs, conflicting signing | Removed, GitHub Actions only | `fbc4fa5` |
+| 31 | **Home screen layout stacking** | Poisson-disk algorithm could fail to place isles, falling back to (0.5, 0.5) | Deterministic grid layout | `e795be6` |
+| 32 | **debugPrint missing import** | `flutter/foundation.dart` not imported in supabase_repository.dart | Added import | `039474b` |
+| 33 | **Mock data flash on startup** | Notifiers initialized with MockData seed (fake isles showed for ~250ms) | Initialize with empty state `[]` | `2e19f14` |
+| 34 | **createIsle partial failure** | Membership + spark inserts failed silently (single catch block) | Granular try/catch per step + debugPrint | `2e19f14` |
+| 35 | **fetchIsles not resilient** | One failing isle killed entire fetch | Per-isle try/catch + debug logging | `8a3707c` |
+| 36 | **Home screen loading flash** | Empty → populated transition was visually jarring | `islesLoadingProvider` — blank screen while fetching | `7b0c45a` |
 
 ---
 

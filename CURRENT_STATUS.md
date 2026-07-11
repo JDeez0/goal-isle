@@ -1,6 +1,6 @@
 # Goal Isle — Current Status
 
-**Last updated:** July 10, 2026 — ✅ **Black screen fixed, app renders on TestFlight**
+**Last updated:** July 11, 2026 — ✅ **Home screen flash fixed, isles persist correctly**
 **Project:** `/home/jasper/projects/goal_isle/`
 **Repo:** `git@github.com:JDeez0/goal-isle.git` (branch: `main`)
 
